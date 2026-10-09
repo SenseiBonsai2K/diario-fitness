@@ -1,0 +1,35 @@
+{
+  "nav": {
+    "label": "Main sections",
+    "today": "Today",
+    "workout": "Workout",
+    "progress": "Progress",
+    "plan": "Plan",
+    "settings": "Settings"
+  },
+  "errors": {
+    "saveFailed": "Your last changes could not be saved on this phone. Free up some storage, then make a backup from Settings."
+  },
+  "date": {
+    "today": "Today",
+    "prev": "Previous day",
+    "next": "Next day",
+    "backToToday": "Back to today"
+  },
+  "activity": {
+    "run": "Run",
+    "yoga": "Yoga",
+    "rest": "Rest",
+    "none": "Nothing planned"
+  },
+  "unit": {
+    "hours": "h"
+  },
+  "phase": {
+    "cut": "Cut",
+    "maintain": "Maintenance",
+    "bulk": "Lean bulk",
+    "minicut": "Mini-cut"
+  },
+  "cancel": "Cancel"
+}

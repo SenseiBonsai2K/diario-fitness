@@ -1,0 +1,57 @@
+{
+  "title": "Piano",
+  "intro": "Il tuo piano, caricato dal backup. Fase e obiettivi si cambiano da Impostazioni.",
+  "empty": "Nessun piano caricato. Importa il tuo backup da Impostazioni: qui compariranno schede, piano e note.",
+  "goals": {
+    "title": "Obiettivi",
+    "phaseNow": "Fase attuale: {{phase}}.",
+    "what": "",
+    "start": "Partenza",
+    "target": "Obiettivo",
+    "weight": "Peso",
+    "bf": "Massa grassa",
+    "since": "Piano iniziato il {{date}}.",
+    "kcal": "Calorie",
+    "protein": "Proteine",
+    "carbs": "Carboidrati",
+    "fat": "Grassi",
+    "perDay": "Al giorno",
+    "maintenance": "Mantenimento stimato: {{value}} kcal."
+  },
+  "programs": {
+    "current": "Scheda attuale",
+    "archived": "Schede precedenti",
+    "period": "Dal {{from}}",
+    "periodTo": "Dal {{from}} al {{to}}",
+    "author": "Preparata da",
+    "goal": "Obiettivo",
+    "week": "Settimana",
+    "notes": "Note",
+    "volume": "Volume settimanale",
+    "muscle": "Gruppo muscolare",
+    "sets": "Serie",
+    "detail": "Da dove arrivano"
+  },
+  "sessions": {
+    "exercise": "Esercizio",
+    "setsReps": "Serie × rip",
+    "rest": "Recupero",
+    "notes": "Note"
+  },
+  "week": {
+    "days": {
+      "0": "Domenica",
+      "1": "Lunedì",
+      "2": "Martedì",
+      "3": "Mercoledì",
+      "4": "Giovedì",
+      "5": "Venerdì",
+      "6": "Sabato"
+    },
+    "day": "Giorno",
+    "activity": "Attività"
+  },
+  "history": {
+    "title": "Storico"
+  }
+}

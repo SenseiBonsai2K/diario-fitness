@@ -1,0 +1,67 @@
+{
+  "title": "Settings",
+  "privacy": "Your data stays only on this phone. Nothing is sent online.",
+  "language": "Language",
+  "languages": {
+    "it": "Italiano",
+    "en": "English"
+  },
+  "profile": {
+    "title": "Phase and targets",
+    "phase": "Current phase",
+    "kcal": "Calorie target",
+    "maintenance": "Estimated maintenance",
+    "protein": "Protein",
+    "carbs": "Carbohydrates",
+    "fat": "Fat",
+    "height": "Height",
+    "startWeight": "Starting weight",
+    "startBf": "Starting body fat",
+    "goalWeight": "Goal weight",
+    "goalBf": "Goal body fat",
+    "startDate": "Plan start date"
+  },
+  "backup": {
+    "title": "Backup",
+    "lead": "Data lives only on this phone: if you uninstall the app or clear Chrome's data, it is gone. Save a backup every week, for example to Google Drive. The backup contains everything: logs, programs, plan and history.",
+    "last": "Last backup: {{date}}",
+    "never": "No backup yet.",
+    "share": "Save to Drive or share",
+    "download": "Download file",
+    "import": "Restore from a backup",
+    "shareHint": "\"Save to Drive or share\" opens the Android menu: pick Drive to keep the backup in the cloud.",
+    "shareTitle": "Diario Fitness backup",
+    "saved": "Backup file downloaded to the Downloads folder.",
+    "shared": "Backup sent.",
+    "shareFailed": "Sharing didn't work. Use \"Download file\" instead.",
+    "errors": {
+      "notBackup": "This file isn't a Diario Fitness backup. Pick a .json file exported from this app.",
+      "newerVersion": "This backup comes from a newer version of the app. Reopen the app with a connection to update it, then try again.",
+      "corrupt": "The backup file is damaged and can't be read. Try an older backup."
+    },
+    "confirmTitle": "Restore this backup?",
+    "exportedAt": "Made on {{date}}",
+    "contains": "It contains {{programs}} programs, {{history}} history entries, {{days}} days, {{workouts}} workouts, {{runs}} runs, {{weeks}} weekly checks and {{months}} monthly checks.",
+    "replaceWarning": "Everything on this phone will be replaced by the backup. Make a backup of the current data first if you need it.",
+    "imported": "Backup restored.",
+    "importAll": "Restore everything",
+    "importPlan": "Load plan and programs only",
+    "importChoice": "\"Restore everything\" replaces all data on this phone. \"Load plan and programs only\" keeps your logs and updates profile, programs, plan and history.",
+    "planImported": "Plan and programs loaded. Your logs are unchanged.",
+    "emptyHint": "First time here? Restore the backup file you received to load your plan and programs."
+  },
+  "install": {
+    "title": "Install on Android",
+    "step1": "Open the app's address in Chrome, with an internet connection.",
+    "step2": "Tap the ⋮ menu, then \"Install app\" (or \"Add to Home screen\").",
+    "step3": "Open it from the Home screen icon: from then on it works without internet."
+  },
+  "danger": {
+    "title": "Delete data",
+    "start": "Delete all data",
+    "word": "DELETE",
+    "warning": "This permanently deletes everything on this phone. Type {{word}} to confirm.",
+    "typeLabel": "Type {{word}} to confirm",
+    "confirm": "Delete everything"
+  }
+}

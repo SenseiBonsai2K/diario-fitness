@@ -1,0 +1,66 @@
+// Training programs live in the user's data (imported from a backup), never
+// in the source code. These helpers read them.
+
+/** Activities that exist without a program session. */
+export const EXTRA_ACTIVITIES = ["run", "yoga"];
+
+export function activeProgram(data) {
+  return data.programs[data.activeProgram] || null;
+}
+
+export function sessionsOf(program) {
+  return program?.sessions || [];
+}
+
+/** The session (or "run" / "yoga" / "rest" / null) planned for a weekday 0–6. */
+export function plannedFor(data, weekday) {
+  const p = activeProgram(data);
+  return p?.week?.[String(weekday)] ?? null;
+}
+
+/** Find a session by id, in the active program first, then in any program. */
+export function findSession(data, sessionId, programId) {
+  const order = [programId, data.activeProgram, ...Object.keys(data.programs)].filter(Boolean);
+  for (const id of order) {
+    const s = data.programs[id]?.sessions?.find((x) => x.id === sessionId);
+    if (s) return { program: data.programs[id], session: s };
+  }
+  return null;
+}
+
+/** id → display name for every exercise in every program (active program wins). */
+export function exerciseNames(data) {
+  const names = {};
+  const ids = [data.activeProgram, ...Object.keys(data.programs).filter((k) => k !== data.activeProgram)];
+  for (const pid of ids) {
+    for (const s of data.programs[pid]?.sessions || []) {
+      for (const e of s.exercises) if (!names[e.id]) names[e.id] = e.name;
+    }
+  }
+  return names;
+}
+
+/** Planned lifting sessions, runs and yoga per week, from the active program. */
+export function weeklyTargets(data) {
+  const week = activeProgram(data)?.week || {};
+  const vals = Object.values(week);
+  const sessions = new Set(sessionsOf(activeProgram(data)).map((s) => s.id));
+  return {
+    lifts: vals.filter((v) => sessions.has(v)).length,
+    runs: vals.filter((v) => v === "run").length,
+    yoga: vals.filter((v) => v === "yoga").length,
+  };
+}
+
+/** Label for an activity id: a session name, or a translated run/yoga/rest. */
+export function activityLabel(data, id, t) {
+  if (!id) return t("common:activity.none");
+  if (["run", "yoga", "rest"].includes(id)) return t(`common:activity.${id}`);
+  return findSession(data, id)?.session.name || id;
+}
+
+export function fmtRest(sec) {
+  if (!sec && sec !== 0) return "—";
+  const m = Math.floor(sec / 60), s = sec % 60;
+  return s ? `${m}'${String(s).padStart(2, "0")}"` : `${m}'`;
+}

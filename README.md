@@ -1,0 +1,59 @@
+# Diario Fitness
+
+Personal training and nutrition diary, installable on Android as a web app (PWA).
+It works offline and keeps every piece of data on the phone: nothing is sent to a server.
+
+- **Today**: weight, calories and macros, sleep, energy, hunger, notes.
+- **Workout**: the day's session from the plan, with kg × reps for every set, last time's numbers,
+  a "add weight" hint (double progression) and a rest timer. Run and yoga logs on their days.
+- **Progress**: weekly summary with the calorie rule, weekly and monthly checks, charts for weight
+  (7-day average), waist and estimated 1RM per exercise.
+- **Plan**: goals and targets, the active training program, previous programs, plan sections,
+  yoga routine and history, all read from the user's data.
+- **Settings**: phase and targets, backup export (file or Android share sheet → Google Drive),
+  restore from a backup, language (Italian / English).
+
+## Stack
+
+React 18 + Vite + Tailwind CSS, react-i18next (English + Italian). No backend: data lives in
+`localStorage` as one JSON document (`src/lib/storage.js`). A hand-written service worker
+(`public/sw.js`) caches the app so it opens without a connection.
+
+Deliberately not included: Supabase, Sentry or any other service from the usual stack. The app
+has no server and no network calls, so there is nothing for them to do; errors stay on the device.
+
+## Run locally
+
+```bash
+npm install
+npm run dev            # http://localhost:5173
+npm test               # unit tests (stats, backup)
+npm run check:locales  # every key exists in both en and it
+npm run build          # static site in dist/
+```
+
+No environment variables are needed.
+
+## Deploy
+
+Every push to `main` runs `.github/workflows/deploy.yml`: locale check, tests, `npm audit`, build,
+then publishes `dist/` to GitHub Pages. One-time setup in the repository:
+**Settings → Pages → Source: GitHub Actions**.
+
+The site is public but contains no personal data and no training content. Profile, training
+programs, plan text, yoga routine, thresholds and history all live in the user's data: the public
+app opens empty and is filled by importing a backup file. Backup files are git-ignored.
+
+## Data and backups
+
+- Backup file: `{ app: "diario-fitness", exportedAt, data }`, where `data` is the whole document:
+  `version`, `profile` (targets, weekly-advice `rules`, `zone2` heart-rate band), `programs`
+  (each with `sessions[].exercises[]`, `week`, `notes`, `volume`), `activeProgram`, `plan`
+  (`sections[]`, `yoga`), `history[]`, and the logs `days`, `workouts`, `runs`, `yoga`, `weeks`, `months`.
+- Import offers two modes: **restore everything** (replaces all data) or **load plan and programs
+  only** (keeps every log, updates profile, programs, plan and history). The second is how a new
+  program or plan reaches the phone.
+- `SCHEMA_VERSION` in `src/lib/storage.js` must be bumped (with a migration in `normalise`) whenever
+  the document shape changes, so older backups keep importing.
+
+Skillset version: not recorded (personal tool, outside the client project workflow).

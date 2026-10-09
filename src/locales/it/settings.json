@@ -1,0 +1,67 @@
+{
+  "title": "Impostazioni",
+  "privacy": "I tuoi dati restano solo su questo telefono. Niente viene inviato online.",
+  "language": "Lingua",
+  "languages": {
+    "it": "Italiano",
+    "en": "English"
+  },
+  "profile": {
+    "title": "Fase e obiettivi",
+    "phase": "Fase attuale",
+    "kcal": "Calorie obiettivo",
+    "maintenance": "Mantenimento stimato",
+    "protein": "Proteine",
+    "carbs": "Carboidrati",
+    "fat": "Grassi",
+    "height": "Altezza",
+    "startWeight": "Peso di partenza",
+    "startBf": "Massa grassa di partenza",
+    "goalWeight": "Peso obiettivo",
+    "goalBf": "Massa grassa obiettivo",
+    "startDate": "Inizio del piano"
+  },
+  "backup": {
+    "title": "Backup",
+    "lead": "I dati sono solo su questo telefono: se disinstalli l'app o cancelli i dati di Chrome, si perdono. Salva un backup ogni settimana, per esempio su Google Drive. Il backup contiene tutto: registri, schede, piano e storico.",
+    "last": "Ultimo backup: {{date}}",
+    "never": "Nessun backup ancora.",
+    "share": "Salva su Drive o condividi",
+    "download": "Scarica il file",
+    "import": "Ripristina da un backup",
+    "shareHint": "\"Salva su Drive o condividi\" apre il menu di Android: scegli Drive per tenere il backup nel cloud.",
+    "shareTitle": "Backup Diario Fitness",
+    "saved": "File di backup scaricato nella cartella Download.",
+    "shared": "Backup inviato.",
+    "shareFailed": "La condivisione non ha funzionato. Usa \"Scarica il file\".",
+    "errors": {
+      "notBackup": "Questo file non è un backup di Diario Fitness. Scegli un file .json esportato da questa app.",
+      "newerVersion": "Questo backup viene da una versione più nuova dell'app. Riapri l'app con la connessione per aggiornarla, poi riprova.",
+      "corrupt": "Il file di backup è danneggiato e non si può leggere. Prova con un backup precedente."
+    },
+    "confirmTitle": "Ripristinare questo backup?",
+    "exportedAt": "Creato il {{date}}",
+    "contains": "Contiene {{programs}} schede, {{history}} voci di storico, {{days}} giorni, {{workouts}} allenamenti, {{runs}} corse, {{weeks}} check settimanali e {{months}} check mensili.",
+    "replaceWarning": "Tutti i dati su questo telefono verranno sostituiti da quelli del backup. Se ti servono, fai prima un backup dei dati attuali.",
+    "imported": "Backup ripristinato.",
+    "importAll": "Ripristina tutto",
+    "importPlan": "Carica solo piano e schede",
+    "importChoice": "\"Ripristina tutto\" sostituisce tutti i dati sul telefono. \"Carica solo piano e schede\" tiene i tuoi registri e aggiorna profilo, schede, piano e storico.",
+    "planImported": "Piano e schede caricati. I tuoi registri non sono cambiati.",
+    "emptyHint": "Prima volta? Ripristina il file di backup che hai ricevuto per caricare piano e schede."
+  },
+  "install": {
+    "title": "Installare su Android",
+    "step1": "Apri l'indirizzo dell'app in Chrome, con la connessione attiva.",
+    "step2": "Tocca il menu ⋮, poi \"Installa app\" (o \"Aggiungi a schermata Home\").",
+    "step3": "Aprila dall'icona nella schermata Home: da lì in poi funziona anche senza internet."
+  },
+  "danger": {
+    "title": "Cancella i dati",
+    "start": "Cancella tutti i dati",
+    "word": "CANCELLA",
+    "warning": "Così elimini per sempre tutto quello che c'è su questo telefono. Scrivi {{word}} per confermare.",
+    "typeLabel": "Scrivi {{word}} per confermare",
+    "confirm": "Cancella tutto"
+  }
+}

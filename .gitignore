@@ -1,0 +1,8 @@
+node_modules
+dist
+*.local
+.DS_Store
+# Personal data never goes in the repository
+*backup*.json
+dati-iniziali*.json
+__pycache__/

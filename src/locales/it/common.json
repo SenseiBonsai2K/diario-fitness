@@ -1,0 +1,35 @@
+{
+  "nav": {
+    "label": "Sezioni principali",
+    "today": "Oggi",
+    "workout": "Allenamento",
+    "progress": "Progressi",
+    "plan": "Piano",
+    "settings": "Impostazioni"
+  },
+  "errors": {
+    "saveFailed": "Le ultime modifiche non sono state salvate sul telefono. Libera un po' di spazio, poi fai un backup da Impostazioni."
+  },
+  "date": {
+    "today": "Oggi",
+    "prev": "Giorno precedente",
+    "next": "Giorno successivo",
+    "backToToday": "Torna a oggi"
+  },
+  "activity": {
+    "run": "Corsa",
+    "yoga": "Yoga",
+    "rest": "Riposo",
+    "none": "Niente in programma"
+  },
+  "unit": {
+    "hours": "ore"
+  },
+  "phase": {
+    "cut": "Definizione",
+    "maintain": "Mantenimento",
+    "bulk": "Lean bulk",
+    "minicut": "Mini-cut"
+  },
+  "cancel": "Annulla"
+}

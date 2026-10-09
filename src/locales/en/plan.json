@@ -1,0 +1,57 @@
+{
+  "title": "Plan",
+  "intro": "Your plan, loaded from your backup. Phase and targets can be changed in Settings.",
+  "empty": "No plan loaded. Import your backup from Settings: sessions, plan and notes appear here.",
+  "goals": {
+    "title": "Goals",
+    "phaseNow": "Current phase: {{phase}}.",
+    "what": "",
+    "start": "Start",
+    "target": "Target",
+    "weight": "Weight",
+    "bf": "Body fat",
+    "since": "Plan started on {{date}}.",
+    "kcal": "Calories",
+    "protein": "Protein",
+    "carbs": "Carbohydrates",
+    "fat": "Fat",
+    "perDay": "Per day",
+    "maintenance": "Estimated maintenance: {{value}} kcal."
+  },
+  "programs": {
+    "current": "Current program",
+    "archived": "Previous programs",
+    "period": "From {{from}}",
+    "periodTo": "From {{from}} to {{to}}",
+    "author": "Written by",
+    "goal": "Goal",
+    "week": "Week",
+    "notes": "Notes",
+    "volume": "Weekly volume",
+    "muscle": "Muscle group",
+    "sets": "Sets",
+    "detail": "From"
+  },
+  "sessions": {
+    "exercise": "Exercise",
+    "setsReps": "Sets × reps",
+    "rest": "Rest",
+    "notes": "Notes"
+  },
+  "week": {
+    "days": {
+      "0": "Sunday",
+      "1": "Monday",
+      "2": "Tuesday",
+      "3": "Wednesday",
+      "4": "Thursday",
+      "5": "Friday",
+      "6": "Saturday"
+    },
+    "day": "Day",
+    "activity": "Activity"
+  },
+  "history": {
+    "title": "History"
+  }
+}
