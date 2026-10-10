@@ -129,3 +129,20 @@ describe("plan import archives what it replaces", () => {
     expect(mergePlan(emptyData(), incoming).archive).toHaveLength(1);
   });
 });
+
+describe("partial plan files", () => {
+  it("a diet-only file leaves plan, profile and programs as they are", () => {
+    const current = emptyData();
+    current.plan = { sections: [{ id: "s", title: "Corsa" }], yoga: null };
+    current.profile.kcal = 2200;
+    current.programs = { p: { id: "p", name: "Scheda", sessions: [] } };
+    current.activeProgram = "p";
+    const incoming = normalise({ version: 3, diets: { d1: sampleDiet() }, activeDiet: "d1" });
+    const out = mergePlan(current, incoming);
+    expect(out.plan).toEqual(current.plan);
+    expect(out.profile.kcal).toBe(2200);
+    expect(out.activeProgram).toBe("p");
+    expect(out.activeDiet).toBe("d1");
+    expect(out.archive).toHaveLength(0);
+  });
+});

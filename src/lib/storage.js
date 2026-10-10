@@ -101,7 +101,8 @@ const PROFILE_PLAN_KEYS = Object.keys(DEFAULT_PROFILE);
 /**
  * Keep every log already on the phone and take profile, programs, diets,
  * plan and history from the incoming document (used to load a new plan
- * without losing what was recorded). Whatever the incoming file replaces —
+ * without losing what was recorded). A partial file only updates what it
+ * carries: empty profile fields and an empty plan leave the current ones. Whatever the incoming file replaces —
  * plan, profile targets, a program or diet with the same id — is first
  * copied into the archive, so no version is ever lost.
  */
@@ -109,11 +110,13 @@ export function mergePlan(current, incoming, at = new Date().toISOString()) {
   const archive = [...current.archive];
   const keep = (kind, data, id) => archive.push({ at, kind, ...(id ? { id } : {}), data });
 
-  const hasPlanContent = current.plan.sections.length > 0 || current.plan.yoga;
-  if (hasPlanContent && !same(current.plan, incoming.plan)) keep("plan", current.plan);
+  const filled = (plan) => plan.sections.length > 0 || !!plan.yoga;
+  const nextPlan = filled(incoming.plan) ? incoming.plan : current.plan;
+  if (filled(current.plan) && !same(current.plan, nextPlan)) keep("plan", current.plan);
 
   const pick = (p) => Object.fromEntries(PROFILE_PLAN_KEYS.map((k) => [k, p[k] ?? null]));
-  const nextProfile = { ...current.profile, ...incoming.profile };
+  const given = Object.fromEntries(Object.entries(incoming.profile).filter(([, v]) => v !== null && v !== undefined && v !== ""));
+  const nextProfile = { ...current.profile, ...given };
   if (Object.values(pick(current.profile)).some((v) => v !== null) && !same(pick(current.profile), pick(nextProfile))) keep("profile", pick(current.profile));
 
   for (const [coll, kind] of [["programs", "program"], ["diets", "diet"]]) {
@@ -137,7 +140,7 @@ export function mergePlan(current, incoming, at = new Date().toISOString()) {
     activeProgram: incoming.activeProgram || current.activeProgram,
     diets: { ...current.diets, ...incoming.diets },
     activeDiet: incoming.activeDiet || current.activeDiet,
-    plan: incoming.plan,
+    plan: nextPlan,
     history,
     archive,
   };

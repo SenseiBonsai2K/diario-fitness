@@ -41,7 +41,7 @@
     },
     "confirmTitle": "Ripristinare questo backup?",
     "exportedAt": "Creato il {{date}}",
-    "contains": "Contiene {{programs}} schede, {{diets}} diete, {{history}} voci di storico, {{archive}} versioni in archivio, {{days}} giorni, {{workouts}} allenamenti, {{runs}} corse, {{weeks}} check settimanali e {{months}} check mensili.",
+    "contains": "Contiene — schede: {{programs}} · diete: {{diets}} · voci di storico: {{history}} · versioni in archivio: {{archive}} · giorni: {{days}} · allenamenti: {{workouts}} · corse: {{runs}} · check settimanali: {{weeks}} · check mensili: {{months}}.",
     "replaceWarning": "Tutti i dati su questo telefono verranno sostituiti da quelli del backup. Se ti servono, fai prima un backup dei dati attuali.",
     "imported": "Backup ripristinato.",
     "importAll": "Ripristina tutto",

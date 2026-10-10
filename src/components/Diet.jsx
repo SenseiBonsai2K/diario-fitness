@@ -165,14 +165,16 @@ function DietPrint({ diet, onDone }) {
           </tbody>
         </table>
       )}
-      {diet.days.map((day) => (
-        <section key={day.id || day.name} className="pr-day">
+      {diet.days.map((day) => {
+        const hasAlt = day.meals.some((m) => groupsOf(m).some((g) => g.items.some((it) => it.alt?.length)));
+        return (
+        <section key={day.id || day.name} className="pr-day pr-menu">
           {multi && <h2>{day.name}</h2>}
           {day.note && <p className="pr-note">{day.note}</p>}
           {targetRows(day.targets).length > 0 && <p className="pr-targets">{targetRows(day.targets).map(([k, v]) => `${k} ${v}`).join(" · ")}</p>}
           <table className="pr-table">
             <thead>
-              <tr><th>{t("diet.meal")}</th><th>{t("diet.food")}</th><th className="pr-qty">{t("diet.qty")}</th><th>{t("diet.alternatives")}</th></tr>
+              <tr><th>{t("diet.meal")}</th><th>{t("diet.food")}</th><th className="pr-qty">{t("diet.qty")}</th>{hasAlt && <th>{t("diet.alternatives")}</th>}</tr>
             </thead>
             {day.meals.map((meal, mi) => (
               <tbody key={mi} className="pr-meal">
@@ -188,7 +190,7 @@ function DietPrint({ diet, onDone }) {
                       )}
                       <td>{ii === 0 && g.name && <div className="pr-option">{g.name}</div>}{it.food}{it.note && <div className="pr-note">{it.note}</div>}</td>
                       <td className="pr-qty">{qty(it)}</td>
-                      <td>{it.alt?.join(", ")}</td>
+                      {hasAlt && <td>{it.alt?.join(", ")}</td>}
                     </tr>
                   ))
                 )}
@@ -196,7 +198,8 @@ function DietPrint({ diet, onDone }) {
             ))}
           </table>
         </section>
-      ))}
+        );
+      })}
       {diet.substitutions?.length > 0 && (
         <section className="pr-day">
           <h2>{t("diet.substitutions")}</h2>

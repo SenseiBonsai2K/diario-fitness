@@ -89,9 +89,11 @@ body {
   .print-root .pr-table th { text-align: left; font-size: 8pt; text-transform: uppercase; letter-spacing: .08em; color: #444; background: #eef2ef; padding: 4pt 5pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .print-root .pr-table td { border-top: .75pt solid #ccc; padding: 4pt 5pt; vertical-align: top; }
   .print-root .pr-meal { break-inside: avoid; }
+  .print-root .pr-menu + .pr-menu { break-before: page; }
+  .print-root h2 { break-after: avoid; }
   .print-root .pr-meal tr:first-child td { border-top: 1.25pt solid #888; }
   .print-root .pr-mealname { width: 24%; }
-  .print-root .pr-qty { white-space: nowrap; text-align: right; font-variant-numeric: tabular-nums; width: 14%; }
+  .print-root .pr-qty { white-space: nowrap; text-align: right; font-variant-numeric: tabular-nums; width: 16%; }
   .print-root .pr-option { font-size: 8.5pt; font-weight: 600; color: #1f4f3f; }
   .print-root .pr-week td, .print-root .pr-week th { text-align: center; font-size: 8.5pt; }
   .print-root ul, .print-root ol { padding-left: 14pt; margin: 2pt 0; }

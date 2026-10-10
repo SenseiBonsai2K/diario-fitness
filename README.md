@@ -10,7 +10,7 @@ It works offline and keeps every piece of data on the phone: nothing is sent to 
   (7-day average), waist and estimated 1RM per exercise.
 - **Plan**: goals and targets, the active training program and diet, previous programs and diets,
   plan sections, yoga routine, history and an archive of every replaced version, all read from the
-  user's data. Each diet has a "Print or save as PDF" button (browser print, A4 layout).
+  user's data. Each diet has a "Print or save as PDF" button (browser print, A4, one page per day type).
 - **Settings**: phase and targets, backup export (file or Android share sheet → Google Drive),
   restore from a backup, language (Italian / English).
 
@@ -63,7 +63,9 @@ app opens empty and is filled by importing a backup file. Backup files are git-i
 - Import offers two modes: **restore everything** (replaces all data) or **load plan and programs
   only** (keeps every log, updates profile, programs, diets, plan and history). The second is how a
   new program, diet or plan reaches the phone; every version it replaces (plan, profile targets, a
-  program or diet with the same id) is first copied to `archive`, so nothing is lost.
+  program or diet with the same id) is first copied to `archive`, so nothing is lost. A partial
+  file (e.g. only `diets` + `activeDiet`) updates only what it carries: empty profile fields and an
+  empty plan leave the current ones in place.
 - `SCHEMA_VERSION` in `src/lib/storage.js` must be bumped (with a migration in `normalise`) whenever
   the document shape changes, so older backups keep importing.
 
