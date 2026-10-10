@@ -13,6 +13,13 @@ import { Icon } from "./ui.jsx";
 //          substitutions?: [{ food, alt: [], note? }], notes?: [], sections?: [] }
 
 const DAY_ORDER = ["1", "2", "3", "4", "5", "6", "0"];
+
+/** The weekday map is worth showing only when weekdays share a day type. */
+const showWeek = (diet) => {
+  if (!diet.week || diet.days.length < 2) return false;
+  const used = Object.values(diet.week).filter(Boolean);
+  return new Set(used).size < used.length;
+};
 const long = { day: "numeric", month: "long", year: "numeric" };
 
 function useDietText(diet) {
@@ -79,7 +86,7 @@ export default function Diet({ diet }) {
         <Icon name="print" size={18} />{t("diet.print")}
       </button>
       {targets.length > 0 && <Table alignLast head={["", t("goals.perDay")]} rows={targets} />}
-      {diet.week && multi && (
+      {showWeek(diet) && (
         <>
           <h3 className="eyebrow">{t("programs.week")}</h3>
           <Table head={[t("week.day"), t("diet.dayType")]} rows={DAY_ORDER.map((d) => [t(`week.days.${d}`), dayName(diet.week[d])])} />
@@ -157,7 +164,7 @@ function DietPrint({ diet, onDone }) {
       {targets.length > 0 && (
         <p className="pr-targets">{targets.map(([k, v]) => `${k} ${v}`).join(" · ")}</p>
       )}
-      {diet.week && multi && (
+      {showWeek(diet) && (
         <table className="pr-table pr-week">
           <tbody>
             <tr>{DAY_ORDER.map((d) => <th key={d}>{t(`week.days.${d}`)}</th>)}</tr>
