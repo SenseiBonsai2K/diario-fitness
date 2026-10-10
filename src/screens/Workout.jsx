@@ -96,7 +96,7 @@ function LiftSession({ date, session, programId }) {
           rows={sets[ex.id] || []}
           lang={i18n.language}
           onRows={(rows) => write({ ...sets, [ex.id]: rows })}
-          onSetDone={() => setTimer({ end: Date.now() + ex.rest * 1000, total: ex.rest, label: ex.name })}
+          onSetDone={() => (ex.rest ? setTimer({ end: Date.now() + ex.rest * 1000, total: ex.rest, label: ex.name }) : null)}
         />
       ))}
 
@@ -145,9 +145,12 @@ function ExerciseCard({ index, exercise, date, rows, onRows, onSetDone, lang }) 
           {allDone ? <Icon name="check" size={16} /> : index}
         </span>
         <div className="min-w-0 flex-1">
+          {exercise.superset && (
+            <span className="inline-block mb-1 rounded bg-accent-soft text-accent text-[0.68rem] font-bold uppercase tracking-wider px-1.5 py-0.5">{t("superset")}</span>
+          )}
           <h2 className="font-semibold leading-snug">{name}</h2>
           <div className="text-xs text-muted num mt-0.5">
-            {target}{exercise.rest ? ` · ${t("rest")} ${fmtRest(exercise.rest)}` : ""}{exercise.rir ? ` · RIR ${exercise.rir}` : ""}
+            {target}{exercise.rest ? ` · ${t("rest")} ${fmtRest(exercise.rest)}` : exercise.superset ? ` · ${t("supersetNext")}` : ""}{exercise.rir ? ` · RIR ${exercise.rir}` : ""}
           </div>
           {(exercise.technique || exercise.notes) && (
             <div className="text-xs mt-1 flex flex-col gap-0.5">

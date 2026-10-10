@@ -35,5 +35,7 @@
   "noProgram": "Nessuna scheda caricata. Importa il tuo backup da Impostazioni.",
   "notes": "Note",
   "technique": "Tecnica",
-  "yogaEmpty": "Nessuna sequenza di yoga caricata: segna durata e note."
+  "yogaEmpty": "Nessuna sequenza di yoga caricata: segna durata e note.",
+  "superset": "Superserie",
+  "supersetNext": "subito il successivo"
 }

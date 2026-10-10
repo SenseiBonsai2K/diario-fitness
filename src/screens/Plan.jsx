@@ -80,9 +80,9 @@ function Program({ program, data, t, lang }) {
             monoFrom={1}
             head={[t("sessions.exercise"), t("sessions.setsReps"), t("sessions.rest"), "RIR"]}
             rows={s.exercises.map((e) => [
-              <span key="n">{e.name}{e.notes && <span className="block text-xs text-muted font-body whitespace-normal">{e.notes}</span>}</span>,
+              <span key="n">{e.superset && <span className="mr-1.5 rounded bg-accent-soft text-accent text-[0.65rem] font-bold uppercase px-1 py-0.5">SS</span>}{e.name}{e.notes && <span className="block text-xs text-muted font-body whitespace-normal">{e.notes}</span>}</span>,
               `${e.sets} × ${e.reps[0]}–${e.reps[1]}${e.perSide ? ` ${t("workout:perSide")}` : ""}`,
-              fmtRest(e.rest),
+              e.rest ? fmtRest(e.rest) : e.superset ? t("workout:supersetNext") : "—",
               e.rir || "—",
             ])}
           />

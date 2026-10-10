@@ -35,5 +35,7 @@
   "noProgram": "No training program loaded. Import your backup from Settings.",
   "notes": "Notes",
   "technique": "Technique",
-  "yogaEmpty": "No yoga routine loaded: log duration and notes."
+  "yogaEmpty": "No yoga routine loaded: log duration and notes.",
+  "superset": "Superset",
+  "supersetNext": "straight to the next"
 }
