@@ -25,12 +25,13 @@ export default function Settings() {
 
 function Language() {
   const { t, i18n } = useTranslation("settings");
+  const { setPrefs } = useStore();
   return (
     <Card title={t("language")}>
       <Segmented
         clearable={false}
         value={i18n.resolvedLanguage}
-        onChange={(l) => i18n.changeLanguage(l)}
+        onChange={(l) => { i18n.changeLanguage(l); setPrefs({ lang: l }); }}
         options={LANGS.map((l) => ({ value: l, label: t(`languages.${l}`) }))}
       />
     </Card>
@@ -82,7 +83,8 @@ function Backup() {
   const [pending, setPending] = useState(null); // { doc, exportedAt }
   const [msg, setMsg] = useState(null); // { tone, text }
 
-  const blob = () => new Blob([JSON.stringify(toBackup(data), null, 2)], { type: "application/json" });
+  const snapshot = () => ({ ...data, prefs: { ...data.prefs, lang: i18n.resolvedLanguage || data.prefs.lang } });
+  const blob = () => new Blob([JSON.stringify(toBackup(snapshot()), null, 2)], { type: "application/json" });
 
   const download = () => {
     const url = URL.createObjectURL(blob());
@@ -126,7 +128,10 @@ function Backup() {
   };
 
   const confirmImport = (mode) => {
-    if (mode === "all") replaceAll(pending.doc); else importPlan(pending.doc);
+    if (mode === "all") {
+      replaceAll(pending.doc);
+      if (LANGS.includes(pending.doc.prefs?.lang)) i18n.changeLanguage(pending.doc.prefs.lang);
+    } else importPlan(pending.doc);
     setPending(null);
     setMsg({ tone: "good", text: t(mode === "all" ? "backup.imported" : "backup.planImported") });
   };

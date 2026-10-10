@@ -1,7 +1,7 @@
 {
   "title": "Piano",
-  "intro": "Il tuo piano, caricato dal backup. Fase e obiettivi si cambiano da Impostazioni.",
-  "empty": "Nessun piano caricato. Importa il tuo backup da Impostazioni: qui compariranno schede, piano e note.",
+  "intro": "Il tuo piano, caricato dal backup: schede, dieta e note. Fase e obiettivi si cambiano da Impostazioni.",
+  "empty": "Nessun piano caricato. Importa il tuo backup da Impostazioni: qui compariranno schede, dieta, piano e note.",
   "goals": {
     "title": "Obiettivi",
     "phaseNow": "Fase attuale: {{phase}}.",
@@ -53,5 +53,40 @@
   },
   "history": {
     "title": "Storico"
+  },
+  "diet": {
+    "title": "Dieta",
+    "current": "Dieta attuale",
+    "archived": "Dieta precedente",
+    "print": "Stampa o salva PDF",
+    "or": "oppure",
+    "dayType": "Giornata",
+    "meal": "Pasto",
+    "food": "Alimento",
+    "qty": "Quantità",
+    "alternatives": "Alternative",
+    "substitutions": "Sostituzioni",
+    "printedOn": "Stampata il {{date}} · Diario Fitness"
+  },
+  "archive": {
+    "title": "Archivio",
+    "sub_one": "{{count}} versione sostituita",
+    "sub_other": "{{count}} versioni sostituite",
+    "yoga": "Conteneva anche la routine \"{{title}}\".",
+    "kind": {
+      "plan": "Piano e note",
+      "profile": "Obiettivi e macro",
+      "program": "Scheda",
+      "diet": "Dieta"
+    },
+    "profile": {
+      "phase": "Fase",
+      "kcal": "Calorie",
+      "protein": "Proteine",
+      "carbs": "Carboidrati",
+      "fat": "Grassi",
+      "goalWeight": "Peso obiettivo",
+      "goalBf": "Massa grassa obiettivo"
+    }
   }
 }

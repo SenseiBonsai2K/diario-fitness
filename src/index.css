@@ -70,3 +70,33 @@ body {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
+
+/* Diet print layout: only .print-root is printed, always light, A4. */
+.print-root { display: none; }
+@media print {
+  @page { size: A4; margin: 14mm 12mm; }
+  :root { --bg: 255 255 255; --surface: 255 255 255; --ink: 0 0 0; --muted: 80 80 80; --line: 200 200 200; color-scheme: light; }
+  body.is-printing { background: #fff !important; color: #111 !important; }
+  body.is-printing #root { display: none !important; }
+  body.is-printing .print-root { display: block !important; font-size: 10.5pt; line-height: 1.35; color: #111; }
+  .print-root h1 { font-family: "Barlow Condensed", system-ui, sans-serif; font-weight: 600; text-transform: uppercase; font-size: 22pt; margin: 2pt 0 4pt; letter-spacing: .02em; }
+  .print-root h2 { font-family: "Barlow Condensed", system-ui, sans-serif; font-weight: 600; text-transform: uppercase; font-size: 14pt; margin: 12pt 0 4pt; border-bottom: 1.5pt solid #1f4f3f; padding-bottom: 2pt; }
+  .print-root .pr-head { border-bottom: 2pt solid #1f4f3f; padding-bottom: 6pt; margin-bottom: 8pt; }
+  .print-root .pr-eyebrow { font-size: 8pt; text-transform: uppercase; letter-spacing: .12em; color: #555; }
+  .print-root .pr-meta, .print-root .pr-note { color: #555; font-size: 9pt; }
+  .print-root .pr-targets { font-weight: 600; margin: 4pt 0 8pt; font-variant-numeric: tabular-nums; }
+  .print-root .pr-table { width: 100%; border-collapse: collapse; margin: 4pt 0; }
+  .print-root .pr-table th { text-align: left; font-size: 8pt; text-transform: uppercase; letter-spacing: .08em; color: #444; background: #eef2ef; padding: 4pt 5pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .print-root .pr-table td { border-top: .75pt solid #ccc; padding: 4pt 5pt; vertical-align: top; }
+  .print-root .pr-meal { break-inside: avoid; }
+  .print-root .pr-meal tr:first-child td { border-top: 1.25pt solid #888; }
+  .print-root .pr-mealname { width: 24%; }
+  .print-root .pr-qty { white-space: nowrap; text-align: right; font-variant-numeric: tabular-nums; width: 14%; }
+  .print-root .pr-option { font-size: 8.5pt; font-weight: 600; color: #1f4f3f; }
+  .print-root .pr-week td, .print-root .pr-week th { text-align: center; font-size: 8.5pt; }
+  .print-root ul, .print-root ol { padding-left: 14pt; margin: 2pt 0; }
+  .print-root ul { list-style: disc; }
+  .print-root ol { list-style: decimal; }
+  .print-root p { margin: 3pt 0; }
+  .print-root .pr-foot { margin-top: 14pt; font-size: 8pt; color: #777; }
+}

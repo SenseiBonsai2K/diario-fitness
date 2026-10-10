@@ -3,57 +3,10 @@ import { activityLabel, fmtRest } from "../lib/program.js";
 import { fmtDate } from "../lib/dates.js";
 import { num } from "../lib/stats.js";
 import { useStore } from "../lib/store.jsx";
+import { Content, Section, Table } from "../components/PlanParts.jsx";
+import Diet from "../components/Diet.jsx";
 
 const DAY_ORDER = ["1", "2", "3", "4", "5", "6", "0"];
-
-function Section({ title, sub, children, open = false }) {
-  return (
-    <details className="card group" open={open}>
-      <summary className="flex items-center justify-between gap-3 cursor-pointer list-none [&::-webkit-details-marker]:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded">
-        <div className="min-w-0">
-          <h2 className="h-display text-xl">{title}</h2>
-          {sub && <div className="text-xs text-muted mt-1">{sub}</div>}
-        </div>
-        <span aria-hidden="true" className="text-muted transition-transform group-open:rotate-90">›</span>
-      </summary>
-      <div className="flex flex-col gap-3 pt-1 text-[0.95rem] leading-relaxed">{children}</div>
-    </details>
-  );
-}
-
-function Table({ head, rows, monoFrom = 99, alignLast = false }) {
-  return (
-    <div className="overflow-x-auto -mx-4 px-4">
-      <table className="w-full text-sm num">
-        <thead>
-          <tr className="text-left">{head.map((h, i) => <th key={i} className={`eyebrow py-1.5 pr-3 font-semibold whitespace-nowrap ${alignLast && i === head.length - 1 ? "text-right" : ""}`}>{h}</th>)}</tr>
-        </thead>
-        <tbody>
-          {rows.map((r, i) => (
-            <tr key={i} className="border-t border-line align-top">
-              {r.map((c, j) => (
-                <td key={j} className={`py-2 pr-3 ${j >= monoFrom ? "whitespace-nowrap font-mono text-[0.8rem]" : ""} ${alignLast && j === r.length - 1 ? "text-right" : ""}`}>{c}</td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-/** A plan section from the user's data: paragraphs, bullets, numbered steps, a table, a note. */
-function Content({ s }) {
-  return (
-    <>
-      {(s.paragraphs || []).map((p, i) => <p key={`p${i}`}>{p}</p>)}
-      {s.table && <Table head={s.table.head} rows={s.table.rows} />}
-      {s.bullets?.length > 0 && <ul className="list-disc pl-5 flex flex-col gap-1.5">{s.bullets.map((b, i) => <li key={i}>{b}</li>)}</ul>}
-      {s.numbered?.length > 0 && <ol className="list-decimal pl-5 flex flex-col gap-1.5">{s.numbered.map((b, i) => <li key={i}>{b}</li>)}</ol>}
-      {s.note && <p className="text-sm text-muted">{s.note}</p>}
-    </>
-  );
-}
 
 function Program({ program, data, t, lang }) {
   const period = program.endDate
@@ -104,6 +57,39 @@ function Program({ program, data, t, lang }) {
   );
 }
 
+/** One archived version: a program, a diet, the plan text or the profile targets. */
+function ArchivedItem({ a, data, t, lang, n }) {
+  const d = a.data || {};
+  if (a.kind === "program" && Array.isArray(d.sessions)) return <Program program={d} data={data} t={t} lang={lang} />;
+  if (a.kind === "diet" && Array.isArray(d.days)) return <Diet diet={d} />;
+  if (a.kind === "plan") {
+    return (
+      <>
+        {(d.sections || []).map((s, i) => (
+          <div key={s.id || i} className="flex flex-col gap-2">
+            <h3 className="eyebrow">{s.title}</h3>
+            <Content s={s} />
+          </div>
+        ))}
+        {d.yoga?.blocks?.length > 0 && <p className="text-sm text-muted">{t("archive.yoga", { title: d.yoga.title || t("common:activity.yoga") })}</p>}
+      </>
+    );
+  }
+  if (a.kind === "profile") {
+    const rows = [
+      ["phase", d.phase ? t(`common:phase.${d.phase}`) : null],
+      ["kcal", d.kcal != null ? `${n(d.kcal)} kcal` : null],
+      ["protein", d.prot != null ? `${n(d.prot)} g` : null],
+      ["carbs", d.carb != null ? `${n(d.carb)} g` : null],
+      ["fat", d.fat != null ? `${n(d.fat)} g` : null],
+      ["goalWeight", d.goalWeight != null ? `${n(d.goalWeight)} kg` : null],
+      ["goalBf", d.goalBf != null ? `${n(d.goalBf)}%` : null],
+    ].filter(([, v]) => v);
+    return <Table alignLast head={["", ""]} rows={rows.map(([k, v]) => [t(`archive.profile.${k}`), v])} />;
+  }
+  return <pre className="text-xs overflow-x-auto">{JSON.stringify(d, null, 2)}</pre>;
+}
+
 export default function Plan() {
   const { t, i18n } = useTranslation("plan");
   const { data } = useStore();
@@ -112,7 +98,9 @@ export default function Plan() {
   const n = (v) => (num(v) === null ? "—" : num(v).toLocaleString(lang, { maximumFractionDigits: 1 }));
   const active = data.programs[data.activeProgram];
   const archived = Object.values(data.programs).filter((x) => x.id !== data.activeProgram).sort((a, b) => String(b.startDate).localeCompare(String(a.startDate)));
-  const empty = !active && data.plan.sections.length === 0;
+  const diet = data.diets[data.activeDiet];
+  const oldDiets = Object.values(data.diets).filter((x) => x.id !== data.activeDiet).sort((a, b) => String(b.startDate).localeCompare(String(a.startDate)));
+  const empty = !active && !diet && data.plan.sections.length === 0 && data.archive.length === 0;
 
   if (empty) {
     return (
@@ -156,6 +144,12 @@ export default function Plan() {
         </Section>
       )}
 
+      {diet && (
+        <Section title={diet.name || t("diet.title")} sub={t("diet.current")}>
+          <Diet diet={diet} />
+        </Section>
+      )}
+
       {data.plan.sections.map((s) => (
         <Section key={s.id || s.title} title={s.title}>
           <Content s={s} />
@@ -187,6 +181,31 @@ export default function Plan() {
           <Program program={prog} data={data} t={t} lang={lang} />
         </Section>
       ))}
+
+      {oldDiets.map((d) => (
+        <Section key={d.id} title={d.name} sub={t("diet.archived")}>
+          <Diet diet={d} />
+        </Section>
+      ))}
+
+      {data.archive.length > 0 && (
+        <Section title={t("archive.title")} sub={t("archive.sub", { count: data.archive.length })}>
+          {[...data.archive].reverse().map((a, i) => (
+            <details key={i} className="border-t border-line pt-2 first:border-t-0 group/a">
+              <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden flex justify-between gap-3 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+                <span className="min-w-0">
+                  <span className="block text-xs text-muted num">{a.at ? fmtDate(String(a.at).slice(0, 10), lang, { day: "numeric", month: "long", year: "numeric" }) : ""}</span>
+                  <span className="font-semibold text-sm">{t(`archive.kind.${a.kind}`, { defaultValue: a.kind })}{a.data?.name ? ` · ${a.data.name}` : ""}</span>
+                </span>
+                <span aria-hidden="true" className="text-muted transition-transform group-open/a:rotate-90">›</span>
+              </summary>
+              <div className="flex flex-col gap-3 pt-2 text-[0.95rem] leading-relaxed">
+                <ArchivedItem a={a} data={data} t={t} lang={lang} n={n} />
+              </div>
+            </details>
+          ))}
+        </Section>
+      )}
 
       {data.history.length > 0 && (
         <Section title={t("history.title")}>

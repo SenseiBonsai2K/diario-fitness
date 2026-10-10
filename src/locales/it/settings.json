@@ -23,7 +23,7 @@
   },
   "backup": {
     "title": "Backup",
-    "lead": "I dati sono solo su questo telefono: se disinstalli l'app o cancelli i dati di Chrome, si perdono. Salva un backup ogni settimana, per esempio su Google Drive. Il backup contiene tutto: registri, schede, piano e storico.",
+    "lead": "I dati sono solo su questo telefono: se disinstalli l'app o cancelli i dati di Chrome, si perdono. Salva un backup ogni settimana, per esempio su Google Drive. Il backup contiene tutto: registri, schede, dieta, piano, storico, archivio e lingua.",
     "last": "Ultimo backup: {{date}}",
     "never": "Nessun backup ancora.",
     "share": "Salva su Drive o condividi",
@@ -41,14 +41,14 @@
     },
     "confirmTitle": "Ripristinare questo backup?",
     "exportedAt": "Creato il {{date}}",
-    "contains": "Contiene {{programs}} schede, {{history}} voci di storico, {{days}} giorni, {{workouts}} allenamenti, {{runs}} corse, {{weeks}} check settimanali e {{months}} check mensili.",
+    "contains": "Contiene {{programs}} schede, {{diets}} diete, {{history}} voci di storico, {{archive}} versioni in archivio, {{days}} giorni, {{workouts}} allenamenti, {{runs}} corse, {{weeks}} check settimanali e {{months}} check mensili.",
     "replaceWarning": "Tutti i dati su questo telefono verranno sostituiti da quelli del backup. Se ti servono, fai prima un backup dei dati attuali.",
     "imported": "Backup ripristinato.",
     "importAll": "Ripristina tutto",
-    "importPlan": "Carica solo piano e schede",
-    "importChoice": "\"Ripristina tutto\" sostituisce tutti i dati sul telefono. \"Carica solo piano e schede\" tiene i tuoi registri e aggiorna profilo, schede, piano e storico.",
-    "planImported": "Piano e schede caricati. I tuoi registri non sono cambiati.",
-    "emptyHint": "Prima volta? Ripristina il file di backup che hai ricevuto per caricare piano e schede."
+    "importPlan": "Carica solo piano, schede e dieta",
+    "importChoice": "\"Ripristina tutto\" sostituisce tutti i dati del telefono. \"Carica solo piano, schede e dieta\" tiene i tuoi registri e aggiorna profilo, schede, dieta, piano e storico: le versioni sostituite finiscono nell'Archivio del Piano.",
+    "planImported": "Piano, schede e dieta caricati. I registri non sono cambiati; le versioni precedenti sono nell'Archivio.",
+    "emptyHint": "Prima volta? Ripristina il file di backup che hai ricevuto per caricare piano, schede e dieta."
   },
   "install": {
     "title": "Installare su Android",

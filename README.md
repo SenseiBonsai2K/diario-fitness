@@ -8,8 +8,9 @@ It works offline and keeps every piece of data on the phone: nothing is sent to 
   a "add weight" hint (double progression) and a rest timer. Run and yoga logs on their days.
 - **Progress**: weekly summary with the calorie rule, weekly and monthly checks, charts for weight
   (7-day average), waist and estimated 1RM per exercise.
-- **Plan**: goals and targets, the active training program, previous programs, plan sections,
-  yoga routine and history, all read from the user's data.
+- **Plan**: goals and targets, the active training program and diet, previous programs and diets,
+  plan sections, yoga routine, history and an archive of every replaced version, all read from the
+  user's data. Each diet has a "Print or save as PDF" button (browser print, A4 layout).
 - **Settings**: phase and targets, backup export (file or Android share sheet → Google Drive),
   restore from a backup, language (Italian / English).
 
@@ -47,12 +48,22 @@ app opens empty and is filled by importing a backup file. Backup files are git-i
 ## Data and backups
 
 - Backup file: `{ app: "diario-fitness", exportedAt, data }`, where `data` is the whole document:
-  `version`, `profile` (targets, weekly-advice `rules`, `zone2` heart-rate band), `programs`
-  (each with `sessions[].exercises[]`, `week`, `notes`, `volume`), `activeProgram`, `plan`
-  (`sections[]`, `yoga`), `history[]`, and the logs `days`, `workouts`, `runs`, `yoga`, `weeks`, `months`.
+  `version` (3), `profile` (targets, weekly-advice `rules`, `zone2` heart-rate band), `programs`
+  (each with `sessions[].exercises[]`, `week`, `notes`, `volume`), `activeProgram`, `diets` and
+  `activeDiet` (shape below), `plan` (`sections[]`, `yoga`), `history[]`, `archive[]`
+  (`{ at, kind: "plan" | "profile" | "program" | "diet", id?, data }`), `prefs` (`lang`), `meta`,
+  and the logs `days`, `workouts`, `runs`, `yoga`, `weeks`, `months`.
+- Diet: `{ id, name, author?, startDate?, endDate?, note?, targets?: { kcal, prot, carb, fat },
+  week?: { "0".."6": dayId }, days: [{ id, name, note?, targets?, meals: [{ name, time?, note?,
+  items: [{ food, qty?, unit?, note?, alt?: [] }], options?: [{ name, items }] }] }],
+  substitutions?: [{ food, alt: [], note? }], notes?: [], sections?: [plan-section shape] }`.
+  One day = the same menu every day; several days plus `week` = training/rest or per-weekday menus.
+- Nothing in a backup is dropped: keys the app doesn't know yet are carried through on import and
+  export.
 - Import offers two modes: **restore everything** (replaces all data) or **load plan and programs
-  only** (keeps every log, updates profile, programs, plan and history). The second is how a new
-  program or plan reaches the phone.
+  only** (keeps every log, updates profile, programs, diets, plan and history). The second is how a
+  new program, diet or plan reaches the phone; every version it replaces (plan, profile targets, a
+  program or diet with the same id) is first copied to `archive`, so nothing is lost.
 - `SCHEMA_VERSION` in `src/lib/storage.js` must be bumped (with a migration in `normalise`) whenever
   the document shape changes, so older backups keep importing.
 

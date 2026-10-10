@@ -1,7 +1,7 @@
 {
   "title": "Plan",
-  "intro": "Your plan, loaded from your backup. Phase and targets can be changed in Settings.",
-  "empty": "No plan loaded. Import your backup from Settings: sessions, plan and notes appear here.",
+  "intro": "Your plan, loaded from your backup: programs, diet and notes. Phase and targets can be changed in Settings.",
+  "empty": "No plan loaded. Import your backup from Settings: programs, diet, plan and notes appear here.",
   "goals": {
     "title": "Goals",
     "phaseNow": "Current phase: {{phase}}.",
@@ -53,5 +53,40 @@
   },
   "history": {
     "title": "History"
+  },
+  "diet": {
+    "title": "Diet",
+    "current": "Current diet",
+    "archived": "Previous diet",
+    "print": "Print or save as PDF",
+    "or": "or",
+    "dayType": "Day type",
+    "meal": "Meal",
+    "food": "Food",
+    "qty": "Amount",
+    "alternatives": "Alternatives",
+    "substitutions": "Swaps",
+    "printedOn": "Printed on {{date}} · Diario Fitness"
+  },
+  "archive": {
+    "title": "Archive",
+    "sub_one": "{{count}} replaced version",
+    "sub_other": "{{count}} replaced versions",
+    "yoga": "It also contained the \"{{title}}\" routine.",
+    "kind": {
+      "plan": "Plan and notes",
+      "profile": "Goals and macros",
+      "program": "Program",
+      "diet": "Diet"
+    },
+    "profile": {
+      "phase": "Phase",
+      "kcal": "Calories",
+      "protein": "Protein",
+      "carbs": "Carbohydrates",
+      "fat": "Fat",
+      "goalWeight": "Goal weight",
+      "goalBf": "Goal body fat"
+    }
   }
 }

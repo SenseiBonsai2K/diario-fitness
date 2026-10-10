@@ -47,3 +47,85 @@ describe("plan-only import", () => {
     expect(out.history).toHaveLength(2);
   });
 });
+
+const sampleDiet = (kcal = 2200) => ({
+  id: "d1",
+  name: "Definizione",
+  targets: { kcal, prot: 170, carb: 235, fat: 65 },
+  days: [{ id: "std", name: "Standard", meals: [{ name: "Colazione", items: [{ food: "Avena", qty: 60, unit: "g", alt: ["Pane 80 g"] }] }] }],
+});
+
+describe("full backup coverage", () => {
+  it("round-trips every part of the document, diets, archive and language included", () => {
+    const d = emptyData();
+    d.profile.kcal = 2200;
+    d.programs = { p: { id: "p", name: "Scheda", sessions: [{ id: "a", name: "A", exercises: [] }] } };
+    d.activeProgram = "p";
+    d.diets = { d1: sampleDiet() };
+    d.activeDiet = "d1";
+    d.plan = { sections: [{ id: "s", title: "Corsa" }], yoga: { title: "Yoga", blocks: [] }, updatedAt: "2026-10-10", extra: 1 };
+    d.history = [{ date: "2026-10-10", title: "x" }];
+    d.archive = [{ at: "2026-10-01", kind: "plan", data: { sections: [] } }];
+    d.prefs = { lang: "it" };
+    for (const c of ["days", "workouts", "runs", "yoga", "weeks", "months"]) d[c] = { k: { v: 1 } };
+    const restored = normalise(JSON.parse(JSON.stringify(toBackup(d))));
+    expect(restored).toEqual({ ...d, version: SCHEMA_VERSION });
+  });
+
+  it("keeps keys it doesn't know instead of dropping them", () => {
+    const restored = normalise({ version: 2, futureThing: { a: 1 } });
+    expect(restored.futureThing).toEqual({ a: 1 });
+  });
+
+  it("imports v2 backups with no diet or archive", () => {
+    const restored = normalise({ version: 2, programs: {} });
+    expect(restored.diets).toEqual({});
+    expect(restored.archive).toEqual([]);
+    expect(restored.activeDiet).toBe(null);
+  });
+
+  it("rejects a malformed diet", () => {
+    expect(() => normalise({ version: 3, diets: { d: { name: "x" } } })).toThrow("corrupt");
+    expect(() => normalise({ version: 3, diets: { d: { days: [{ name: "x" }] } } })).toThrow("corrupt");
+  });
+});
+
+describe("plan import archives what it replaces", () => {
+  it("archives the old plan, profile targets, program and diet with the same id", () => {
+    const current = emptyData();
+    current.plan = { sections: [{ id: "s", title: "Vecchio" }], yoga: null };
+    current.profile.kcal = 2200;
+    current.programs = { p: { id: "p", name: "Vecchia", sessions: [] } };
+    current.diets = { d1: sampleDiet(2200) };
+    current.workouts = { "2026-10-12": { a: 1 } };
+    const incoming = emptyData();
+    incoming.plan = { sections: [{ id: "s", title: "Nuovo" }], yoga: null };
+    incoming.profile.kcal = 2100;
+    incoming.programs = { p: { id: "p", name: "Nuova", sessions: [] } };
+    incoming.diets = { d1: sampleDiet(2100) };
+    incoming.activeDiet = "d1";
+    const out = mergePlan(current, incoming, "2026-11-01T10:00:00Z");
+    expect(out.workouts).toEqual(current.workouts);
+    expect(out.diets.d1.targets.kcal).toBe(2100);
+    expect(out.archive.map((a) => a.kind).sort()).toEqual(["diet", "plan", "profile", "program"]);
+    expect(out.archive.find((a) => a.kind === "diet").data.targets.kcal).toBe(2200);
+    expect(out.archive.find((a) => a.kind === "profile").data.kcal).toBe(2200);
+  });
+
+  it("archives nothing when the same file is imported twice", () => {
+    const incoming = emptyData();
+    incoming.plan = { sections: [{ id: "s", title: "A" }], yoga: null };
+    incoming.diets = { d1: sampleDiet() };
+    incoming.profile.kcal = 2200;
+    const once = mergePlan(emptyData(), incoming);
+    const twice = mergePlan(once, incoming);
+    expect(twice.archive).toHaveLength(0);
+    expect(twice.diets).toEqual(once.diets);
+  });
+
+  it("keeps archived versions carried by the incoming file", () => {
+    const incoming = emptyData();
+    incoming.archive = [{ at: "2026-09-01", kind: "plan", data: { sections: [] } }];
+    expect(mergePlan(emptyData(), incoming).archive).toHaveLength(1);
+  });
+});

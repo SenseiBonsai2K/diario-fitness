@@ -10,11 +10,15 @@ Done
 - Import modes: restore everything, or load plan and programs only.
 - Backup export (download or share to Drive) and restore. EN + IT.
 - Offline support and Android install (manifest + service worker).
+- Diet in the plan (one or more day types, meal options, swaps, notes) with print / save as PDF.
+- Archive: plan imports keep every replaced plan, profile targets, program and diet.
+- Backup covers everything, language included; unknown keys are preserved (schema v3).
 
 Next
 - Edit programs from the app (today they arrive by importing a plan file).
 - Weekly backup reminder as a notification instead of a banner.
 - Lean bulk changes when the phase switches (extra sets listed in the plan).
+- Archive manual edits of targets made in Settings (today only imports archive the old values).
 
 Open decisions
 - None.

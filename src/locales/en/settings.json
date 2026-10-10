@@ -23,7 +23,7 @@
   },
   "backup": {
     "title": "Backup",
-    "lead": "Data lives only on this phone: if you uninstall the app or clear Chrome's data, it is gone. Save a backup every week, for example to Google Drive. The backup contains everything: logs, programs, plan and history.",
+    "lead": "Data lives only on this phone: if you uninstall the app or clear Chrome's data, it is gone. Save a backup every week, for example to Google Drive. The backup contains everything: logs, programs, diet, plan, history, archive and language.",
     "last": "Last backup: {{date}}",
     "never": "No backup yet.",
     "share": "Save to Drive or share",
@@ -41,14 +41,14 @@
     },
     "confirmTitle": "Restore this backup?",
     "exportedAt": "Made on {{date}}",
-    "contains": "It contains {{programs}} programs, {{history}} history entries, {{days}} days, {{workouts}} workouts, {{runs}} runs, {{weeks}} weekly checks and {{months}} monthly checks.",
+    "contains": "It contains {{programs}} programs, {{diets}} diets, {{history}} history entries, {{archive}} archived versions, {{days}} days, {{workouts}} workouts, {{runs}} runs, {{weeks}} weekly checks and {{months}} monthly checks.",
     "replaceWarning": "Everything on this phone will be replaced by the backup. Make a backup of the current data first if you need it.",
     "imported": "Backup restored.",
     "importAll": "Restore everything",
-    "importPlan": "Load plan and programs only",
-    "importChoice": "\"Restore everything\" replaces all data on this phone. \"Load plan and programs only\" keeps your logs and updates profile, programs, plan and history.",
-    "planImported": "Plan and programs loaded. Your logs are unchanged.",
-    "emptyHint": "First time here? Restore the backup file you received to load your plan and programs."
+    "importPlan": "Load plan, programs and diet only",
+    "importChoice": "\"Restore everything\" replaces all data on this phone. \"Load plan, programs and diet only\" keeps your logs and updates profile, programs, diet, plan and history: replaced versions go to the Plan's Archive.",
+    "planImported": "Plan, programs and diet loaded. Your logs are unchanged; previous versions are in the Archive.",
+    "emptyHint": "First time here? Restore the backup file you received to load your plan, programs and diet."
   },
   "install": {
     "title": "Install on Android",

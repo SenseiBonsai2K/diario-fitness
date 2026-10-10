@@ -44,13 +44,14 @@ export function StoreProvider({ children }) {
   }, []);
 
   const setProfile = useCallback((values) => setData((d) => ({ ...d, profile: { ...d.profile, ...values } })), []);
+  const setPrefs = useCallback((values) => setData((d) => ({ ...d, prefs: { ...d.prefs, ...values } })), []);
   const replaceAll = useCallback((next) => { setData(next); save(next); }, []);
   const importPlan = useCallback((incoming) => setData((d) => { const next = mergePlan(d, incoming); save(next); return next; }), []);
   const markBackup = useCallback(() => setData((d) => ({ ...d, meta: { ...d.meta, lastBackup: new Date().toISOString() } })), []);
 
   const value = useMemo(
-    () => ({ data, patch, setProfile, replaceAll, importPlan, markBackup, saveError }),
-    [data, patch, setProfile, replaceAll, importPlan, markBackup, saveError]
+    () => ({ data, patch, setProfile, setPrefs, replaceAll, importPlan, markBackup, saveError }),
+    [data, patch, setProfile, setPrefs, replaceAll, importPlan, markBackup, saveError]
   );
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }
