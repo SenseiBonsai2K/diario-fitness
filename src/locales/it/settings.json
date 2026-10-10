@@ -48,7 +48,8 @@
     "importPlan": "Carica solo piano, schede e dieta",
     "importChoice": "\"Ripristina tutto\" sostituisce tutti i dati del telefono. \"Carica solo piano, schede e dieta\" tiene i tuoi registri e aggiorna profilo, schede, dieta, piano e storico: le versioni sostituite finiscono nell'Archivio del Piano.",
     "planImported": "Piano, schede e dieta caricati. I registri non sono cambiati; le versioni precedenti sono nell'Archivio.",
-    "emptyHint": "Prima volta? Ripristina il file di backup che hai ricevuto per caricare piano, schede e dieta."
+    "emptyHint": "Prima volta? Ripristina il file di backup che hai ricevuto per caricare piano, schede e dieta.",
+    "planFileOnly": "Questo file contiene solo piano, schede e dieta, senza registri: viene caricato tenendo tutti i dati già salvati sul telefono. Le versioni sostituite finiscono nell'Archivio del Piano."
   },
   "install": {
     "title": "Installare su Android",

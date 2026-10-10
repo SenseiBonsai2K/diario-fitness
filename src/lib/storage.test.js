@@ -146,3 +146,13 @@ describe("partial plan files", () => {
     expect(out.archive).toHaveLength(0);
   });
 });
+
+describe("hasLogs", () => {
+  it("tells a plan file from a backup with logs", async () => {
+    const { hasLogs } = await import("./storage.js");
+    const d = emptyData();
+    expect(hasLogs(d)).toBe(false);
+    d.runs["2026-10-14"] = { km: 10 };
+    expect(hasLogs(d)).toBe(true);
+  });
+});

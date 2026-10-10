@@ -180,6 +180,11 @@ export function countEntries(data) {
   };
 }
 
+/** True when the document holds at least one log entry (days, workouts, runs, yoga, checks). */
+export function hasLogs(data) {
+  return LOG_COLLECTIONS.some((c) => Object.keys(data[c] || {}).length > 0);
+}
+
 export function hasPlan(data) {
   return !!data.activeProgram || !!data.activeDiet || data.plan.sections.length > 0;
 }

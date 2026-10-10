@@ -48,7 +48,8 @@
     "importPlan": "Load plan, programs and diet only",
     "importChoice": "\"Restore everything\" replaces all data on this phone. \"Load plan, programs and diet only\" keeps your logs and updates profile, programs, diet, plan and history: replaced versions go to the Plan's Archive.",
     "planImported": "Plan, programs and diet loaded. Your logs are unchanged; previous versions are in the Archive.",
-    "emptyHint": "First time here? Restore the backup file you received to load your plan, programs and diet."
+    "emptyHint": "First time here? Restore the backup file you received to load your plan, programs and diet.",
+    "planFileOnly": "This file holds only plan, programs and diet, with no logs: it is loaded keeping all the data already saved on this phone. Replaced versions go to the Plan's Archive."
   },
   "install": {
     "title": "Install on Android",

@@ -65,7 +65,8 @@ app opens empty and is filled by importing a backup file. Backup files are git-i
   new program, diet or plan reaches the phone; every version it replaces (plan, profile targets, a
   program or diet with the same id) is first copied to `archive`, so nothing is lost. A partial
   file (e.g. only `diets` + `activeDiet`) updates only what it carries: empty profile fields and an
-  empty plan leave the current ones in place.
+  empty plan leave the current ones in place. A file with no logs is never offered as "restore
+  everything" when the phone already has logs, so a plan file can't wipe the history.
 - `SCHEMA_VERSION` in `src/lib/storage.js` must be bumped (with a migration in `normalise`) whenever
   the document shape changes, so older backups keep importing.
 

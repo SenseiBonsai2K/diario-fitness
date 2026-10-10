@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Card, Grid, Icon, NumField, Segmented } from "../components/ui.jsx";
 import { LANGS } from "../i18n.js";
 import { today } from "../lib/dates.js";
-import { countEntries, emptyData, hasPlan, normalise, toBackup } from "../lib/storage.js";
+import { countEntries, emptyData, hasLogs, hasPlan, normalise, toBackup } from "../lib/storage.js";
 import { useStore } from "../lib/store.jsx";
 
 const PHASES = ["cut", "maintain", "bulk", "minicut"];
@@ -137,6 +137,8 @@ function Backup() {
   };
 
   const counts = pending ? countEntries(pending.doc) : null;
+  // A plan file (no logs) must never wipe the logs on the phone.
+  const allowAll = pending ? hasLogs(pending.doc) || !hasLogs(data) : false;
   const last = data.meta.lastBackup;
 
   return (
@@ -164,10 +166,10 @@ function Backup() {
           <span className="break-all text-muted">{pending.name}</span>
           {pending.exportedAt && <span>{t("backup.exportedAt", { date: new Intl.DateTimeFormat(i18n.language, { dateStyle: "long", timeStyle: "short" }).format(new Date(pending.exportedAt)) })}</span>}
           <span className="num">{t("backup.contains", counts)}</span>
-          <span>{t("backup.importChoice")}</span>
+          <span>{allowAll ? t("backup.importChoice") : t("backup.planFileOnly")}</span>
           <div className="flex flex-col gap-2 pt-1">
-            <button type="button" className="btn" onClick={() => confirmImport("all")}>{t("backup.importAll")}</button>
-            <button type="button" className="btn-ghost" onClick={() => confirmImport("plan")}>{t("backup.importPlan")}</button>
+            {allowAll && <button type="button" className="btn-ghost" onClick={() => confirmImport("all")}>{t("backup.importAll")}</button>}
+            <button type="button" className="btn" onClick={() => confirmImport("plan")}>{t("backup.importPlan")}</button>
             <button type="button" className="btn-ghost border-transparent" onClick={() => setPending(null)}>{t("common:cancel")}</button>
           </div>
         </div>
