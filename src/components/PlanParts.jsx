@@ -8,7 +8,7 @@ export function Section({ title, sub, children, open = false }) {
           <h2 className="h-display text-xl">{title}</h2>
           {sub && <div className="text-xs text-muted mt-1">{sub}</div>}
         </div>
-        <span aria-hidden="true" className="text-muted transition-transform group-open:rotate-90">›</span>
+        <span aria-hidden="true" className="w-8 h-8 rounded-full bg-raised grid place-items-center text-muted transition-transform group-open:rotate-90 shrink-0">›</span>
       </summary>
       <div className="flex flex-col gap-3 pt-1 text-[0.95rem] leading-relaxed">{children}</div>
     </details>

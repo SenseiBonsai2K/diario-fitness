@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Card, Grid, Icon, NumField, TextField } from "../components/ui.jsx";
+import { Card, Grid, Icon, NumField, Ring, TextField } from "../components/ui.jsx";
 import { EXTRA_ACTIVITIES, activeProgram, activityLabel, findSession, fmtRest, plannedFor, sessionsOf } from "../lib/program.js";
 import { fmtDate, parseIso } from "../lib/dates.js";
 import { lastPerformance, num, shouldIncrease } from "../lib/stats.js";
@@ -33,7 +33,7 @@ export default function Workout({ date, setDate, activity, setActivity }) {
   return (
     <>
       <DateStepper date={date} setDate={changeDate} />
-      <div role="tablist" aria-label={t("chooseActivity")} className="flex gap-1.5 overflow-x-auto -mx-4 px-4 pb-1 [scrollbar-width:none]">
+      <div role="tablist" aria-label={t("chooseActivity")} className="scroller">
         {ids.map((a) => (
           <button
             key={a}
@@ -41,8 +41,7 @@ export default function Workout({ date, setDate, activity, setActivity }) {
             role="tab"
             aria-selected={current === a}
             onClick={() => setActivity(a)}
-            className={`shrink-0 px-3.5 py-2 rounded-full border text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent
-              ${current === a ? "bg-accent border-accent text-accent-ink" : "bg-surface border-line text-ink"}`}
+            className="chip"
           >
             {activityLabel(data, a, t)}
           </button>
@@ -75,30 +74,68 @@ function LiftSession({ date, session, programId }) {
   );
 
   const otherSession = log?.session && log.session !== session.id;
+  const pct = totals.planned ? totals.done / totals.planned : 0;
+  const complete = totals.planned > 0 && totals.done >= totals.planned;
+  const volume = Object.values(sets).reduce((a, rows) => a + rows.filter((r) => r.done).reduce((b, r) => b + (num(r.kg) || 0) * (num(r.reps) || 0), 0), 0);
+
+  // Superset pairs are shown together: the first exercise has `superset: true`.
+  const groups = [];
+  session.exercises.forEach((ex, idx) => {
+    const prev = groups[groups.length - 1];
+    if (prev && prev.open) { prev.items.push({ ex, idx }); prev.open = !!ex.superset; return; }
+    groups.push({ items: [{ ex, idx }], open: !!ex.superset, ss: !!ex.superset });
+  });
+
+  const card = ({ ex, idx }) => (
+    <ExerciseCard
+      key={ex.id}
+      index={idx + 1}
+      exercise={ex}
+      date={date}
+      rows={sets[ex.id] || []}
+      lang={i18n.language}
+      onRows={(rows) => write({ ...sets, [ex.id]: rows })}
+      onSetDone={() => (ex.rest ? setTimer({ end: Date.now() + ex.rest * 1000, total: ex.rest, label: ex.name }) : null)}
+    />
+  );
 
   return (
     <>
-      <div className="flex items-baseline justify-between gap-3">
-        <h1 className="h-display text-3xl">{session.name}</h1>
-        <span className="text-sm text-muted num">{t("setsDone", { done: totals.done, planned: totals.planned })}</span>
+      <div className="sticky top-0 z-10 -mx-4 px-4 pt-[max(8px,env(safe-area-inset-top))] pb-3 -mt-2 bg-bg/90 backdrop-blur-md flex items-center gap-3">
+        <Ring value={pct} size={48} className={complete ? "text-good" : "text-accent"}>{complete ? <Icon name="check" size={18} /> : `${Math.round(pct * 100)}%`}</Ring>
+        <div className="min-w-0 flex-1">
+          <h1 className="h-display text-[1.9rem] truncate">{session.name}</h1>
+          <div className="text-xs text-muted num">{t("setsDone", { done: totals.done, planned: totals.planned })}{session.note ? ` · ${session.note}` : ""}</div>
+        </div>
       </div>
       {otherSession && (
         <p className="text-sm text-warn">{t("otherSession", { name: activityLabel(data, log.session, t) })}</p>
       )}
-      <p className="text-sm text-muted">{t("howTo")}</p>
+      {totals.done === 0 && <p className="text-sm text-muted -mt-1">{t("howTo")}</p>}
 
-      {session.exercises.map((ex, idx) => (
-        <ExerciseCard
-          key={ex.id}
-          index={idx + 1}
-          exercise={ex}
-          date={date}
-          rows={sets[ex.id] || []}
-          lang={i18n.language}
-          onRows={(rows) => write({ ...sets, [ex.id]: rows })}
-          onSetDone={() => (ex.rest ? setTimer({ end: Date.now() + ex.rest * 1000, total: ex.rest, label: ex.name }) : null)}
-        />
-      ))}
+      {groups.map((g, gi) =>
+        g.ss && g.items.length > 1 ? (
+          <div key={gi} className="rounded-[20px] border-2 border-dashed border-accent/35 p-1.5 flex flex-col gap-1.5">
+            <div className="px-2.5 pt-1 flex items-center justify-between gap-2">
+              <span className="text-[0.68rem] font-bold uppercase tracking-wider text-accent">{t("superset")}</span>
+              <span className="text-[0.7rem] text-muted">{t("supersetHint")}</span>
+            </div>
+            {g.items.map(card)}
+          </div>
+        ) : (
+          g.items.map(card)
+        )
+      )}
+
+      {complete && (
+        <section className="rounded-card bg-good/10 border border-good/40 p-4 flex items-center gap-3">
+          <span className="w-10 h-10 rounded-full bg-good text-surface grid place-items-center shrink-0"><Icon name="check" /></span>
+          <div className="min-w-0">
+            <div className="font-semibold">{t("complete")}</div>
+            <div className="text-sm text-muted num">{t("completeSub", { sets: totals.done, volume: Math.round(volume).toLocaleString(i18n.language) })}</div>
+          </div>
+        </section>
+      )}
 
       <Card>
         <TextField label={t("sessionNotes")} multiline value={log?.session === session.id ? log.note : ""} onChange={(v) => write(sets, { note: v })} placeholder={t("sessionNotesPlaceholder")} />
@@ -137,6 +174,20 @@ function ExerciseCard({ index, exercise, date, rows, onRows, onSetDone, lang }) 
 
   const name = exercise.name;
   const target = `${exercise.sets} × ${exercise.reps[0]}–${exercise.reps[1]}${exercise.perSide ? ` ${t("perSide")}` : ""}`;
+  const [open, setOpen] = useState(false);
+
+  if (allDone && !open) {
+    return (
+      <button type="button" onClick={() => setOpen(true)} aria-expanded="false" className="card !flex-row items-center gap-3 text-left !py-3 border-good/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+        <span className="w-7 h-7 shrink-0 rounded-full grid place-items-center bg-good text-surface"><Icon name="check" size={16} /></span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-semibold leading-snug truncate">{name}</span>
+          <span className="block text-xs text-muted font-mono num truncate">{rows.filter((r) => r.done).map((r) => `${num(r.kg) ?? "–"}×${num(r.reps) ?? "–"}`).join(" · ")}</span>
+        </span>
+        <span className="text-xs font-semibold text-accent shrink-0">{t("edit")}</span>
+      </button>
+    );
+  }
 
   return (
     <section className={`card ${allDone ? "border-good/50" : ""}`} aria-label={name}>
@@ -145,9 +196,6 @@ function ExerciseCard({ index, exercise, date, rows, onRows, onSetDone, lang }) 
           {allDone ? <Icon name="check" size={16} /> : index}
         </span>
         <div className="min-w-0 flex-1">
-          {exercise.superset && (
-            <span className="inline-block mb-1 rounded bg-accent-soft text-accent text-[0.68rem] font-bold uppercase tracking-wider px-1.5 py-0.5">{t("superset")}</span>
-          )}
           <h2 className="font-semibold leading-snug">{name}</h2>
           <div className="text-xs text-muted num mt-0.5">
             {target}{exercise.rest ? ` · ${t("rest")} ${fmtRest(exercise.rest)}` : exercise.superset ? ` · ${t("supersetNext")}` : ""}{exercise.rir ? ` · RIR ${exercise.rir}` : ""}
@@ -159,6 +207,9 @@ function ExerciseCard({ index, exercise, date, rows, onRows, onSetDone, lang }) 
             </div>
           )}
         </div>
+        {allDone && (
+          <button type="button" onClick={() => setOpen(false)} className="text-xs font-semibold text-accent shrink-0 py-1">{t("collapse")}</button>
+        )}
       </div>
 
       <div className="text-xs rounded-field bg-raised px-3 py-2 flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -227,7 +278,7 @@ function Row({ n, row, placeholderKg, placeholderReps, onKg, onReps, onToggle, e
         aria-pressed={!!row.done}
         aria-label={t("markSet", { n })}
         onClick={onToggle}
-        className={`h-11 rounded-field border grid place-items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${row.done ? "bg-good border-good text-surface" : "bg-bg border-line text-muted"}`}
+        className={`h-11 rounded-field border grid place-items-center transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${row.done ? "bg-good border-good text-surface" : "bg-bg border-line text-muted"}`}
       >
         <Icon name="check" />
       </button>
@@ -255,8 +306,8 @@ function RestTimer({ timer, setTimer }) {
   const mm = Math.floor(left / 60), ss = String(left % 60).padStart(2, "0");
 
   return (
-    <div role="timer" aria-live="polite" className="fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-30 px-4">
-      <div className={`max-w-xl mx-auto rounded-card border shadow-lg overflow-hidden ${left === 0 ? "bg-good border-good text-surface" : "bg-surface border-line"}`}>
+    <div role="timer" aria-live="polite" className="fixed inset-x-0 bottom-[calc(76px+env(safe-area-inset-bottom))] z-30 px-4">
+      <div className={`max-w-xl mx-auto rounded-card border shadow-float overflow-hidden ${left === 0 ? "bg-good border-good text-surface" : "bg-surface border-line"}`}>
         <div className="h-1 bg-raised"><div className="h-full bg-accent transition-[width] duration-200" style={{ width: `${pct}%` }} /></div>
         <div className="flex items-center gap-3 px-4 py-2.5">
           <Icon name="timer" />

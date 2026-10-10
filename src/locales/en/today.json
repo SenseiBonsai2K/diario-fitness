@@ -31,5 +31,11 @@
   "notesPlaceholder": "Aches, mood, what went well or badly",
   "emptyPlan": "No plan loaded yet. Import your backup to see your sessions, targets and plan.",
   "emptyPlanAction": "Import backup",
-  "restDay": "Rest day: recover well."
+  "restDay": "Rest day: recover well.",
+  "week": "Week",
+  "menuToday": "Today's menu",
+  "menuAll": "Whole diet",
+  "over": "{{value}} over",
+  "sessionMeta": "{{exercises}} exercises · {{sets}} sets · about {{min}}'",
+  "resume": "Resume"
 }

@@ -31,5 +31,11 @@
   "notesPlaceholder": "Dolori, umore, cosa è andato bene o male",
   "emptyPlan": "Nessun piano caricato. Importa il tuo backup per vedere sedute, obiettivi e piano.",
   "emptyPlanAction": "Importa il backup",
-  "restDay": "Giorno di riposo: recupera bene."
+  "restDay": "Giorno di riposo: recupera bene.",
+  "week": "Settimana",
+  "menuToday": "Menu di oggi",
+  "menuAll": "Tutta la dieta",
+  "over": "{{value}} oltre",
+  "sessionMeta": "{{exercises}} esercizi · {{sets}} serie · circa {{min}}'",
+  "resume": "Riprendi"
 }

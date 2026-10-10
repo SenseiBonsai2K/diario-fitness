@@ -64,3 +64,9 @@ export function fmtRest(sec) {
   const m = Math.floor(sec / 60), s = sec % 60;
   return s ? `${m}'${String(s).padStart(2, "0")}"` : `${m}'`;
 }
+
+/** Rough session length in minutes: ~45" of work per set plus the planned rest, to the nearest 5'. */
+export function sessionMinutes(session) {
+  const sec = (session?.exercises || []).reduce((a, e) => a + e.sets * (45 + (Number(e.rest) || 0)), 0);
+  return Math.max(5, Math.round(sec / 300) * 5);
+}

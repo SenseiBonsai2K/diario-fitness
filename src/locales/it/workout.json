@@ -37,5 +37,10 @@
   "technique": "Tecnica",
   "yogaEmpty": "Nessuna sequenza di yoga caricata: segna durata e note.",
   "superset": "Superserie",
-  "supersetNext": "subito il successivo"
+  "supersetNext": "subito il successivo",
+  "supersetHint": "recupero dopo la coppia",
+  "complete": "Seduta completata",
+  "completeSub": "{{sets}} serie · {{volume}} kg sollevati in totale",
+  "edit": "Modifica",
+  "collapse": "Chiudi"
 }

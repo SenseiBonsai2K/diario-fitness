@@ -41,17 +41,19 @@ export default function App() {
         {saveError && (
           <div role="alert" className="rounded-card border border-bad text-bad px-4 py-3 text-sm">{t("errors.saveFailed")}</div>
         )}
+        <div key={tab} className="screen-enter flex flex-col gap-4">
         {tab === "today" && <Today date={date} setDate={setDate} openWorkout={openWorkout} goTo={setTab} />}
         {tab === "workout" && <Workout date={date} setDate={setDate} activity={activity} setActivity={setActivity} />}
         {tab === "progress" && <Progress />}
         {tab === "plan" && <Plan />}
         {tab === "settings" && <Settings />}
+        </div>
       </main>
       <nav
         aria-label={t("nav.label")}
-        className="fixed bottom-0 inset-x-0 z-20 bg-surface/95 backdrop-blur border-t border-line pb-[env(safe-area-inset-bottom)]"
+        className="fixed bottom-0 inset-x-0 z-20 bg-surface/90 backdrop-blur-md border-t border-line/70 pb-[env(safe-area-inset-bottom)]"
       >
-        <div className="max-w-xl mx-auto grid grid-cols-5">
+        <div className="max-w-xl mx-auto grid grid-cols-5 px-1">
           {TABS.map((x) => {
             const active = tab === x.id;
             return (
@@ -60,9 +62,11 @@ export default function App() {
                 type="button"
                 onClick={() => setTab(x.id)}
                 aria-current={active ? "page" : undefined}
-                className={`flex flex-col items-center gap-0.5 py-2.5 text-[0.7rem] font-medium focus-visible:outline-none focus-visible:bg-accent-soft ${active ? "text-accent" : "text-muted"}`}
+                className={`group flex flex-col items-center gap-1 pt-2 pb-2.5 text-[0.7rem] focus-visible:outline-none ${active ? "text-ink font-semibold" : "text-muted font-medium"}`}
               >
-                <Icon name={x.icon} size={22} />
+                <span className={`grid place-items-center h-8 w-14 rounded-full transition-colors group-focus-visible:ring-2 group-focus-visible:ring-accent ${active ? "bg-accent-soft text-accent" : ""}`}>
+                  <Icon name={x.icon} size={22} />
+                </span>
                 {t(`nav.${x.id}`)}
               </button>
             );

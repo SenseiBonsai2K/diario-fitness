@@ -13,6 +13,8 @@ Done
 - Diet in the plan (one or more day types, meal options, swaps, notes) with print / save as PDF.
 - Archive: plan imports keep every replaced plan, profile targets, program and diet.
 - Backup covers everything, language included; unknown keys are preserved (schema v3).
+- UI refresh: week strip, hero card for the day, macro bars, today's menu, workout progress and
+  superset grouping, tabbed Plan screen.
 
 Next
 - Edit programs from the app (today they arrive by importing a plan file).

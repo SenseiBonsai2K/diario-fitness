@@ -37,5 +37,10 @@
   "technique": "Technique",
   "yogaEmpty": "No yoga routine loaded: log duration and notes.",
   "superset": "Superset",
-  "supersetNext": "straight to the next"
+  "supersetNext": "straight to the next",
+  "supersetHint": "rest after the pair",
+  "complete": "Session complete",
+  "completeSub": "{{sets}} sets · {{volume}} kg lifted in total",
+  "edit": "Edit",
+  "collapse": "Close"
 }

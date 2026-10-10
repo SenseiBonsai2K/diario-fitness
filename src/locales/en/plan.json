@@ -16,7 +16,8 @@
     "carbs": "Carbohydrates",
     "fat": "Fat",
     "perDay": "Per day",
-    "maintenance": "Estimated maintenance: {{value}} kcal."
+    "maintenance": "Estimated maintenance: {{value}} kcal.",
+    "toLose": "{{value}} kg to lose in this phase."
   },
   "programs": {
     "current": "Current program",
@@ -30,7 +31,9 @@
     "volume": "Weekly volume",
     "muscle": "Muscle group",
     "sets": "Sets",
-    "detail": "From"
+    "detail": "From",
+    "sessions": "Sessions",
+    "sessionMeta": "{{sets}} sets · about {{min}}'"
   },
   "sessions": {
     "exercise": "Exercise",
@@ -66,7 +69,8 @@
     "qty": "Amount",
     "alternatives": "Alternatives",
     "substitutions": "Swaps",
-    "printedOn": "Printed on {{date}} · Diario Fitness"
+    "printedOn": "Printed on {{date}} · Diario Fitness",
+    "today": "Today"
   },
   "archive": {
     "title": "Archive",
@@ -88,5 +92,11 @@
       "goalWeight": "Goal weight",
       "goalBf": "Goal body fat"
     }
+  },
+  "tabs": {
+    "program": "Program",
+    "diet": "Diet",
+    "plan": "Plan",
+    "archive": "Archive"
   }
 }

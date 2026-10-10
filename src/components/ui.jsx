@@ -95,6 +95,33 @@ export function Stat({ label, value, sub, tone }) {
   );
 }
 
+/** Horizontal meter: value against a target. Over target turns warn. */
+export function Meter({ value, target, tone }) {
+  const pct = target ? Math.min(100, Math.max(0, (value / target) * 100)) : 0;
+  const over = target && value > target * 1.05;
+  const color = tone === "good" ? "bg-good" : over ? "bg-warn" : "bg-accent";
+  return (
+    <div className="bar" aria-hidden="true">
+      <span className={color} style={{ width: `${pct}%` }} />
+    </div>
+  );
+}
+
+/** Round progress indicator, e.g. sets done in a session. */
+export function Ring({ value, size = 44, stroke = 4, className = "", children }) {
+  const r = (size - stroke) / 2, c = 2 * Math.PI * r;
+  const pct = Math.min(1, Math.max(0, value || 0));
+  return (
+    <span className={`relative inline-grid place-items-center shrink-0 ${className}`} style={{ width: size, height: size }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true" className="-rotate-90 absolute inset-0">
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="currentColor" strokeOpacity="0.18" strokeWidth={stroke} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - pct)} className="transition-[stroke-dashoffset] duration-500" />
+      </svg>
+      <span className="relative text-[0.7rem] font-bold num">{children}</span>
+    </span>
+  );
+}
+
 export function Grid({ children, cols = 2 }) {
   const c = cols === 3 ? "grid-cols-3" : cols === 4 ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-2";
   return <div className={`grid ${c} gap-3`}>{children}</div>;
@@ -104,14 +131,14 @@ export function Grid({ children, cols = 2 }) {
 export function Stepper({ label, onPrev, onNext, prevLabel, nextLabel, extra }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <button type="button" onClick={onPrev} aria-label={prevLabel} className="w-11 h-11 rounded-field border border-line bg-surface grid place-items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+      <button type="button" onClick={onPrev} aria-label={prevLabel} className="w-11 h-11 rounded-full border border-line bg-surface shadow-card grid place-items-center active:scale-95 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
         <Icon name="chevronLeft" />
       </button>
       <div className="flex-1 min-w-0 text-center">
         <div className="h-display text-xl truncate">{label}</div>
         {extra}
       </div>
-      <button type="button" onClick={onNext} aria-label={nextLabel} className="w-11 h-11 rounded-field border border-line bg-surface grid place-items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+      <button type="button" onClick={onNext} aria-label={nextLabel} className="w-11 h-11 rounded-full border border-line bg-surface shadow-card grid place-items-center active:scale-95 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
         <Icon name="chevronRight" />
       </button>
     </div>
@@ -133,6 +160,12 @@ const PATHS = {
   download: "M12 4v11M7 10l5 5 5-5M5 20h14",
   print: "M7 9V4h10v5M7 17H5a2 2 0 01-2-2v-4a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2h-2M7 14h10v6H7z",
   upload: "M12 20V9M7 14l5-5 5 5M5 4h14",
+  run: "M13 4a2 2 0 104 0 2 2 0 00-4 0M7 21l3-6 3 2v5M10 15l1-6 4 3 3 1M11 9L8 10l-2 3",
+  yoga: "M12 4a2 2 0 100 4 2 2 0 000-4zM4 20c3-1 5-1 8-1s5 0 8 1M12 8v6M7 11l5 3 5-3",
+  rest: "M20 14A8 8 0 1110 4a6 6 0 0010 10z",
+  flame: "M12 21c4 0 7-3 7-7 0-4-3-6-4-9-1 3-3 4-4 4 0-2-1-4-2-5-1 4-4 6-4 10 0 4 3 7 7 7z",
+  plate: "M12 19a7 7 0 100-14 7 7 0 000 14zM12 15a3 3 0 100-6 3 3 0 000 6zM3 4v6M21 4v16",
+  list: "M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01",
   share: "M8 12l8-5M8 12l8 5M6 14a2 2 0 100-4 2 2 0 000 4zM18 9a2 2 0 100-4 2 2 0 000 4zM18 19a2 2 0 100-4 2 2 0 000 4z",
 };
 

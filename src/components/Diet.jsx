@@ -138,7 +138,7 @@ export default function Diet({ diet }) {
  * Print layout (A4, always light), rendered outside the app root only while
  * printing. The browser's print dialog offers "Save as PDF".
  */
-function DietPrint({ diet, onDone }) {
+export function DietPrint({ diet, onDone }) {
   const { t, lang, qty, period, targetRows, dayName } = useDietText(diet);
   const multi = diet.days.length > 1;
 

@@ -3,12 +3,17 @@
 Personal training and nutrition diary, installable on Android as a web app (PWA).
 It works offline and keeps every piece of data on the phone: nothing is sent to a server.
 
-- **Today**: weight, calories and macros, sleep, energy, hunger, notes.
-- **Workout**: the day's session from the plan, with kg × reps for every set, last time's numbers,
+- **Today**: week strip (planned and done per day), the day's session with progress ring and
+  estimated length, weight, calories and macros with progress bars, today's menu from the diet,
+  sleep, energy, hunger, notes.
+- **Workout**: the day's session from the plan (sticky progress header, superset pairs grouped,
+  finished exercises collapse to a summary), with kg × reps for every set, last time's numbers,
   a "add weight" hint (double progression) and a rest timer. Run and yoga logs on their days.
 - **Progress**: weekly summary with the calorie rule, weekly and monthly checks, charts for weight
   (7-day average), waist and estimated 1RM per exercise.
-- **Plan**: goals and targets, the active training program and diet, previous programs and diets,
+- **Plan**: four tabs — Program (week, one session at a time, volume bars, notes), Diet (one
+  weekday at a time, today first), Plan (goals, plan sections, yoga), Archive (only when there is
+  something archived) — the active training program and diet, previous programs and diets,
   plan sections, yoga routine, history and an archive of every replaced version, all read from the
   user's data. Each diet has a "Print or save as PDF" button (browser print, A4, one page per day type).
 - **Settings**: phase and targets, backup export (file or Android share sheet → Google Drive),
