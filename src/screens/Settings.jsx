@@ -17,12 +17,30 @@ export default function Settings() {
       <h1 className="h-display text-3xl">{t("title")}</h1>
       <Backup />
       <Profile />
+      <TimerSettings />
       <Appearance />
       <Language />
       <Install />
       <DangerZone />
       <p className="text-xs text-muted text-center pb-2">{t("privacy")}</p>
     </>
+  );
+}
+
+function TimerSettings() {
+  const { t } = useTranslation("settings");
+  const { data, setPrefs } = useStore();
+  return (
+    <Card title={t("timer.title")}>
+      <Segmented
+        clearable={false}
+        label={t("timer.sound")}
+        value={data.prefs.timerSound === false ? "off" : "on"}
+        onChange={(v) => setPrefs({ timerSound: v === "on" })}
+        options={[{ value: "on", label: t("timer.on") }, { value: "off", label: t("timer.off") }]}
+      />
+      <p className="text-xs text-muted">{t("timer.note")}</p>
+    </Card>
   );
 }
 

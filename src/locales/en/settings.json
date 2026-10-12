@@ -106,5 +106,12 @@
     },
     "accent_soft": "Accent colour · soft",
     "accent_vivid": "Accent colour · vivid"
+  },
+  "timer": {
+    "title": "Rest timer",
+    "sound": "Sound when rest ends",
+    "on": "On",
+    "off": "Off",
+    "note": "The beep plays over your music without stopping it, at the media volume. Vibration is always on (on Android)."
   }
 }

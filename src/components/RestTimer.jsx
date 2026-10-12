@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Icon } from "./ui.jsx";
+import { useStore } from "../lib/store.jsx";
 
 // One rest timer for the whole app. It lives above the screens, so it keeps
 // running when you switch tab, and its end time is saved, so it survives the
@@ -20,12 +21,16 @@ function readSaved() {
 }
 
 export function TimerProvider({ children }) {
+  const { data } = useStore();
+  const soundOn = data.prefs.timerSound !== false;
+  const sound = useRef(soundOn);
+  sound.current = soundOn;
   const [timer, setTimerState] = useState(readSaved);
-  // Every change comes from a tap, so the alarm track can start right here.
+  // Every change comes from a tap, so the alarm can be scheduled right here.
   const setTimer = useCallback((t) => {
     setTimerState(t);
     try { t ? localStorage.setItem(KEY, JSON.stringify(t)) : localStorage.removeItem(KEY); } catch { /* storage blocked */ }
-    armAlarm(t);
+    schedule(t && sound.current ? t : null);
   }, []);
   const start = useCallback((seconds, label) => {
     if (!seconds || seconds <= 0) return;
@@ -35,7 +40,7 @@ export function TimerProvider({ children }) {
   return (
     <TimerContext.Provider value={{ timer, start, setTimer }}>
       {children}
-      {timer && <RestTimer timer={timer} setTimer={setTimer} />}
+      {timer && <RestTimer timer={timer} setTimer={setTimer} soundOn={soundOn} />}
     </TimerContext.Provider>
   );
 }
@@ -44,83 +49,64 @@ export function useRestTimer() {
   return useContext(TimerContext);
 }
 
-// The alarm is an audio track made on the fly: silence for the rest time,
-// then the beeps. Phones keep playing media with the screen off or the app in
-// the background, so the sound arrives on time even then. It plays at the
-// media volume.
-let track = null;
-function wav(silenceSec) {
-  const rate = 8000;
-  const tones = [[880, 0.18], [0, 0.1], [880, 0.18], [0, 0.1], [1175, 0.45], [0, 0.35], [880, 0.18], [0, 0.1], [880, 0.18], [0, 0.1], [1175, 0.45]];
-  const beepLen = tones.reduce((a, [, d]) => a + d, 0);
-  const n = Math.round((silenceSec + beepLen) * rate);
-  const buf = new ArrayBuffer(44 + n);
-  const v = new DataView(buf);
-  const str = (o, x) => [...x].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
-  str(0, "RIFF"); v.setUint32(4, 36 + n, true); str(8, "WAVEfmt "); v.setUint32(16, 16, true);
-  v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, rate, true); v.setUint32(28, rate, true);
-  v.setUint16(32, 1, true); v.setUint16(34, 8, true); str(36, "data"); v.setUint32(40, n, true);
-  const bytes = new Uint8Array(buf, 44);
-  bytes.fill(128);
-  let i = Math.round(silenceSec * rate);
-  for (const [f, d] of tones) {
-    const len = Math.round(d * rate);
-    for (let k = 0; k < len && i < n; k++, i++) {
-      if (!f) continue;
-      const env = Math.min(1, k / 80, (len - k) / 80);
-      bytes[i] = 128 + Math.round(120 * env * (Math.sin((2 * Math.PI * f * k) / rate) > 0 ? 1 : -1) * 0.9);
-    }
-  }
-  return URL.createObjectURL(new Blob([buf], { type: "audio/wav" }));
-}
-function stopAlarm() {
-  if (!track) return;
-  try { track.audio.pause(); URL.revokeObjectURL(track.url); } catch { /* ignore */ }
-  track = null;
-}
-function armAlarm(t) {
-  stopAlarm();
-  if (!t) return;
-  const left = (t.end - Date.now()) / 1000;
-  if (left <= 0.3) return;
-  try {
-    const url = wav(left);
-    const audio = new Audio(url);
-    audio.preload = "auto";
-    track = { audio, url, end: t.end, playing: false };
-    const p = audio.play();
-    if (p && p.then) p.then(() => { if (track?.audio === audio) track.playing = true; }).catch(() => {});
-  } catch { /* no audio: the Web Audio beep below is the fallback */ }
-}
-/** True when the alarm track is playing and will sound by itself. */
-const trackWillRing = () => !!track?.playing && !track.audio.paused;
+// The alarm uses Web Audio, scheduled in advance on the audio clock for the
+// moment the rest ends. Web Audio mixes with other apps instead of taking
+// over the audio: the user's music keeps playing (no "media" notification,
+// no pause), the beeps just play on top, at the media volume.
+let ctx = null;
+let pending = null; // { gain, when }
 
-// A short beep through Web Audio (fallback). The context must be created on a tap
-// (browsers block audio otherwise), so it is unlocked when a timer starts.
-let audio = null;
 function unlockAudio() {
   try {
-    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
-    if (audio.state === "suspended") audio.resume();
-  } catch { /* no audio */ }
-}
-function beep() {
-  try {
-    if (!audio) return;
-    [0, 0.28, 0.56].forEach((d, i) => {
-      const o = audio.createOscillator(), g = audio.createGain();
-      o.frequency.value = i === 2 ? 1175 : 880;
-      g.gain.setValueAtTime(0.0001, audio.currentTime + d);
-      g.gain.exponentialRampToValueAtTime(0.35, audio.currentTime + d + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + d + 0.22);
-      o.connect(g).connect(audio.destination);
-      o.start(audio.currentTime + d);
-      o.stop(audio.currentTime + d + 0.25);
-    });
+    ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state === "suspended") ctx.resume();
   } catch { /* no audio */ }
 }
 
-function RestTimer({ timer, setTimer }) {
+const PATTERN = [[0, 880, 0.18], [0.28, 880, 0.18], [0.56, 1175, 0.4], [1.3, 880, 0.18], [1.58, 880, 0.18], [1.86, 1175, 0.4]];
+
+function playAt(when) {
+  const out = ctx.createGain();
+  out.connect(ctx.destination);
+  for (const [d, f, len] of PATTERN) {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = "square";
+    o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, when + d);
+    g.gain.exponentialRampToValueAtTime(0.18, when + d + 0.015);
+    g.gain.setValueAtTime(0.18, when + d + len - 0.03);
+    g.gain.exponentialRampToValueAtTime(0.0001, when + d + len);
+    o.connect(g).connect(out);
+    o.start(when + d);
+    o.stop(when + d + len + 0.02);
+  }
+  return out;
+}
+
+/** Cancel any scheduled alarm and, if a timer is given, schedule its beeps. */
+function schedule(t) {
+  if (pending) { try { pending.gain.disconnect(); } catch { /* already gone */ } pending = null; }
+  if (!t || !ctx) return;
+  const left = (t.end - Date.now()) / 1000;
+  if (left <= 0.2) return;
+  try {
+    const when = ctx.currentTime + left;
+    pending = { gain: playAt(when), when, at: t.at };
+  } catch { /* no audio */ }
+}
+
+/** Called when the countdown hits zero on screen: beep now if the audio clock was paused meanwhile. */
+function ringIfMissed(at) {
+  if (!ctx) return;
+  try {
+    if (ctx.state === "suspended") ctx.resume();
+    if (pending && pending.at === at && ctx.currentTime >= pending.when - 0.3) return; // played on time
+    if (pending) { try { pending.gain.disconnect(); } catch { /* ignore */ } pending = null; }
+    playAt(ctx.currentTime + 0.05);
+  } catch { /* no audio */ }
+}
+
+function RestTimer({ timer, setTimer, soundOn }) {
   const { t } = useTranslation("workout");
   const [now, setNow] = useState(Date.now());
   const left = Math.max(0, Math.ceil((timer.end - now) / 1000));
@@ -149,9 +135,9 @@ function RestTimer({ timer, setTimer }) {
     if (left === 0 && alerted.current !== timer.at && Date.now() - timer.end < 5000) {
       alerted.current = timer.at;
       try { navigator.vibrate?.([300, 120, 300, 120, 500]); } catch { /* not supported */ }
-      if (!trackWillRing()) beep();
+      if (soundOn) ringIfMissed(timer.at);
     }
-  }, [left, timer.at, timer.end]);
+  }, [left, timer.at, timer.end, soundOn]);
 
   const pct = Math.min(100, (1 - left / timer.total) * 100);
   const mm = Math.floor(left / 60), ss = String(left % 60).padStart(2, "0");

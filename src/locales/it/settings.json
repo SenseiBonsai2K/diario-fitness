@@ -106,5 +106,12 @@
     },
     "accent_soft": "Colore dei dettagli · tenui",
     "accent_vivid": "Colore dei dettagli · vivaci"
+  },
+  "timer": {
+    "title": "Timer di recupero",
+    "sound": "Suono a fine recupero",
+    "on": "Attivo",
+    "off": "Spento",
+    "note": "Il bip suona sopra la tua musica senza fermarla, al volume dei contenuti multimediali. La vibrazione c'è sempre (su Android)."
   }
 }
