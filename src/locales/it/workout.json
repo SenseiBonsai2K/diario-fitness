@@ -2,7 +2,7 @@
   "chooseActivity": "Scegli l'attività",
   "setsDone": "{{done}}/{{planned}} serie",
   "otherSession": "In questo giorno c'è già un registro di {{name}}. Se salvi qui, viene sostituito.",
-  "howTo": "Tocca la spunta quando finisci una serie: i campi vuoti si riempiono con l'ultima volta e parte il timer del recupero.",
+  "howTo": "Tocca la spunta quando finisci una serie: i campi vuoti si riempiono con l'ultima volta e parte il timer con il recupero indicato (in una superserie parte dopo il secondo esercizio). Il timer resta attivo anche se cambi schermata o blocchi il telefono.",
   "sessionNotes": "Note",
   "sessionNotesPlaceholder": "Sensazioni, regolazioni delle macchine, dolori",
   "perSide": "per lato",

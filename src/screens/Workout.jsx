@@ -6,6 +6,8 @@ import { fmtDate, parseIso } from "../lib/dates.js";
 import { lastPerformance, num, shouldIncrease } from "../lib/stats.js";
 import { useStore } from "../lib/store.jsx";
 import { DateStepper } from "./Today.jsx";
+import { useRestTimer } from "../components/RestTimer.jsx";
+
 
 /** What the day's log already contains, else what the weekly plan says. */
 function defaultActivity(data, date) {
@@ -60,7 +62,7 @@ function LiftSession({ date, session, programId }) {
   const { data, patch } = useStore();
   const log = data.workouts[date];
   const sets = log?.session === session.id ? log.sets || {} : {};
-  const [timer, setTimer] = useState(null); // { end: ms, total: s, label }
+  const { start: startRest } = useRestTimer();
 
   const write = (nextSets, extra = {}) => patch("workouts", date, { program: programId, session: session.id, sets: nextSets, ...extra });
 
@@ -95,7 +97,7 @@ function LiftSession({ date, session, programId }) {
       rows={sets[ex.id] || []}
       lang={i18n.language}
       onRows={(rows) => write({ ...sets, [ex.id]: rows })}
-      onSetDone={() => (ex.rest ? setTimer({ end: Date.now() + ex.rest * 1000, total: ex.rest, label: ex.name }) : null)}
+      onSetDone={() => startRest(Number(ex.rest) || 0, ex.name)}
     />
   );
 
@@ -141,7 +143,6 @@ function LiftSession({ date, session, programId }) {
         <TextField label={t("sessionNotes")} multiline value={log?.session === session.id ? log.note : ""} onChange={(v) => write(sets, { note: v })} placeholder={t("sessionNotesPlaceholder")} />
       </Card>
 
-      {timer && <RestTimer timer={timer} setTimer={setTimer} />}
     </>
   );
 }
@@ -286,49 +287,6 @@ function Row({ n, row, placeholderKg, placeholderReps, onKg, onReps, onToggle, e
   );
 }
 
-function RestTimer({ timer, setTimer }) {
-  const { t } = useTranslation("workout");
-  const [now, setNow] = useState(Date.now());
-  const left = Math.max(0, Math.round((timer.end - now) / 1000));
-
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 250);
-    return () => clearInterval(id);
-  }, []);
-
-  useEffect(() => {
-    if (left === 0) {
-      try { navigator.vibrate?.([250, 120, 250, 120, 400]); } catch { /* not supported */ }
-    }
-  }, [left]);
-
-  const pct = Math.min(100, (1 - left / timer.total) * 100);
-  const mm = Math.floor(left / 60), ss = String(left % 60).padStart(2, "0");
-
-  return (
-    <div role="timer" aria-live="polite" className="fixed inset-x-0 bottom-[calc(76px+env(safe-area-inset-bottom))] z-30 px-4">
-      <div className={`max-w-xl mx-auto rounded-card border shadow-float overflow-hidden ${left === 0 ? "bg-good border-good text-surface" : "bg-surface border-line"}`}>
-        <div className="h-1 bg-raised"><div className="h-full bg-accent transition-[width] duration-200" style={{ width: `${pct}%` }} /></div>
-        <div className="flex items-center gap-3 px-4 py-2.5">
-          <Icon name="timer" />
-          <div className="min-w-0 flex-1">
-            <div className="text-xs opacity-80 truncate">{left === 0 ? t("restOver") : t("resting", { name: timer.label })}</div>
-            <div className="font-display text-2xl font-semibold num leading-none">{mm}:{ss}</div>
-          </div>
-          {left > 0 && (
-            <>
-              <button type="button" className="px-3 py-2 rounded-field border border-line text-sm font-semibold num" onClick={() => setTimer({ ...timer, end: timer.end - 15000 })}>−15"</button>
-              <button type="button" className="px-3 py-2 rounded-field border border-line text-sm font-semibold num" onClick={() => setTimer({ ...timer, end: timer.end + 15000, total: timer.total + 15 })}>+15"</button>
-            </>
-          )}
-          <button type="button" aria-label={t("closeTimer")} className="w-10 h-10 grid place-items-center rounded-field" onClick={() => setTimer(null)}>
-            <Icon name="close" />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 /** "52:30" or "1:02:30" or "52" (minutes) → seconds. */
 function parseDuration(s) {

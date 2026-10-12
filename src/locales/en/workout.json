@@ -2,7 +2,7 @@
   "chooseActivity": "Choose the activity",
   "setsDone": "{{done}}/{{planned}} sets",
   "otherSession": "This day already has a {{name}} log. Saving here replaces it.",
-  "howTo": "Tap the check when you finish a set: empty fields are filled from last time and the rest timer starts.",
+  "howTo": "Tap the tick when you finish a set: empty fields fill with last time's numbers and the timer starts with the planned rest (in a superset, after the second exercise). The timer keeps running if you switch screen or lock the phone.",
   "sessionNotes": "Notes",
   "sessionNotesPlaceholder": "How it felt, machine settings, aches",
   "perSide": "per side",
