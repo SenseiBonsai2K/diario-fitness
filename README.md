@@ -43,7 +43,8 @@ It works offline and keeps every piece of data on the phone: nothing is sent to 
   the background, so a fully automatic off-phone backup would need a server, which this app doesn't
   have by design. "Delete all data" also deletes the copies.
 - Sharing a backup (`src/lib/share.js`): Chrome on Android refuses `.json` files in the share
-  sheet, so the backup is shared as `.txt` there (same content); restore accepts `.json` and `.txt`.
+  sheet (it can even pass `canShare` and fail in `share`), so outside iPhone the backup is shared as
+  `.txt` (same content); restore accepts `.json` and `.txt`.
 - **Settings**: appearance (neutral background: auto, light, grey, dark, black; and one of sixteen
   accent colours — eight soft, eight vivid — chosen separately; saved in `prefs.bg` / `prefs.accent` and in the backup), phase and targets, backup export (file or Android share sheet → Google Drive),
   restore from a backup, language (Italian / English).

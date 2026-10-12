@@ -8,7 +8,7 @@ import { ACCENT_IDS, BG_IDS, resolveAppearance } from "../lib/themes-apply.js";
 import { today } from "../lib/dates.js";
 import { countEntries, emptyData, hasLogs, hasPlan, normalise, toBackup } from "../lib/storage.js";
 import { useStore } from "../lib/store.jsx";
-import { BACKUP_ACCEPT, shareableFile } from "../lib/share.js";
+import { BACKUP_ACCEPT, isIos, shareableFile } from "../lib/share.js";
 import { clearSnapshots, getSnapshot, listSnapshots, takeSnapshot } from "../lib/snapshots.js";
 
 const PHASES = ["cut", "maintain", "bulk", "minicut"];
@@ -180,8 +180,6 @@ function Profile() {
   );
 }
 
-const isIos = () => typeof navigator !== "undefined" && (/iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
-
 function fileName() {
   return `diario-fitness-backup-${today()}.json`;
 }
@@ -214,11 +212,11 @@ function Backup() {
 
   const share = async () => {
     try {
-      await navigator.share({ files: [file()], title: t("backup.shareTitle") });
+      await navigator.share({ files: [file()] });
       markBackup();
       setMsg({ tone: "good", text: t("backup.shared") });
     } catch (e) {
-      if (e?.name !== "AbortError") setMsg({ tone: "bad", text: t("backup.shareFailed") });
+      if (e?.name !== "AbortError") setMsg({ tone: "bad", text: `${t("backup.shareFailed")} (${e?.name || "Error"}${e?.message ? `: ${e.message}` : ""})` });
     }
   };
 

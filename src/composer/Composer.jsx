@@ -807,8 +807,8 @@ function Review({ result, setTab, dayNames, canApply, fromFile, apply, applied, 
     setMsg({ tone: "good", text: t("review.downloaded") });
   };
   const share = async () => {
-    try { await navigator.share({ files: [file()], title: t("pageTitle") }); setMsg({ tone: "good", text: t("review.shared") }); }
-    catch (e) { if (e?.name !== "AbortError") setMsg({ tone: "bad", text: t("review.shareFailed") }); }
+    try { await navigator.share({ files: [file()] }); setMsg({ tone: "good", text: t("review.shared") }); }
+    catch (e) { if (e?.name !== "AbortError") setMsg({ tone: "bad", text: `${t("review.shareFailed")} (${e?.name || "Error"})` }); }
   };
   const copy = async () => {
     try { await navigator.clipboard.writeText(json); setMsg({ tone: "good", text: t("review.copied") }); }
