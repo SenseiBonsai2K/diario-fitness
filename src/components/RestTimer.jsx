@@ -21,9 +21,11 @@ function readSaved() {
 
 export function TimerProvider({ children }) {
   const [timer, setTimerState] = useState(readSaved);
+  // Every change comes from a tap, so the alarm track can start right here.
   const setTimer = useCallback((t) => {
     setTimerState(t);
     try { t ? localStorage.setItem(KEY, JSON.stringify(t)) : localStorage.removeItem(KEY); } catch { /* storage blocked */ }
+    armAlarm(t);
   }, []);
   const start = useCallback((seconds, label) => {
     if (!seconds || seconds <= 0) return;
@@ -42,7 +44,58 @@ export function useRestTimer() {
   return useContext(TimerContext);
 }
 
-// A short beep through Web Audio. The context must be created on a tap
+// The alarm is an audio track made on the fly: silence for the rest time,
+// then the beeps. Phones keep playing media with the screen off or the app in
+// the background, so the sound arrives on time even then. It plays at the
+// media volume.
+let track = null;
+function wav(silenceSec) {
+  const rate = 8000;
+  const tones = [[880, 0.18], [0, 0.1], [880, 0.18], [0, 0.1], [1175, 0.45], [0, 0.35], [880, 0.18], [0, 0.1], [880, 0.18], [0, 0.1], [1175, 0.45]];
+  const beepLen = tones.reduce((a, [, d]) => a + d, 0);
+  const n = Math.round((silenceSec + beepLen) * rate);
+  const buf = new ArrayBuffer(44 + n);
+  const v = new DataView(buf);
+  const str = (o, x) => [...x].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+  str(0, "RIFF"); v.setUint32(4, 36 + n, true); str(8, "WAVEfmt "); v.setUint32(16, 16, true);
+  v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, rate, true); v.setUint32(28, rate, true);
+  v.setUint16(32, 1, true); v.setUint16(34, 8, true); str(36, "data"); v.setUint32(40, n, true);
+  const bytes = new Uint8Array(buf, 44);
+  bytes.fill(128);
+  let i = Math.round(silenceSec * rate);
+  for (const [f, d] of tones) {
+    const len = Math.round(d * rate);
+    for (let k = 0; k < len && i < n; k++, i++) {
+      if (!f) continue;
+      const env = Math.min(1, k / 80, (len - k) / 80);
+      bytes[i] = 128 + Math.round(120 * env * (Math.sin((2 * Math.PI * f * k) / rate) > 0 ? 1 : -1) * 0.9);
+    }
+  }
+  return URL.createObjectURL(new Blob([buf], { type: "audio/wav" }));
+}
+function stopAlarm() {
+  if (!track) return;
+  try { track.audio.pause(); URL.revokeObjectURL(track.url); } catch { /* ignore */ }
+  track = null;
+}
+function armAlarm(t) {
+  stopAlarm();
+  if (!t) return;
+  const left = (t.end - Date.now()) / 1000;
+  if (left <= 0.3) return;
+  try {
+    const url = wav(left);
+    const audio = new Audio(url);
+    audio.preload = "auto";
+    track = { audio, url, end: t.end, playing: false };
+    const p = audio.play();
+    if (p && p.then) p.then(() => { if (track?.audio === audio) track.playing = true; }).catch(() => {});
+  } catch { /* no audio: the Web Audio beep below is the fallback */ }
+}
+/** True when the alarm track is playing and will sound by itself. */
+const trackWillRing = () => !!track?.playing && !track.audio.paused;
+
+// A short beep through Web Audio (fallback). The context must be created on a tap
 // (browsers block audio otherwise), so it is unlocked when a timer starts.
 let audio = null;
 function unlockAudio() {
@@ -96,7 +149,7 @@ function RestTimer({ timer, setTimer }) {
     if (left === 0 && alerted.current !== timer.at && Date.now() - timer.end < 5000) {
       alerted.current = timer.at;
       try { navigator.vibrate?.([300, 120, 300, 120, 500]); } catch { /* not supported */ }
-      beep();
+      if (!trackWillRing()) beep();
     }
   }, [left, timer.at, timer.end]);
 

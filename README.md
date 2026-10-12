@@ -11,7 +11,8 @@ It works offline and keeps every piece of data on the phone: nothing is sent to 
   finished exercises collapse to a summary), with kg × reps for every set, last time's numbers,
   a "add weight" hint (double progression) and a rest timer that starts on every ticked set with
   the planned rest, keeps running across screens and app restarts (end time saved), keeps the
-  screen on while resting, and beeps and vibrates at the end. Run and yoga logs on their days.
+  screen on while resting, and beeps and vibrates at the end. The beeps come from a generated audio
+  track (silence for the rest time, then the alarm) so they sound on time with the screen off too. Run and yoga logs on their days.
 - **Progress**: weekly summary with the calorie rule, weekly and monthly checks, charts for weight
   (7-day average), waist and estimated 1RM per exercise.
 - **Plan**: four tabs — Program (week, one session at a time, volume bars, notes), Diet (one
