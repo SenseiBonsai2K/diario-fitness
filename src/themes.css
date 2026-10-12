@@ -163,3 +163,115 @@
   --hero-accent: 242 242 245;
   --hero-muted: 243 244 249;
 }
+:root[data-mode="light"][data-accent="red"] {
+  --accent: 196 35 54;
+  --accent-ink: 255 255 255;
+  --accent-soft: 247 224 227;
+  --hero-accent: 255 83 103;
+  --hero-muted: 249 173 185;
+}
+:root[data-mode="dark"][data-accent="red"] {
+  --accent: 255 45 70;
+  --accent-ink: 10 10 12;
+  --accent-soft: 50 18 23;
+  --hero-accent: 255 83 103;
+  --hero-muted: 249 173 185;
+}
+:root[data-mode="light"][data-accent="fuchsia"] {
+  --accent: 186 33 131;
+  --accent-ink: 255 255 255;
+  --accent-soft: 245 224 238;
+  --hero-accent: 255 62 186;
+  --hero-muted: 249 163 222;
+}
+:root[data-mode="dark"][data-accent="fuchsia"] {
+  --accent: 255 45 180;
+  --accent-ink: 10 10 12;
+  --accent-soft: 50 18 40;
+  --hero-accent: 255 62 186;
+  --hero-muted: 249 163 222;
+}
+:root[data-mode="light"][data-accent="electric"] {
+  --accent: 40 92 219;
+  --accent-ink: 255 255 255;
+  --accent-soft: 225 232 250;
+  --hero-accent: 93 140 255;
+  --hero-muted: 176 198 253;
+}
+:root[data-mode="dark"][data-accent="electric"] {
+  --accent: 72 125 255;
+  --accent-ink: 10 10 12;
+  --accent-soft: 15 21 36;
+  --hero-accent: 93 140 255;
+  --hero-muted: 176 198 253;
+}
+:root[data-mode="light"][data-accent="cyan"] {
+  --accent: 0 112 135;
+  --accent-ink: 255 255 255;
+  --accent-soft: 219 235 238;
+  --hero-accent: 0 212 255;
+  --hero-muted: 134 231 253;
+}
+:root[data-mode="dark"][data-accent="cyan"] {
+  --accent: 0 212 255;
+  --accent-ink: 10 10 12;
+  --accent-soft: 16 62 73;
+  --hero-accent: 0 212 255;
+  --hero-muted: 134 231 253;
+}
+:root[data-mode="light"][data-accent="neon"] {
+  --accent: 20 117 63;
+  --accent-ink: 255 255 255;
+  --accent-soft: 222 236 228;
+  --hero-accent: 43 255 136;
+  --hero-muted: 154 250 200;
+}
+:root[data-mode="dark"][data-accent="neon"] {
+  --accent: 43 255 136;
+  --accent-ink: 10 10 12;
+  --accent-soft: 25 72 47;
+  --hero-accent: 43 255 136;
+  --hero-muted: 154 250 200;
+}
+:root[data-mode="light"][data-accent="yellow"] {
+  --accent: 117 103 12;
+  --accent-ink: 255 255 255;
+  --accent-soft: 236 234 221;
+  --hero-accent: 255 224 26;
+  --hero-muted: 249 236 150;
+}
+:root[data-mode="dark"][data-accent="yellow"] {
+  --accent: 255 224 26;
+  --accent-ink: 10 10 12;
+  --accent-soft: 72 65 23;
+  --hero-accent: 255 224 26;
+  --hero-muted: 249 236 150;
+}
+:root[data-mode="light"][data-accent="fluo"] {
+  --accent: 173 72 0;
+  --accent-ink: 255 255 255;
+  --accent-soft: 244 229 219;
+  --hero-accent: 255 106 0;
+  --hero-muted: 249 183 139;
+}
+:root[data-mode="dark"][data-accent="fluo"] {
+  --accent: 255 106 0;
+  --accent-ink: 10 10 12;
+  --accent-soft: 72 39 17;
+  --hero-accent: 255 106 0;
+  --hero-muted: 249 183 139;
+}
+:root[data-mode="light"][data-accent="purple"] {
+  --accent: 133 67 201;
+  --accent-ink: 255 255 255;
+  --accent-soft: 238 229 247;
+  --hero-accent: 181 110 255;
+  --hero-muted: 216 185 253;
+}
+:root[data-mode="dark"][data-accent="purple"] {
+  --accent: 171 90 255;
+  --accent-ink: 10 10 12;
+  --accent-soft: 26 17 36;
+  --hero-accent: 181 110 255;
+  --hero-muted: 216 185 253;
+}

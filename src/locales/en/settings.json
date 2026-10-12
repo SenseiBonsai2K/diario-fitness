@@ -52,10 +52,20 @@
     "planFileOnly": "This file holds only plan, programs and diet, with no logs: it is loaded keeping all the data already saved on this phone. Replaced versions go to the Plan's Archive."
   },
   "install": {
-    "title": "Install on Android",
-    "step1": "Open the app's address in Chrome, with an internet connection.",
-    "step2": "Tap the ⋮ menu, then \"Install app\" (or \"Add to Home screen\").",
-    "step3": "Open it from the Home screen icon: from then on it works without internet."
+    "title": "Install the app",
+    "android": {
+      "title": "Android",
+      "step1": "Open the app's address in Chrome, with a connection.",
+      "step2": "Tap the ⋮ menu, then \"Install app\" (or \"Add to Home screen\").",
+      "step3": "Open it from the Home screen icon: from then on it works offline too."
+    },
+    "ios": {
+      "title": "iPhone",
+      "step1": "Open the app's address in Safari, with a connection.",
+      "step2": "Tap Share (the square with the arrow), then \"Add to Home Screen\".",
+      "step3": "Open it from the Home Screen icon: it works offline and your data stays safe.",
+      "note": "On iPhone always use it from the icon (not from Safari: Safari may clear data of sites not used for days). There is no vibration and, with the screen locked, the rest sound may not play: the screen stays on while resting."
+    }
   },
   "danger": {
     "title": "Delete data",
@@ -68,7 +78,6 @@
   "appearance": {
     "title": "Appearance",
     "background": "Background",
-    "accent": "Accent colour",
     "note": "Every background works with every colour: details adapt to stay readable. \"Auto\" follows your phone's light or dark theme. The choice is saved in the backup too.",
     "bgs": {
       "auto": "Auto",
@@ -85,7 +94,17 @@
       "raspberry": "Raspberry",
       "orange": "Orange",
       "amber": "Amber",
-      "mono": "Graphite"
-    }
+      "mono": "Graphite",
+      "red": "Red",
+      "fuchsia": "Fuchsia",
+      "electric": "Electric",
+      "cyan": "Cyan",
+      "neon": "Neon green",
+      "yellow": "Yellow",
+      "fluo": "Fluo orange",
+      "purple": "Purple"
+    },
+    "accent_soft": "Accent colour · soft",
+    "accent_vivid": "Accent colour · vivid"
   }
 }

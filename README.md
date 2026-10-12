@@ -1,6 +1,8 @@
 # Diario Fitness
 
-Personal training and nutrition diary, installable on Android as a web app (PWA).
+Personal training and nutrition diary, installable on Android (Chrome) and iPhone (Safari →
+Add to Home Screen) as a web app (PWA). On iPhone there is no vibration and the rest alarm may not
+sound with the screen locked.
 It works offline and keeps every piece of data on the phone: nothing is sent to a server.
 
 - **Today**: week strip (planned and done per day), the day's session with progress ring and
@@ -20,8 +22,8 @@ It works offline and keeps every piece of data on the phone: nothing is sent to 
   something archived) — the active training program and diet, previous programs and diets,
   plan sections, yoga routine, history and an archive of every replaced version, all read from the
   user's data. Each diet has a "Print or save as PDF" button (browser print, A4, one page per day type).
-- **Settings**: appearance (neutral background: auto, light, grey, dark, black; and one of eight
-  accent colours, chosen separately; saved in `prefs.bg` / `prefs.accent` and in the backup), phase and targets, backup export (file or Android share sheet → Google Drive),
+- **Settings**: appearance (neutral background: auto, light, grey, dark, black; and one of sixteen
+  accent colours — eight soft, eight vivid — chosen separately; saved in `prefs.bg` / `prefs.accent` and in the backup), phase and targets, backup export (file or Android share sheet → Google Drive),
   restore from a backup, language (Italian / English).
 
 ## Stack

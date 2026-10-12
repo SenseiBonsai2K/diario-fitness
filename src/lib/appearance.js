@@ -29,35 +29,83 @@ export const APPEARANCE = {
   "accents": {
     "blue": {
       "light": "#2B4FCF",
-      "dark": "#8EA6FF"
+      "dark": "#8EA6FF",
+      "vivid": false
     },
     "teal": {
       "light": "#0B6E6E",
-      "dark": "#4FD1C5"
+      "dark": "#4FD1C5",
+      "vivid": false
     },
     "lime": {
       "light": "#3F6A12",
-      "dark": "#B5E85A"
+      "dark": "#B5E85A",
+      "vivid": false
     },
     "violet": {
       "light": "#6236C9",
-      "dark": "#B49BFF"
+      "dark": "#B49BFF",
+      "vivid": false
     },
     "raspberry": {
       "light": "#B0265A",
-      "dark": "#FF7FAE"
+      "dark": "#FF7FAE",
+      "vivid": false
     },
     "orange": {
       "light": "#A23F06",
-      "dark": "#FF9A3D"
+      "dark": "#FF9A3D",
+      "vivid": false
     },
     "amber": {
       "light": "#8A5A00",
-      "dark": "#F5C04A"
+      "dark": "#F5C04A",
+      "vivid": false
     },
     "mono": {
       "light": "#2F2F36",
-      "dark": "#E4E4E8"
+      "dark": "#E4E4E8",
+      "vivid": false
+    },
+    "red": {
+      "light": "#C42336",
+      "dark": "#FF2D46",
+      "vivid": true
+    },
+    "fuchsia": {
+      "light": "#BA2183",
+      "dark": "#FF2DB4",
+      "vivid": true
+    },
+    "electric": {
+      "light": "#285CDB",
+      "dark": "#487DFF",
+      "vivid": true
+    },
+    "cyan": {
+      "light": "#007087",
+      "dark": "#00D4FF",
+      "vivid": true
+    },
+    "neon": {
+      "light": "#14753F",
+      "dark": "#2BFF88",
+      "vivid": true
+    },
+    "yellow": {
+      "light": "#75670C",
+      "dark": "#FFE01A",
+      "vivid": true
+    },
+    "fluo": {
+      "light": "#AD4800",
+      "dark": "#FF6A00",
+      "vivid": true
+    },
+    "purple": {
+      "light": "#8543C9",
+      "dark": "#AB5AFF",
+      "vivid": true
     }
   }
 };

@@ -53,24 +53,26 @@ function Appearance() {
           })}
         </div>
       </div>
-      <div className="flex flex-col gap-2">
-        <span id="accent-label" className="label">{t("appearance.accent")}</span>
-        <div role="radiogroup" aria-labelledby="accent-label" className="grid grid-cols-4 gap-2">
-          {ACCENT_IDS.map((id) => {
-            const on = id === cur.accent;
-            const col = APPEARANCE.accents[id][cur.mode];
-            return (
-              <button key={id} type="button" role="radio" aria-checked={on} onClick={() => setPrefs({ accent: id })}
-                className={`flex flex-col items-center gap-1.5 rounded-field border py-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${on ? "border-accent bg-accent-soft" : "border-line/70"}`}>
-                <span className="w-8 h-8 rounded-full grid place-items-center text-white" style={{ background: col }}>
-                  {on && <Icon name="check" size={16} className={cur.mode === "dark" ? "text-black" : "text-white"} />}
-                </span>
-                <span className={`text-[0.7rem] ${on ? "font-semibold" : "text-muted"}`}>{t(`appearance.accents.${id}`)}</span>
-              </button>
-            );
-          })}
+      {[["soft", ACCENT_IDS.filter((id) => !APPEARANCE.accents[id].vivid)], ["vivid", ACCENT_IDS.filter((id) => APPEARANCE.accents[id].vivid)]].map(([group, ids]) => (
+        <div key={group} className="flex flex-col gap-2">
+          <span id={`accent-${group}`} className="label">{t(`appearance.accent_${group}`)}</span>
+          <div role="radiogroup" aria-labelledby={`accent-${group}`} className="grid grid-cols-4 gap-2">
+            {ids.map((id) => {
+              const on = id === cur.accent;
+              const col = APPEARANCE.accents[id][cur.mode];
+              return (
+                <button key={id} type="button" role="radio" aria-checked={on} onClick={() => setPrefs({ accent: id })}
+                  className={`flex flex-col items-center gap-1.5 rounded-field border py-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${on ? "border-accent bg-accent-soft" : "border-line/70"}`}>
+                  <span className="w-8 h-8 rounded-full grid place-items-center" style={{ background: col }}>
+                    {on && <span className="w-5 h-5 rounded-full bg-black/25 grid place-items-center text-white"><Icon name="check" size={13} /></span>}
+                  </span>
+                  <span className={`text-[0.7rem] ${on ? "font-semibold" : "text-muted"}`}>{t(`appearance.accents.${id}`)}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      ))}
       <p className="text-xs text-muted">{t("appearance.note")}</p>
     </Card>
   );
@@ -234,13 +236,19 @@ function Backup() {
 
 function Install() {
   const { t } = useTranslation("settings");
+  const ios = typeof navigator !== "undefined" && /iPhone|iPad|iPod/.test(navigator.userAgent);
+  const blocks = ios ? ["ios", "android"] : ["android", "ios"];
   return (
     <Card title={t("install.title")}>
-      <ol className="list-decimal pl-5 text-sm flex flex-col gap-1.5">
-        <li>{t("install.step1")}</li>
-        <li>{t("install.step2")}</li>
-        <li>{t("install.step3")}</li>
-      </ol>
+      {blocks.map((k) => (
+        <div key={k} className="flex flex-col gap-1.5">
+          <h3 className="text-sm font-semibold">{t(`install.${k}.title`)}</h3>
+          <ol className="list-decimal pl-5 text-sm flex flex-col gap-1.5">
+            {[1, 2, 3].map((n) => <li key={n}>{t(`install.${k}.step${n}`)}</li>)}
+          </ol>
+          {k === "ios" && <p className="text-xs text-muted">{t("install.ios.note")}</p>}
+        </div>
+      ))}
     </Card>
   );
 }
