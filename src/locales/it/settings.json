@@ -34,7 +34,7 @@
     "share": "Salva su Drive o condividi",
     "download": "Scarica il file",
     "import": "Ripristina da un backup",
-    "shareHint": "\"Salva su Drive o condividi\" apre il menu di Android: scegli Drive per tenere il backup nel cloud.",
+    "shareHint": "«Salva su Drive o condividi» apre il menu di Android: scegli Drive per tenere il backup nel cloud. Su Android il file può arrivare come .txt: va bene, si ripristina allo stesso modo.",
     "shareTitle": "Backup Diario Fitness",
     "saved": "File di backup scaricato nella cartella Download.",
     "shared": "Backup inviato.",

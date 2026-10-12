@@ -6,6 +6,7 @@ import { applyAppearance } from "../lib/themes-apply.js";
 import { hasLogs, hasPlan, normalise } from "../lib/storage.js";
 import { useStore } from "../lib/store.jsx";
 import { takeSnapshot } from "../lib/snapshots.js";
+import { BACKUP_ACCEPT, shareableFile } from "../lib/share.js";
 import * as C from "../lib/compose.js";
 
 const DRAFT_KEY = "diario-fitness:composer-draft";
@@ -307,7 +308,7 @@ function Start({ draft, update, base, setTab, source, loadSource, appHasData, re
           </button>
           {source && <button type="button" className="btn-ghost" onClick={() => { loadSource(null); setMsg(null); }}>{appHasData ? t("source.useApp") : t("source.remove")}</button>}
         </div>
-        <input ref={fileRef} type="file" accept="application/json,.json" className="hidden" onChange={onFile} aria-label={t("source.load")} />
+        <input ref={fileRef} type="file" accept={BACKUP_ACCEPT} className="hidden" onChange={onFile} aria-label={t("source.load")} />
         {msg && <p role="status" className={`text-sm ${msg.tone === "good" ? "text-good" : "text-bad"}`}>{msg.text}</p>}
       </Card>
 
@@ -791,8 +792,8 @@ function Review({ result, setTab, dayNames, canApply, fromFile, apply, applied, 
   const json = useMemo(() => JSON.stringify(result.file, null, 2), [result]);
   const blocked = result.errors > 0;
 
-  const file = () => new File([json], result.fileName, { type: "application/json" });
-  const canShare = typeof navigator !== "undefined" && !!navigator.canShare && (() => { try { return navigator.canShare({ files: [file()] }); } catch { return false; } })();
+  const file = () => shareableFile(json, result.fileName);
+  const canShare = !!shareableFile("{}", result.fileName);
 
   const download = () => {
     const url = URL.createObjectURL(new Blob([json], { type: "application/json" }));

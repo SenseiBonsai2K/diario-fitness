@@ -8,6 +8,7 @@ import { ACCENT_IDS, BG_IDS, resolveAppearance } from "../lib/themes-apply.js";
 import { today } from "../lib/dates.js";
 import { countEntries, emptyData, hasLogs, hasPlan, normalise, toBackup } from "../lib/storage.js";
 import { useStore } from "../lib/store.jsx";
+import { BACKUP_ACCEPT, shareableFile } from "../lib/share.js";
 import { clearSnapshots, getSnapshot, listSnapshots, takeSnapshot } from "../lib/snapshots.js";
 
 const PHASES = ["cut", "maintain", "bulk", "minicut"];
@@ -208,8 +209,8 @@ function Backup() {
     setMsg({ tone: "good", text: t("backup.saved") });
   };
 
-  const file = () => new File([blob()], fileName(), { type: "application/json" });
-  const canShare = typeof navigator !== "undefined" && !!navigator.canShare && (() => { try { return navigator.canShare({ files: [file()] }); } catch { return false; } })();
+  const file = () => shareableFile(JSON.stringify(toBackup(snapshot()), null, 2), fileName());
+  const canShare = !!shareableFile("{}", fileName());
 
   const share = async () => {
     try {
@@ -268,7 +269,7 @@ function Backup() {
         <button type="button" className="btn-ghost" onClick={() => fileRef.current?.click()}><Icon name="upload" size={18} />{t("backup.import")}</button>
       </div>
       {canShare && <p className="text-xs text-muted">{t(isIos() ? "backup.shareHintIos" : "backup.shareHint")}</p>}
-      <input ref={fileRef} type="file" accept="application/json,.json" className="hidden" onChange={onFile} aria-label={t("backup.import")} />
+      <input ref={fileRef} type="file" accept={BACKUP_ACCEPT} className="hidden" onChange={onFile} aria-label={t("backup.import")} />
 
       {pending && (
         <div className="rounded-field border border-warn/60 bg-warn/10 p-3 flex flex-col gap-2 text-sm">

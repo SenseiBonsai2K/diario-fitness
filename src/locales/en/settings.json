@@ -34,7 +34,7 @@
     "share": "Save to Drive or share",
     "download": "Download file",
     "import": "Restore from a backup",
-    "shareHint": "\"Save to Drive or share\" opens the Android menu: pick Drive to keep the backup in the cloud.",
+    "shareHint": "“Save to Drive or share” opens the Android menu: pick Drive to keep the backup in the cloud. On Android the file may arrive as .txt: that's fine, it restores the same way.",
     "shareTitle": "Diario Fitness backup",
     "saved": "Backup file downloaded to the Downloads folder.",
     "shared": "Backup sent.",
