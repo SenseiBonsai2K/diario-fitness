@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import "@fontsource/barlow-condensed/600.css";
 import "@fontsource/barlow-condensed/700.css";
 import "./index.css";
+import "./themes.css";
 import "./i18n.js";
 import App from "./App.jsx";
 import { StoreProvider } from "./lib/store.jsx";

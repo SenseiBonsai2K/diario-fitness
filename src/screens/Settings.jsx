@@ -1,7 +1,9 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, Grid, Icon, NumField, Segmented } from "../components/ui.jsx";
 import { LANGS } from "../i18n.js";
+import { THEMES } from "../lib/themes.js";
+import { DEFAULT_THEME, THEME_IDS } from "../lib/themes-apply.js";
 import { today } from "../lib/dates.js";
 import { countEntries, emptyData, hasLogs, hasPlan, normalise, toBackup } from "../lib/storage.js";
 import { useStore } from "../lib/store.jsx";
@@ -15,11 +17,68 @@ export default function Settings() {
       <h1 className="h-display text-3xl">{t("title")}</h1>
       <Backup />
       <Profile />
+      <Appearance />
       <Language />
       <Install />
       <DangerZone />
       <p className="text-xs text-muted text-center pb-2">{t("privacy")}</p>
     </>
+  );
+}
+
+function usePrefersDark() {
+  const q = typeof window !== "undefined" && window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+  const [dark, setDark] = useState(!!q?.matches);
+  useEffect(() => {
+    if (!q) return;
+    const on = (e) => setDark(e.matches);
+    q.addEventListener?.("change", on);
+    return () => q.removeEventListener?.("change", on);
+  }, [q]);
+  return dark;
+}
+
+/** Colour pairs: background family + accent, each checked for contrast in light and dark. */
+function Appearance() {
+  const { t } = useTranslation("settings");
+  const { data, setPrefs } = useStore();
+  const dark = usePrefersDark();
+  const current = THEMES[data.prefs.theme] ? data.prefs.theme : DEFAULT_THEME;
+  return (
+    <Card title={t("theme.title")}>
+      <p className="text-sm text-muted">{t("theme.lead")}</p>
+      <div role="radiogroup" aria-label={t("theme.title")} className="grid grid-cols-2 gap-2.5">
+        {THEME_IDS.map((id) => {
+          const th = THEMES[id];
+          const bg = dark ? th.dark : th.light, surface = dark ? th.surfaceDark : th.surfaceLight, accent = dark ? th.accentDark : th.accentLight;
+          const on = id === current;
+          return (
+            <button
+              key={id}
+              type="button"
+              role="radio"
+              aria-checked={on}
+              onClick={() => setPrefs({ theme: id })}
+              className={`rounded-field border-2 p-1.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${on ? "border-accent" : "border-line/70"}`}
+            >
+              <span className="block rounded-[9px] p-2.5 h-[70px] relative overflow-hidden" style={{ background: bg }}>
+                <span className="block rounded-md h-full w-[72%] p-2 flex flex-col gap-1.5" style={{ background: surface }}>
+                  <span className="block h-1.5 w-3/4 rounded-full opacity-25" style={{ background: dark ? "#fff" : "#000" }} />
+                  <span className="block h-1.5 w-1/2 rounded-full opacity-25" style={{ background: dark ? "#fff" : "#000" }} />
+                  <span className="block h-3 w-10 rounded-full mt-auto" style={{ background: accent }} />
+                </span>
+                <span className="absolute right-2.5 top-2.5 w-6 h-6 rounded-full" style={{ background: accent }} />
+              </span>
+              <span className="flex items-center justify-between gap-2 px-1 pt-1.5 pb-0.5">
+                <span className="text-sm font-semibold">{t(`theme.names.${id}`)}</span>
+                {on && <span className="text-accent"><Icon name="check" size={16} /></span>}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      <p className="text-xs text-muted">{t("theme.mode")}</p>
+    </Card>
   );
 }
 

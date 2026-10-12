@@ -9,6 +9,10 @@
     <link rel="icon" href="./icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./icon-192.png" />
     <title>Diario Fitness</title>
+    <script>
+      // Apply the chosen colour pair before the first paint (no flash).
+      try { var t = localStorage.getItem("diario-fitness:theme"); if (t) document.documentElement.setAttribute("data-theme", t); } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

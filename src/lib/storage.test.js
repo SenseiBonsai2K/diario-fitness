@@ -56,7 +56,7 @@ const sampleDiet = (kcal = 2200) => ({
 });
 
 describe("full backup coverage", () => {
-  it("round-trips every part of the document, diets, archive and language included", () => {
+  it("round-trips every part of the document, diets, archive, language and colours included", () => {
     const d = emptyData();
     d.profile.kcal = 2200;
     d.programs = { p: { id: "p", name: "Scheda", sessions: [{ id: "a", name: "A", exercises: [] }] } };
@@ -66,7 +66,7 @@ describe("full backup coverage", () => {
     d.plan = { sections: [{ id: "s", title: "Corsa" }], yoga: { title: "Yoga", blocks: [] }, updatedAt: "2026-10-10", extra: 1 };
     d.history = [{ date: "2026-10-10", title: "x" }];
     d.archive = [{ at: "2026-10-01", kind: "plan", data: { sections: [] } }];
-    d.prefs = { lang: "it" };
+    d.prefs = { lang: "it", theme: "sand" };
     for (const c of ["days", "workouts", "runs", "yoga", "weeks", "months"]) d[c] = { k: { v: 1 } };
     const restored = normalise(JSON.parse(JSON.stringify(toBackup(d))));
     expect(restored).toEqual({ ...d, version: SCHEMA_VERSION });

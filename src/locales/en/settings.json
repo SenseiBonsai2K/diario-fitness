@@ -64,5 +64,20 @@
     "warning": "This permanently deletes everything on this phone. Type {{word}} to confirm.",
     "typeLabel": "Type {{word}} to confirm",
     "confirm": "Delete everything"
+  },
+  "theme": {
+    "title": "Colours",
+    "lead": "Pick a colour pair: background and details are matched and readable by day and by night.",
+    "mode": "Light or dark follows your phone's setting. The choice is saved in the backup too.",
+    "names": {
+      "classic": "Classic · blue",
+      "sand": "Sand · terracotta",
+      "sage": "Sage · teal",
+      "lavender": "Lavender · violet",
+      "blush": "Blush · raspberry",
+      "graphite": "Graphite · orange",
+      "forest": "Forest · lime",
+      "ocean": "Ice · midnight blue"
+    }
   }
 }

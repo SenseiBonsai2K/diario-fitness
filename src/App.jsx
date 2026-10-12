@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
+import { applyTheme } from "./lib/themes-apply.js";
 import { useTranslation } from "react-i18next";
 import { Icon } from "./components/ui.jsx";
 import { today } from "./lib/dates.js";
@@ -23,7 +24,9 @@ function readTab() {
 
 export default function App() {
   const { t } = useTranslation();
-  const { saveError } = useStore();
+  const { saveError, data } = useStore();
+  const theme = data.prefs.theme;
+  useLayoutEffect(() => applyTheme(theme), [theme]);
   const [tab, setTab] = useState(readTab);
   const [date, setDate] = useState(today);
   const [activity, setActivity] = useState(null);
