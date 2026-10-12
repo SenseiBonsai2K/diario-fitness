@@ -8,7 +8,7 @@
   },
   "editor": {
     "title": "Edit plan",
-    "lead": "Change calories and macros, phase, program and diet right here, with a summary before applying. Logs are not touched and every replaced version stays in the Archive.",
+    "lead": "Change calories and macros, phase, program, diet (with options, alternatives and swaps), plan sections and yoga right here, with a summary before applying. Logs are not touched and every replaced version stays in the Archive.",
     "open": "Open Edit plan"
   },
   "profile": {
@@ -54,7 +54,10 @@
     "importChoice": "\"Restore everything\" replaces all data on this phone. \"Load plan, programs and diet only\" keeps your logs and updates profile, programs, diet, plan and history: replaced versions go to the Plan's Archive.",
     "planImported": "Plan, programs and diet loaded. Your logs are unchanged; previous versions are in the Archive.",
     "emptyHint": "First time here? Restore the backup file you received to load your plan, programs and diet.",
-    "planFileOnly": "This file holds only plan, programs and diet, with no logs: it is loaded keeping all the data already saved on this phone. Replaced versions go to the Plan's Archive."
+    "planFileOnly": "This file holds only plan, programs and diet, with no logs: it is loaded keeping all the data already saved on this phone. Replaced versions go to the Plan's Archive.",
+    "shareIos": "Save to Files or iCloud",
+    "shareHintIos": "“Save to Files or iCloud” opens the Share menu: pick “Save to Files”, then iCloud Drive, to keep the backup off the phone.",
+    "leadIos": "Your data is only on this phone: if you delete the app, it's gone. Save a backup every week to iCloud Drive (or Google Drive). The backup holds everything: logs, programs, diet, plan, history, archive and language."
   },
   "install": {
     "title": "Install the app",
@@ -129,6 +132,24 @@
       "marimba": "Marimba",
       "rise": "Go!",
       "whistle": "Whistle"
+    }
+  },
+  "copies": {
+    "title": "Automatic copies",
+    "lead": "Every week, when it opens, the app saves a copy of all your data on this phone by itself, and it saves one before every plan edit, import or restore too. If something goes wrong you can go back from here.",
+    "limit": "The copies stay on the phone: they don't protect you if you lose the phone or delete the app. For that you need the file backup above.",
+    "none": "No copies yet: the first one comes the next time the app opens with some data.",
+    "counts": "Days: {{days}} · workouts: {{workouts}}",
+    "restore": "Restore",
+    "download": "Download",
+    "confirm": "All current data will be replaced by this copy. A copy of the current data is saved first, so you can go back.",
+    "restored": "Restored the copy from {{date}}.",
+    "missing": "This copy can't be read.",
+    "kinds": {
+      "weekly": "Weekly",
+      "beforeEdit": "Before an edit",
+      "beforeImport": "Before an import",
+      "beforeRestore": "Before a restore"
     }
   }
 }

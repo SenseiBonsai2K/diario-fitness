@@ -2,11 +2,25 @@
   "pageTitle": "Modifica piano · Diario Fitness",
   "back": "Diario",
   "title": "Modifica piano",
-  "lead": "Cambia profilo, scheda, dieta e storico, controlla il riepilogo e applica. I registri (peso, allenamenti, corse, spunte) non vengono mai toccati.",
+  "lead": "Cambia profilo, scheda, dieta, piano e yoga, controlla il riepilogo e applica. I registri (peso, allenamenti, corse, spunte) non vengono mai toccati.",
   "tabsLabel": "Sezioni del piano",
   "included": "inclusa",
-  "tabs": { "start": "Inizio", "profile": "Profilo", "program": "Scheda", "diet": "Dieta", "history": "Storico", "review": "Riepilogo" },
-  "bar": { "errors_one": "{{count}} cosa da correggere", "errors_other": "{{count}} cose da correggere", "ready": "Pronto", "nothing": "Nessuna sezione inclusa", "review": "Riepilogo" },
+  "tabs": {
+    "start": "Inizio",
+    "profile": "Profilo",
+    "program": "Scheda",
+    "diet": "Dieta",
+    "history": "Storico",
+    "review": "Riepilogo",
+    "plan": "Piano"
+  },
+  "bar": {
+    "errors_one": "{{count}} cosa da correggere",
+    "errors_other": "{{count}} cose da correggere",
+    "ready": "Pronto",
+    "nothing": "Nessuna sezione inclusa",
+    "review": "Riepilogo"
+  },
   "include": "Includi",
   "macroCheck": "Dai macro: {{calc}} kcal ({{diff}} rispetto all'obiettivo)",
   "reset": "Ricomincia da capo",
@@ -29,14 +43,35 @@
   "recipes": {
     "title": "Cosa vuoi cambiare?",
     "lead": "Ogni scelta include la sezione giusta e prepara una voce nello storico.",
-    "macro": { "title": "Calorie e macro", "text": "Per esempio −150 kcal dopo il check della domenica.", "history": "Cambio calorie" },
-    "phase": { "title": "Fase", "text": "Definizione, mantenimento, lean bulk: con obiettivi e regole.", "history": "Cambio fase" },
-    "program": { "title": "Scheda", "text": "Modifica quella attuale o creane una nuova, con gli stessi id degli esercizi.", "history": "Nuova scheda" },
-    "diet": { "title": "Dieta", "text": "Sette giornate separate, solo quantità e marca.", "history": "Dieta aggiornata" }
+    "macro": {
+      "title": "Calorie e macro",
+      "text": "Per esempio −150 kcal dopo il check della domenica.",
+      "history": "Cambio calorie"
+    },
+    "phase": {
+      "title": "Fase",
+      "text": "Definizione, mantenimento, lean bulk: con obiettivi e regole.",
+      "history": "Cambio fase"
+    },
+    "program": {
+      "title": "Scheda",
+      "text": "Modifica quella attuale o creane una nuova, con gli stessi id degli esercizi.",
+      "history": "Nuova scheda"
+    },
+    "diet": {
+      "title": "Dieta",
+      "text": "Sette giornate separate, solo quantità e marca.",
+      "history": "Dieta aggiornata"
+    },
+    "plan": {
+      "title": "Piano e yoga",
+      "text": "Sezioni di testo del piano (fasi, corsa, regole) e la routine di yoga.",
+      "history": "Piano aggiornato"
+    }
   },
   "rules": {
     "title": "Come funziona",
-    "logs": "I registri restano come sono: si aggiornano solo profilo, schede, dieta e storico.",
+    "logs": "I registri restano come sono: si aggiornano solo profilo, schede, dieta, piano e storico.",
     "archive": "Ogni versione sostituita finisce nel Piano → Archivio.",
     "newId": "Una scheda o una dieta nuova prende un id nuovo; quella precedente riceve la data di fine e resta tra le precedenti.",
     "exerciseIds": "Gli id degli esercizi tengono i grafici di forza: stesso esercizio, stesso id."
@@ -46,7 +81,9 @@
     "lead": "I campi vuoti lasciano i valori attuali.",
     "rules": "Regole di aggiustamento",
     "perWeek": "kg/sett.",
-    "rulesHint": "Guidano il consiglio del check settimanale."
+    "rulesHint": "Guidano il consiglio del check settimanale.",
+    "start": "Dati di partenza",
+    "zone2": "Zona 2 (corsa)"
   },
   "fields": {
     "phase": "Fase",
@@ -78,7 +115,12 @@
     "rest": "Recupero",
     "rir": "RIR",
     "date": "Data",
-    "title": "Titolo"
+    "title": "Titolo",
+    "heightCm": "Altezza",
+    "startWeight": "Peso di partenza",
+    "startBf": "Massa grassa di partenza",
+    "zone2Min": "FC minima",
+    "zone2Max": "FC massima"
   },
   "mode": {
     "label": "Punto di partenza",
@@ -87,7 +129,9 @@
     "copy": "Nuova partendo da · {{name}}"
   },
   "program": {
-    "mode": { "new": "Nuova scheda vuota" },
+    "mode": {
+      "new": "Nuova scheda vuota"
+    },
     "title": "Scheda",
     "idHint": "nome-AAAA-MM",
     "active": "Rendi attiva questa scheda",
@@ -105,10 +149,17 @@
     "removeExercise": "Elimina esercizio",
     "superset": "In superserie con il successivo",
     "perSide": "Ripetizioni per lato",
-    "addExercise": "Aggiungi esercizio"
+    "addExercise": "Aggiungi esercizio",
+    "volume": "Volume settimanale",
+    "volumeHint": "Serie a settimana per gruppo muscolare: compaiono come barre nella scheda.",
+    "muscle": "Gruppo muscolare",
+    "detail": "Dettaglio",
+    "addVolume": "Aggiungi gruppo"
   },
   "diet": {
-    "mode": { "new": "Nuova dieta vuota" },
+    "mode": {
+      "new": "Nuova dieta vuota"
+    },
     "title": "Dieta",
     "idHint": "dieta-nome-AAAA-MM",
     "active": "Rendi attiva questa dieta",
@@ -129,7 +180,20 @@
     "brand": "Marca o nota",
     "removeFood": "Elimina alimento",
     "addFood": "Aggiungi alimento",
-    "addMeal": "Aggiungi pasto"
+    "addMeal": "Aggiungi pasto",
+    "optionName": "Nome dell'opzione",
+    "removeOption": "Elimina opzione",
+    "optionDefault": "Opzione {{n}}",
+    "addOption": "Aggiungi un'opzione",
+    "optionsHint": "Un'opzione è un'alternativa all'intero pasto (es. «Opzione 2»): nell'app compare accanto agli alimenti principali.",
+    "dayTargets": "Obiettivi della giornata",
+    "dayTargetsHint": "Solo se questa giornata ha macro diversi da quelli della dieta.",
+    "substitutions": "Sostituzioni",
+    "alternatives": "Alternative (una per riga)",
+    "addSubstitution": "Aggiungi sostituzione",
+    "sections": "Sezioni di testo della dieta",
+    "altCount_one": "{{count}} alternativa",
+    "altCount_other": "Alternative: {{count}}"
   },
   "history": {
     "title": "Voce nello storico",
@@ -181,7 +245,20 @@
     "historyNoDate": "Manca la data della voce nello storico.",
     "historyNoTitle": "Manca il titolo della voce nello storico.",
     "historySuggested": "Nessuna voce nello storico: aggiungila per ritrovare il cambio nel percorso.",
-    "nothingIncluded": "Scegli almeno una sezione da includere."
+    "nothingIncluded": "Scegli almeno una sezione da includere.",
+    "zone2": "Zona 2: servono FC minima e massima, con la minima più bassa.",
+    "volumeRow": "Volume: «{{name}}» ha bisogno di nome e numero di serie.",
+    "optionNoName": "l'opzione {{n}} non ha nome.",
+    "optionEmpty": "l'opzione «{{name}}» è vuota.",
+    "substitutionNoFood": "Una sostituzione non ha l'alimento.",
+    "substitutionNoAlt": "La sostituzione «{{food}}» non ha alternative.",
+    "sectionNoTitle": "La sezione {{n}} non ha titolo.",
+    "yogaBlockNoName": "Il blocco di yoga {{n}} non ha nome.",
+    "poseNoId": "La posizione «{{name}}» non ha id.",
+    "poseIdTwice": "L'id «{{id}}» è usato da due posizioni.",
+    "poseNoName": "La posizione «{{id}}» non ha nome.",
+    "poseRemoved": "La posizione «{{id}}» non c'è più: le spunte passate restano, ma non compare più nella routine.",
+    "planEmpty": "Piano senza sezioni né yoga: l'app tiene quello attuale."
   },
   "review": {
     "title": "Riepilogo",
@@ -196,7 +273,7 @@
     "applyLead": "Aggiorna subito il diario su questo telefono. Le versioni sostituite vanno nell'Archivio.",
     "apply": "Applica le modifiche",
     "confirmTitle": "Applicare le modifiche?",
-    "confirmText": "Profilo, schede, dieta e storico si aggiornano; i registri restano come sono. Puoi sempre ritrovare la versione di prima nel Piano → Archivio.",
+    "confirmText": "Profilo, schede, dieta, piano e storico si aggiornano; i registri restano come sono. Prima viene salvata una copia automatica (Impostazioni → Copie automatiche) e la versione di prima resta nel Piano → Archivio.",
     "confirm": "Sì, applica",
     "noApplyFile": "Stai lavorando su un file caricato: scarica il risultato e importalo nell'app con «Carica solo piano, schede e dieta».",
     "noApplyEmpty": "Qui il diario è vuoto. Aprendo questa pagina dall'app puoi applicare direttamente; altrimenti scarica il file e importalo.",
@@ -216,5 +293,37 @@
     "copied": "Testo copiato.",
     "copyFailed": "Non riesco a copiare: il testo è selezionato nell'anteprima, copialo dal menu.",
     "preview": "Anteprima del file"
+  },
+  "remove": "Elimina",
+  "sections": {
+    "none": "Nessuna sezione.",
+    "untitled": "Sezione {{n}}",
+    "remove": "Elimina sezione",
+    "paragraphs": "Paragrafi (uno per riga)",
+    "bullets": "Elenco puntato (una voce per riga)",
+    "numbered": "Elenco numerato (una voce per riga)",
+    "table": "Tabella",
+    "tableHint": "Una riga per riga della tabella, celle separate da |. La prima riga è l'intestazione.",
+    "idAuto": "dal titolo",
+    "add": "Aggiungi sezione"
+  },
+  "plan": {
+    "title": "Piano",
+    "lead": "Le sezioni di testo che vedi in Piano → Piano e la routine di yoga. Le versioni sostituite vanno nell'Archivio.",
+    "sections": "Sezioni",
+    "yoga": "Routine di yoga",
+    "addYoga": "Aggiungi la routine di yoga",
+    "yogaIntro": "Introduzione",
+    "poseIdsHint": "L'id di una posizione lega le spunte già fatte nei giorni di yoga: non cambiarlo per una posizione che esiste già.",
+    "block": "Blocco",
+    "removeBlock": "Elimina blocco",
+    "poseId": "Id",
+    "hold": "Durata",
+    "removePose": "Elimina posizione",
+    "pose": "Posizione",
+    "addPose": "Aggiungi posizione",
+    "addBlock": "Aggiungi blocco",
+    "yogaWhy": "Perché",
+    "removeYoga": "Togli la routine di yoga"
   }
 }

@@ -5,13 +5,14 @@ import { today as todayIso } from "../lib/dates.js";
 import { applyAppearance } from "../lib/themes-apply.js";
 import { hasLogs, hasPlan, normalise } from "../lib/storage.js";
 import { useStore } from "../lib/store.jsx";
+import { takeSnapshot } from "../lib/snapshots.js";
 import * as C from "../lib/compose.js";
 
 const DRAFT_KEY = "diario-fitness:composer-draft";
 const SOURCE_KEY = "diario-fitness:composer-source";
 const TAB_KEY = "diario-fitness:composer-tab";
-const TABS = ["start", "profile", "program", "diet", "history", "review"];
-const SECTIONS = ["profile", "program", "diet", "history"];
+const TABS = ["start", "profile", "program", "diet", "plan", "history", "review"];
+const SECTIONS = ["profile", "program", "diet", "plan", "history"];
 
 const readJson = (key) => { try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : null; } catch { return null; } };
 const writeJson = (key, v) => { try { if (v == null) localStorage.removeItem(key); else localStorage.setItem(key, JSON.stringify(v)); } catch { /* storage full or blocked: the draft just isn't kept */ } };
@@ -64,7 +65,7 @@ export default function Composer() {
   const appHasData = hasPlan(data) || hasLogs(data) || Object.keys(data.programs).length > 0;
   const canApply = !source && appHasData;
 
-  const [draft, setDraft] = useState(() => { const d = readJson(DRAFT_KEY); return d?.v === 1 ? d : freshDraft(base, dayNames); });
+  const [draft, setDraft] = useState(() => { const d = readJson(DRAFT_KEY); return d?.v === C.DRAFT_VERSION ? d : freshDraft(base, dayNames); });
   const [tab, setTabState] = useState(() => { try { return sessionStorage.getItem(TAB_KEY) || "start"; } catch { return "start"; } });
   const [applied, setApplied] = useState(null);
 
@@ -93,7 +94,8 @@ export default function Composer() {
     setDraft(freshDraft(next?.data || data, dayNames));
   };
 
-  const apply = () => {
+  const apply = async () => {
+    await takeSnapshot(data, "beforeEdit"); // undo point in Settings → Automatic copies
     importPlan(normalise(result.file));
     writeJson(DRAFT_KEY, null);
     setApplied({ parts: result.parts });
@@ -134,6 +136,7 @@ export default function Composer() {
           {tab === "profile" && <Profile {...ctx} />}
           {tab === "program" && <Program {...ctx} />}
           {tab === "diet" && <Diet {...ctx} />}
+          {tab === "plan" && <PlanText {...ctx} />}
           {tab === "history" && <History {...ctx} />}
           {tab === "review" && <Review {...ctx} canApply={canApply} fromFile={!!source} apply={apply} applied={applied} restart={restart} />}
         </div>
@@ -248,6 +251,7 @@ const RECIPES = [
   { id: "phase", include: ["profile"], tab: "profile" },
   { id: "program", include: ["program"], tab: "program" },
   { id: "diet", include: ["diet"], tab: "diet" },
+  { id: "plan", include: ["plan"], tab: "plan" },
 ];
 
 function Start({ draft, update, base, setTab, source, loadSource, appHasData, reset }) {
@@ -351,6 +355,22 @@ function Profile({ draft, update }) {
         <NumField label={t("fields.goalBf")} unit="%" {...b("profile.goalBf")} />
       </div>
       <details className="rounded-field border border-line p-3">
+        <summary className="text-sm font-semibold cursor-pointer">{t("profile.start")}</summary>
+        <div className="grid grid-cols-2 gap-3 pt-3">
+          <NumField label={t("fields.heightCm")} unit="cm" decimal={false} {...b("profile.heightCm")} />
+          <Field label={t("fields.startDate")} type="date" {...b("profile.startDate")} />
+          <NumField label={t("fields.startWeight")} unit="kg" {...b("profile.startWeight")} />
+          <NumField label={t("fields.startBf")} unit="%" {...b("profile.startBf")} />
+        </div>
+      </details>
+      <details className="rounded-field border border-line p-3">
+        <summary className="text-sm font-semibold cursor-pointer">{t("profile.zone2")}</summary>
+        <div className="grid grid-cols-2 gap-3 pt-3">
+          <NumField label={t("fields.zone2Min")} unit="bpm" decimal={false} {...b("profile.zone2.min")} />
+          <NumField label={t("fields.zone2Max")} unit="bpm" decimal={false} {...b("profile.zone2.max")} />
+        </div>
+      </details>
+      <details className="rounded-field border border-line p-3">
         <summary className="text-sm font-semibold cursor-pointer">{t("profile.rules")}</summary>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-3">
           {C.RULE_FIELDS.map((k) => <NumField key={k} label={t(`fields.${k}`)} unit={t("profile.perWeek")} {...b(`profile.rules.${k}`)} />)}
@@ -428,6 +448,19 @@ function Program({ draft, update, base, dayNames }) {
       <button type="button" className="btn-ghost" onClick={() => update((d) => { d.program.sessions.push(C.blankSession()); }, "program")}>
         {t("program.addSession")}
       </button>
+
+      <Card title={t("program.volume")}>
+        <p className="text-xs text-muted">{t("program.volumeHint")}</p>
+        {(P.volume || []).map((v, vi) => (
+          <div key={vi} className="grid grid-cols-[1fr_5rem_auto] gap-2 items-end border-t border-line/70 pt-3">
+            <Field label={t("program.muscle")} {...b(`program.volume.${vi}.name`)} />
+            <NumField label={t("fields.sets")} decimal={false} {...b(`program.volume.${vi}.sets`)} />
+            <IconButton label={t("remove")} icon="close" onClick={() => update((d) => { d.program.volume.splice(vi, 1); }, "program")} />
+            <Field label={t("program.detail")} {...b(`program.volume.${vi}.detail`)} className="col-span-3" />
+          </div>
+        ))}
+        <button type="button" className="btn-ghost" onClick={() => update((d) => { (d.program.volume ||= []).push(C.blankVolume()); }, "program")}>{t("program.addVolume")}</button>
+      </Card>
 
       <Card>
         <Lines label={t("fields.notes")} value={P.notes} onChange={(v) => update((d) => { d.program.notes = v; }, "program")} />
@@ -557,6 +590,13 @@ function Diet({ draft, update, base, dayNames }) {
                 onChange={(id) => { if (!id) return; update((d) => { const src = d.diet.days.find((x) => x.id === id); d.diet.days[di].meals = JSON.parse(JSON.stringify(src.meals)); }, "diet"); }} />
               <Field label={t("diet.dayNote")} {...b(`diet.days.${di}.note`)} className="col-span-2" />
             </div>
+            <details className="rounded-field border border-line p-3">
+              <summary className="text-sm font-semibold cursor-pointer">{t("diet.dayTargets")}</summary>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3">
+                {["kcal", "prot", "carb", "fat"].map((k) => <NumField key={k} label={t(`fields.${k}`)} unit={k === "kcal" ? "kcal" : "g"} decimal={false} {...b(`diet.days.${di}.targets.${k}`)} />)}
+              </div>
+              <p className="text-xs text-muted pt-2">{t("diet.dayTargetsHint")}</p>
+            </details>
             <p className="text-xs text-muted">{t("diet.ticksHint")}</p>
             {day.meals.map((m, mi) => (
               <div key={mi} className="rounded-field border border-line bg-bg p-3 flex flex-col gap-3">
@@ -569,19 +609,18 @@ function Diet({ draft, update, base, dayNames }) {
                   <Field label={t("diet.time")} {...b(`diet.days.${di}.meals.${mi}.time`)} placeholder="7:30" />
                   <Field label={t("fields.note")} {...b(`diet.days.${di}.meals.${mi}.note`)} className="col-span-3" />
                 </div>
-                {m.items.map((it, ii) => {
-                  const ib = (k) => b(`diet.days.${di}.meals.${mi}.items.${ii}.${k}`);
-                  return (
-                    <div key={ii} className="grid grid-cols-[1fr_1fr_auto] sm:grid-cols-[3fr_1fr_1fr_2fr_auto] gap-2 items-end border-t border-line/70 pt-3">
-                      <Field label={t("diet.food")} {...ib("food")} className="col-span-3 sm:col-span-1" />
-                      <Field label={t("diet.qty")} {...ib("qty")} placeholder="150" />
-                      <Field label={t("diet.unit")} {...ib("unit")} placeholder="g" />
-                      <Field label={t("diet.brand")} {...ib("note")} className="col-span-2 sm:col-span-1 order-last sm:order-none" />
-                      <IconButton label={t("diet.removeFood")} icon="close" onClick={() => edit((x) => { x.meals[mi].items.splice(ii, 1); })} />
+                <ItemRows path={`diet.days.${di}.meals.${mi}.items`} items={m.items} draft={draft} update={update} />
+                {(m.options || []).map((o, oi) => (
+                  <div key={oi} className="rounded-field border border-dashed border-line p-3 flex flex-col gap-3">
+                    <div className="flex items-end gap-2">
+                      <Field label={t("diet.optionName")} {...b(`diet.days.${di}.meals.${mi}.options.${oi}.name`)} className="flex-1" />
+                      <IconButton label={t("diet.removeOption")} icon="close" onClick={() => edit((x) => { x.meals[mi].options.splice(oi, 1); })} />
                     </div>
-                  );
-                })}
-                <button type="button" className="btn-ghost" onClick={() => edit((x) => { x.meals[mi].items.push(C.blankItem()); })}>{t("diet.addFood")}</button>
+                    <ItemRows path={`diet.days.${di}.meals.${mi}.options.${oi}.items`} items={o.items} draft={draft} update={update} />
+                  </div>
+                ))}
+                <button type="button" className="btn-ghost" onClick={() => edit((x) => { (x.meals[mi].options ||= []).push(C.blankOption(t("diet.optionDefault", { n: (x.meals[mi].options?.length || 0) + 2 }))); })}>{t("diet.addOption")}</button>
+                <p className="text-xs text-muted">{t("diet.optionsHint")}</p>
               </div>
             ))}
             <button type="button" className="btn-ghost" onClick={() => edit((x) => { x.meals.push(C.blankMeal()); })}>{t("diet.addMeal")}</button>
@@ -589,8 +628,128 @@ function Diet({ draft, update, base, dayNames }) {
         )}
       </Card>
 
+      <Card title={t("diet.substitutions")}>
+        {(D.substitutions || []).map((x, xi) => (
+          <div key={xi} className="grid grid-cols-[1fr_auto] gap-2 items-end border-t border-line/70 pt-3 first:border-t-0 first:pt-0">
+            <Field label={t("diet.food")} {...b(`diet.substitutions.${xi}.food`)} />
+            <IconButton label={t("remove")} icon="close" onClick={() => update((d) => { d.diet.substitutions.splice(xi, 1); }, "diet")} />
+            <div className="col-span-2"><Lines label={t("diet.alternatives")} value={x.alt} onChange={(v) => update((d) => { d.diet.substitutions[xi].alt = v; }, "diet")} /></div>
+            <Field label={t("fields.note")} {...b(`diet.substitutions.${xi}.note`)} className="col-span-2" />
+          </div>
+        ))}
+        <button type="button" className="btn-ghost" onClick={() => update((d) => { (d.diet.substitutions ||= []).push(C.blankSubstitution()); }, "diet")}>{t("diet.addSubstitution")}</button>
+      </Card>
+
+      <SectionsEditor title={t("diet.sections")} path="diet.sections" sections={D.sections || []} section="diet" draft={draft} update={update} />
+
       <Card>
         <Lines label={t("fields.notes")} value={D.notes} onChange={(v) => update((d) => { d.diet.notes = v; }, "diet")} />
+      </Card>
+    </>
+  );
+}
+
+/** Food rows of a meal or of a meal option: food, quantity, unit, brand, alternatives. */
+function ItemRows({ path, items, draft, update }) {
+  const { t } = useTranslation("composer");
+  const b = (p) => bind(draft, update, `${path}.${p}`, "diet");
+  const edit = (fn) => update((d) => fn(getPath(d, path)), "diet");
+  return (
+    <>
+      {(items || []).map((it, ii) => (
+        <div key={ii} className="grid grid-cols-[1fr_1fr_auto] sm:grid-cols-[3fr_1fr_1fr_2fr_auto] gap-2 items-end border-t border-line/70 pt-3">
+          <Field label={t("diet.food")} {...b(`${ii}.food`)} className="col-span-3 sm:col-span-1" />
+          <Field label={t("diet.qty")} {...b(`${ii}.qty`)} placeholder="150" />
+          <Field label={t("diet.unit")} {...b(`${ii}.unit`)} placeholder="g" />
+          <Field label={t("diet.brand")} {...b(`${ii}.note`)} className="col-span-2 sm:col-span-1 order-last sm:order-none" />
+          <IconButton label={t("diet.removeFood")} icon="close" onClick={() => edit((x) => { x.splice(ii, 1); })} />
+          <details className="col-span-3 sm:col-span-5 order-last">
+            <summary className="text-xs text-accent font-semibold cursor-pointer py-1">{t("diet.altCount", { count: (it.alt || []).filter((a) => String(a).trim()).length })}</summary>
+            <Lines label={t("diet.alternatives")} value={it.alt} onChange={(v) => edit((x) => { x[ii].alt = v; })} />
+          </details>
+        </div>
+      ))}
+      <button type="button" className="btn-ghost" onClick={() => edit((x) => { x.push(C.blankItem()); })}>{t("diet.addFood")}</button>
+    </>
+  );
+}
+
+/** Text sections (plan, or diet notes by topic): paragraphs, bullets, numbered steps, a table, a note. */
+function SectionsEditor({ title, path, sections, section, draft, update }) {
+  const { t } = useTranslation("composer");
+  const b = (p) => bind(draft, update, `${path}.${p}`, section);
+  const edit = (fn) => update((d) => { if (!getPath(d, path)) setPath(d, path, []); fn(getPath(d, path)); }, section);
+  const move = (i, k) => edit((x) => { [x[i], x[k]] = [x[k], x[i]]; });
+  return (
+    <Card title={title}>
+      {sections.length === 0 && <p className="text-sm text-muted">{t("sections.none")}</p>}
+      {sections.map((sec, i) => (
+        <details key={i} className="rounded-field border border-line bg-bg">
+          <summary className="cursor-pointer px-3 py-2.5 font-semibold text-sm">{sec.title || t("sections.untitled", { n: i + 1 })}</summary>
+          <div className="px-3 pb-3 flex flex-col gap-3">
+            <div className="flex justify-end gap-1">
+              <IconButton label={t("moveUp")} icon="up" disabled={i === 0} onClick={() => move(i, i - 1)} />
+              <IconButton label={t("moveDown")} text="↓" disabled={i === sections.length - 1} onClick={() => move(i, i + 1)} />
+              <IconButton label={t("sections.remove")} icon="close" onClick={() => edit((x) => { x.splice(i, 1); })} />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <Field label={t("fields.title")} {...b(`${i}.title`)} className="col-span-2" />
+              <Field label={t("fields.id")} mono {...b(`${i}.id`)} placeholder={t("sections.idAuto")} />
+            </div>
+            <Lines label={t("sections.paragraphs")} value={sec.paragraphs} onChange={(v) => edit((x) => { x[i].paragraphs = v; })} />
+            <Lines label={t("sections.bullets")} value={sec.bullets} onChange={(v) => edit((x) => { x[i].bullets = v; })} />
+            <Lines label={t("sections.numbered")} value={sec.numbered} onChange={(v) => edit((x) => { x[i].numbered = v; })} />
+            <TextField multiline label={t("sections.table")} {...b(`${i}.table`)} placeholder={t("sections.tableHint")} />
+            <Field label={t("fields.note")} {...b(`${i}.note`)} />
+          </div>
+        </details>
+      ))}
+      <button type="button" className="btn-ghost" onClick={() => edit((x) => { x.push(C.blankSection()); })}>{t("sections.add")}</button>
+    </Card>
+  );
+}
+
+function PlanText({ draft, update }) {
+  const { t } = useTranslation("composer");
+  const P = draft.plan || { sections: [], yoga: null };
+  const b = (p) => bind(draft, update, `plan.${p}`, "plan");
+  const yoga = (fn) => update((d) => fn(d.plan.yoga), "plan");
+  return (
+    <>
+      <Card title={t("plan.title")} aside={<IncludeToggle section="plan" draft={draft} update={update} />}>
+        <p className="text-sm text-muted">{t("plan.lead")}</p>
+      </Card>
+      <SectionsEditor title={t("plan.sections")} path="plan.sections" sections={P.sections || []} section="plan" draft={draft} update={update} />
+      <Card title={t("plan.yoga")}>
+        {!P.yoga ? (
+          <button type="button" className="btn-ghost" onClick={() => update((d) => { d.plan ||= { sections: [] }; d.plan.yoga = C.blankYoga(); }, "plan")}>{t("plan.addYoga")}</button>
+        ) : (
+          <>
+            <Field label={t("fields.title")} {...b("yoga.title")} />
+            <TextField multiline label={t("plan.yogaIntro")} {...b("yoga.intro")} />
+            <p className="text-xs text-muted">{t("plan.poseIdsHint")}</p>
+            {P.yoga.blocks.map((blk, bi) => (
+              <div key={bi} className="rounded-field border border-line bg-bg p-3 flex flex-col gap-3">
+                <div className="flex items-end gap-2">
+                  <Field label={t("plan.block")} {...b(`yoga.blocks.${bi}.name`)} className="flex-1" />
+                  <IconButton label={t("plan.removeBlock")} icon="close" onClick={() => yoga((y) => { y.blocks.splice(bi, 1); })} />
+                </div>
+                {blk.poses.map((q, qi) => (
+                  <div key={qi} className="grid grid-cols-[1fr_5rem_auto] sm:grid-cols-[2fr_1fr_5rem_auto] gap-2 items-end border-t border-line/70 pt-3">
+                    <Field label={t("plan.pose")} {...b(`yoga.blocks.${bi}.poses.${qi}.name`)} className="col-span-3 sm:col-span-1" />
+                    <Field label={t("plan.poseId")} mono {...b(`yoga.blocks.${bi}.poses.${qi}.id`)} />
+                    <Field label={t("plan.hold")} {...b(`yoga.blocks.${bi}.poses.${qi}.hold`)} placeholder="1'" />
+                    <IconButton label={t("plan.removePose")} icon="close" onClick={() => yoga((y) => { y.blocks[bi].poses.splice(qi, 1); })} />
+                  </div>
+                ))}
+                <button type="button" className="btn-ghost" onClick={() => yoga((y) => { y.blocks[bi].poses.push(C.blankPose()); })}>{t("plan.addPose")}</button>
+              </div>
+            ))}
+            <button type="button" className="btn-ghost" onClick={() => yoga((y) => { y.blocks.push(C.blankYogaBlock()); })}>{t("plan.addBlock")}</button>
+            <TextField multiline label={t("plan.yogaWhy")} {...b("yoga.why")} />
+            <ConfirmButton label={t("plan.removeYoga")} confirmLabel={t("confirmRemove")} onConfirm={() => update((d) => { d.plan.yoga = null; }, "plan")} />
+          </>
+        )}
       </Card>
     </>
   );

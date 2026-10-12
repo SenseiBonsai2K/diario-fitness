@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, Grid, Icon, NumField, Segmented } from "../components/ui.jsx";
 import { LANGS } from "../i18n.js";
@@ -8,6 +8,7 @@ import { ACCENT_IDS, BG_IDS, resolveAppearance } from "../lib/themes-apply.js";
 import { today } from "../lib/dates.js";
 import { countEntries, emptyData, hasLogs, hasPlan, normalise, toBackup } from "../lib/storage.js";
 import { useStore } from "../lib/store.jsx";
+import { clearSnapshots, getSnapshot, listSnapshots, takeSnapshot } from "../lib/snapshots.js";
 
 const PHASES = ["cut", "maintain", "bulk", "minicut"];
 
@@ -18,6 +19,7 @@ export default function Settings() {
       <h1 className="h-display text-3xl">{t("title")}</h1>
       <PlanEditor />
       <Backup />
+      <AutoCopies />
       <Profile />
       <TimerSettings />
       <Appearance />
@@ -177,6 +179,8 @@ function Profile() {
   );
 }
 
+const isIos = () => typeof navigator !== "undefined" && (/iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
+
 function fileName() {
   return `diario-fitness-backup-${today()}.json`;
 }
@@ -232,7 +236,8 @@ function Backup() {
     }
   };
 
-  const confirmImport = (mode) => {
+  const confirmImport = async (mode) => {
+    await takeSnapshot(data, "beforeImport");
     if (mode === "all") {
       replaceAll(pending.doc);
       if (LANGS.includes(pending.doc.prefs?.lang)) i18n.changeLanguage(pending.doc.prefs.lang);
@@ -249,7 +254,7 @@ function Backup() {
   return (
     <Card title={t("backup.title")}>
       {!hasPlan(data) && <p className="text-sm font-semibold text-accent">{t("backup.emptyHint")}</p>}
-      <p className="text-sm">{t("backup.lead")}</p>
+      <p className="text-sm">{t(isIos() ? "backup.leadIos" : "backup.lead")}</p>
       <p className="text-sm text-muted">
         {last
           ? t("backup.last", { date: new Intl.DateTimeFormat(i18n.language, { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }).format(new Date(last)) })
@@ -257,12 +262,12 @@ function Backup() {
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {canShare && (
-          <button type="button" className="btn" onClick={share}><Icon name="share" size={18} />{t("backup.share")}</button>
+          <button type="button" className="btn" onClick={share}><Icon name="share" size={18} />{t(isIos() ? "backup.shareIos" : "backup.share")}</button>
         )}
         <button type="button" className={canShare ? "btn-ghost" : "btn"} onClick={download}><Icon name="download" size={18} />{t("backup.download")}</button>
         <button type="button" className="btn-ghost" onClick={() => fileRef.current?.click()}><Icon name="upload" size={18} />{t("backup.import")}</button>
       </div>
-      {canShare && <p className="text-xs text-muted">{t("backup.shareHint")}</p>}
+      {canShare && <p className="text-xs text-muted">{t(isIos() ? "backup.shareHintIos" : "backup.shareHint")}</p>}
       <input ref={fileRef} type="file" accept="application/json,.json" className="hidden" onChange={onFile} aria-label={t("backup.import")} />
 
       {pending && (
@@ -278,6 +283,85 @@ function Backup() {
             <button type="button" className="btn-ghost border-transparent" onClick={() => setPending(null)}>{t("common:cancel")}</button>
           </div>
         </div>
+      )}
+      {msg && <p role="status" className={`text-sm ${msg.tone === "good" ? "text-good" : "text-bad"}`}>{msg.text}</p>}
+    </Card>
+  );
+}
+
+/** Automatic copies kept on this phone (weekly, and before every replace). */
+function AutoCopies() {
+  const { t, i18n } = useTranslation("settings");
+  const { data, replaceAll } = useStore();
+  const [list, setList] = useState(null);
+  const [armed, setArmed] = useState(null); // `at` of the copy waiting for confirmation
+  const [msg, setMsg] = useState(null);
+  const refresh = () => listSnapshots().then(setList);
+  useEffect(() => { refresh(); }, []);
+
+  const fmt = (at) => new Intl.DateTimeFormat(i18n.language, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(at));
+  const kindLabel = (k) => t(`copies.kinds.${["weekly", "beforeEdit", "beforeImport", "beforeRestore"].includes(k) ? k : "beforeEdit"}`);
+
+  const restore = async (at) => {
+    const snap = await getSnapshot(at);
+    if (!snap?.data) { setMsg({ tone: "bad", text: t("copies.missing") }); return; }
+    try {
+      const doc = normalise(snap.data);
+      await takeSnapshot(data, "beforeRestore");
+      replaceAll(doc);
+      setArmed(null);
+      setMsg({ tone: "good", text: t("copies.restored", { date: fmt(at) }) });
+      refresh();
+    } catch {
+      setMsg({ tone: "bad", text: t("copies.missing") });
+    }
+  };
+
+  const download = async (at) => {
+    const snap = await getSnapshot(at);
+    if (!snap?.data) return;
+    const url = URL.createObjectURL(new Blob([JSON.stringify(toBackup(snap.data), null, 2)], { type: "application/json" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `diario-fitness-copia-${at.slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  };
+
+  return (
+    <Card title={t("copies.title")}>
+      <p className="text-sm">{t("copies.lead")}</p>
+      <p className="text-xs text-muted">{t("copies.limit")}</p>
+      {list === null ? null : list.length === 0 ? (
+        <p className="text-sm text-muted">{t("copies.none")}</p>
+      ) : (
+        <ul className="flex flex-col">
+          {list.map((s) => (
+            <li key={s.at} className="border-t border-line/70 py-2.5 flex flex-col gap-2">
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="text-sm font-semibold">{fmt(s.at)}</span>
+                <span className="text-xs text-muted shrink-0">{kindLabel(s.kind)}</span>
+              </div>
+              <span className="text-xs text-muted num">{t("copies.counts", { days: s.counts?.days ?? 0, workouts: s.counts?.workouts ?? 0 })}</span>
+              {armed === s.at ? (
+                <div className="rounded-field border border-warn/60 bg-warn/10 p-3 flex flex-col gap-2 text-sm">
+                  <span>{t("copies.confirm")}</span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button type="button" className="btn" onClick={() => restore(s.at)}>{t("copies.restore")}</button>
+                    <button type="button" className="btn-ghost" onClick={() => setArmed(null)}>{t("common:cancel")}</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <button type="button" className="btn-ghost flex-1 py-2" onClick={() => setArmed(s.at)}>{t("copies.restore")}</button>
+                  <button type="button" className="btn-ghost flex-1 py-2" onClick={() => download(s.at)}><Icon name="download" size={16} />{t("copies.download")}</button>
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
       )}
       {msg && <p role="status" className={`text-sm ${msg.tone === "good" ? "text-good" : "text-bad"}`}>{msg.text}</p>}
     </Card>
@@ -318,7 +402,7 @@ function DangerZone() {
           <p>{t("danger.warning", { word })}</p>
           <input className="input" aria-label={t("danger.typeLabel", { word })} value={text} onChange={(e) => setText(e.target.value)} autoCapitalize="characters" />
           <div className="flex gap-2">
-            <button type="button" className="btn-danger flex-1" disabled={text.trim().toUpperCase() !== word} onClick={() => { replaceAll(emptyData()); setArmed(false); setText(""); }}>
+            <button type="button" className="btn-danger flex-1" disabled={text.trim().toUpperCase() !== word} onClick={() => { replaceAll(emptyData()); clearSnapshots(); setArmed(false); setText(""); }}>
               {t("danger.confirm")}
             </button>
             <button type="button" className="btn-ghost flex-1" onClick={() => { setArmed(false); setText(""); }}>{t("common:cancel")}</button>

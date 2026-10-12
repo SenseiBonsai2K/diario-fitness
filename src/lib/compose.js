@@ -8,7 +8,9 @@ export const WEEK_KEYS = ["1", "2", "3", "4", "5", "6", "0"]; // Monday first; "
 export const DIET_DAY_IDS = ["lun", "mar", "mer", "gio", "ven", "sab", "dom"];
 export const ACTIVITIES = ["run", "yoga", "rest"];
 export const PHASES = ["cut", "maintain", "bulk", "minicut"];
-export const PROFILE_FIELDS = ["kcal", "prot", "carb", "fat", "maintenance", "goalWeight", "goalBf"];
+export const PROFILE_FIELDS = ["kcal", "prot", "carb", "fat", "maintenance", "goalWeight", "goalBf", "heightCm", "startWeight", "startBf"];
+/** Bumped when the draft shape changes, so an old saved draft is replaced instead of misread. */
+export const DRAFT_VERSION = 2;
 export const RULE_FIELDS = ["cutMin", "cutMax", "bulkMin", "bulkMax", "maintainBand"];
 /** A plan's macros may differ from its kcal by this much before we flag it. */
 const KCAL_TOLERANCE = 60;
@@ -54,6 +56,41 @@ export const blankExercise = () => ({ id: "", name: "", sets: "3", reps: ["", ""
 export const blankSession = () => ({ id: "", name: "", note: "", exercises: [blankExercise()] });
 export const blankItem = () => ({ food: "", qty: "", unit: "g", note: "" });
 export const blankMeal = (name = "") => ({ name, time: "", note: "", items: [blankItem()] });
+export const blankOption = (name = "") => ({ name, items: [blankItem()] });
+export const blankSubstitution = () => ({ food: "", alt: [], note: "" });
+export const blankVolume = () => ({ name: "", sets: "", detail: "" });
+export const blankSection = () => ({ id: "", title: "", paragraphs: [], bullets: [], numbered: [], table: "", note: "" });
+export const blankPose = () => ({ id: "", name: "", hold: "" });
+export const blankYogaBlock = () => ({ name: "", poses: [blankPose()] });
+export const blankYoga = () => ({ title: "", intro: "", why: "", blocks: [blankYogaBlock()] });
+
+/** Tables are edited as text: one line per row, cells split by "|", first line = header. */
+export function tableToText(t) {
+  if (!t || !Array.isArray(t.head)) return "";
+  return [t.head, ...(t.rows || [])].map((r) => r.map(str).join(" | ")).join("\n");
+}
+export function textToTable(text) {
+  const rows = str(text).split("\n").map((l) => l.trim()).filter(Boolean).map((l) => l.split("|").map((c) => c.trim()));
+  return rows.length ? { head: rows[0], rows: rows.slice(1) } : null;
+}
+
+const list = (v) => (Array.isArray(v) ? v.map(str) : v ? [str(v)] : []);
+const cleanList = (v) => list(v).map((x) => x.trim()).filter(Boolean);
+const slug = (s) => str(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+export function editableSection(s) {
+  return { ...clone(s), id: str(s.id), title: str(s.title), paragraphs: list(s.paragraphs), bullets: list(s.bullets), numbered: list(s.numbered), table: tableToText(s.table), note: str(s.note) };
+}
+
+export function editablePlan(plan) {
+  const p = isObj(plan) ? clone(plan) : {};
+  const y = isObj(p.yoga) ? p.yoga : null;
+  return {
+    ...p,
+    sections: (Array.isArray(p.sections) ? p.sections : []).map(editableSection),
+    yoga: y ? { ...y, title: str(y.title), intro: str(y.intro), why: str(y.why), blocks: (y.blocks || []).map((b) => ({ ...b, name: str(b.name), poses: (b.poses || []).map((x) => ({ ...x, id: str(x.id), name: str(x.name), hold: str(x.hold) })) })) } : null,
+  };
+}
 
 export function blankProgram(todayIso) {
   return {
@@ -92,6 +129,7 @@ export function editableProgram(p) {
       reps: Array.isArray(e.reps) ? e.reps.map(str) : e.reps !== undefined ? [str(e.reps), str(e.reps)] : ["", ""],
     })),
   }));
+  out.volume = (Array.isArray(out.volume) ? out.volume : []).map((v) => ({ ...v, name: str(v.name), sets: str(v.sets), detail: str(v.detail) }));
   return out;
 }
 
@@ -100,10 +138,14 @@ export function editableDiet(d) {
   out.targets = Object.fromEntries(["kcal", "prot", "carb", "fat"].map((k) => [k, str(out.targets?.[k])]));
   out.week = isObj(out.week) ? out.week : {};
   out.notes = Array.isArray(out.notes) ? out.notes : out.notes ? [str(out.notes)] : [];
+  const items = (xs) => (xs || []).map((i) => ({ ...i, qty: str(i.qty), alt: list(i.alt) }));
   out.days = (out.days || []).map((day) => ({
     ...day,
-    meals: (day.meals || []).map((m) => ({ ...m, items: (m.items || []).map((i) => ({ ...i, qty: str(i.qty) })) })),
+    targets: Object.fromEntries(["kcal", "prot", "carb", "fat"].map((k) => [k, str(day.targets?.[k])])),
+    meals: (day.meals || []).map((m) => ({ ...m, items: items(m.items), options: (m.options || []).map((o) => ({ ...o, name: str(o.name), items: items(o.items) })) })),
   }));
+  out.substitutions = (Array.isArray(out.substitutions) ? out.substitutions : []).map((x) => ({ ...x, food: str(x.food), alt: list(x.alt), note: str(x.note) }));
+  out.sections = (Array.isArray(out.sections) ? out.sections : []).map(editableSection);
   return out;
 }
 
@@ -112,13 +154,15 @@ export function editableProfile(p = {}) {
   for (const k of PROFILE_FIELDS) out[k] = str(p[k]);
   const r = isObj(p.rules) ? p.rules : {};
   out.rules = Object.fromEntries([...RULE_FIELDS, "step"].map((k) => [k, str(r[k])]));
+  out.startDate = str(p.startDate);
+  out.zone2 = { min: str(p.zone2?.min), max: str(p.zone2?.max) };
   return out;
 }
 
 export function emptyDraft(todayIso, dayNames, base) {
   return {
-    v: 1,
-    include: { profile: false, program: false, diet: false, history: false },
+    v: DRAFT_VERSION,
+    include: { profile: false, program: false, diet: false, plan: false, history: false },
     profile: editableProfile(base?.profile),
     programMode: "new",
     program: blankProgram(todayIso),
@@ -128,6 +172,7 @@ export function emptyDraft(todayIso, dayNames, base) {
     diet: blankDiet(todayIso, dayNames),
     dietActive: true,
     closePrevDiet: true,
+    plan: editablePlan(base?.plan),
     history: { date: todayIso, title: "", text: "" },
   };
 }
@@ -153,6 +198,23 @@ export function knownExercises(base) {
   const programs = Object.values(base?.programs || {}).sort((a, b) => str(a.startDate).localeCompare(str(b.startDate)));
   for (const p of programs) for (const s of p.sessions || []) for (const e of s.exercises || []) if (e.id) out[e.id] = e.name || out[e.id] || "";
   return out;
+}
+
+/** Clean plan-shaped sections (plan text, diet sections); ids come from the title when empty. */
+function cleanSections(sections, tab, add) {
+  const ids = new Set();
+  return (sections || []).map((s, i) => {
+    const x = { ...s, title: str(s.title).trim() };
+    if (!x.title) add("error", "sectionNoTitle", tab, { n: i + 1 });
+    x.id = str(s.id).trim() || slug(x.title) || `sezione-${i + 1}`;
+    while (ids.has(x.id)) x.id = `${x.id}-${i + 1}`;
+    ids.add(x.id);
+    for (const k of ["paragraphs", "bullets", "numbered"]) { x[k] = cleanList(s[k]); if (!x[k].length) delete x[k]; }
+    const table = typeof s.table === "string" ? textToTable(s.table) : s.table;
+    if (table) x.table = table; else delete x.table;
+    trimOrDrop(x, "note");
+    return x;
+  });
 }
 
 /**
@@ -186,6 +248,12 @@ export function buildPlanFile(draft, base, now = new Date()) {
     for (const k of RULE_FIELDS) { const n = num(p.rules?.[k]); if (n !== undefined) rules[k] = n; }
     if (str(p.rules?.step).trim()) rules.step = str(p.rules.step).trim();
     if (Object.keys(rules).length) out.rules = { ...(isObj(base?.profile?.rules) ? base.profile.rules : {}), ...rules };
+    if (str(p.startDate)) out.startDate = str(p.startDate);
+    const z = { min: num(p.zone2?.min), max: num(p.zone2?.max) };
+    if (z.min !== undefined || z.max !== undefined) {
+      if (z.min === undefined || z.max === undefined || z.min >= z.max) error("zone2", "profile");
+      else out.zone2 = z;
+    }
     if (out.kcal && out.prot && out.carb && out.fat) {
       const calc = macroKcal(out.prot, out.carb, out.fat);
       if (Math.abs(calc - out.kcal) > KCAL_TOLERANCE) warn("macroMismatch", "profile", { calc, kcal: out.kcal });
@@ -259,6 +327,13 @@ export function buildPlanFile(draft, base, now = new Date()) {
       if (!ACTIVITIES.includes(v) && !sessionIds.has(v)) error("weekUnknown", "program", { day, id: v });
     }
     for (const id of sessionIds) if (id && !Object.values(p.week || {}).includes(id)) warn("sessionUnplanned", "program", { id });
+    p.volume = (p.volume || []).filter((v) => str(v.name).trim() || str(v.sets).trim()).map((v) => {
+      const x = { ...v, name: str(v.name).trim(), sets: num(v.sets) };
+      if (!x.name || x.sets === undefined) error("volumeRow", "program", { name: x.name || "?" });
+      trimOrDrop(x, "detail");
+      return x;
+    });
+    if (!p.volume.length) delete p.volume;
     p.endDate = p.endDate || null;
     data.programs = { [p.id || "-"]: p };
     const prev = base?.activeProgram;
@@ -294,6 +369,9 @@ export function buildPlanFile(draft, base, now = new Date()) {
     for (const [day, v] of Object.entries(d.week || {})) if (!dayIds.has(v)) error("dietWeekUnknown", "diet", { day, id: v });
     d.days = d.days.map((day, di) => {
       trimOrDrop(day, "note");
+      const dt = {};
+      for (const k of ["kcal", "prot", "carb", "fat"]) { const n = num(day.targets?.[k]); if (n !== undefined) dt[k] = n; }
+      if (Object.keys(dt).length) day.targets = dt; else delete day.targets;
       const at = { day: di, dayName: day.name || day.id };
       if (!day.meals.length) error("dayNoMeals", "diet", {}, at);
       day.meals = day.meals.map((m, mi) => {
@@ -302,8 +380,8 @@ export function buildPlanFile(draft, base, now = new Date()) {
         trimOrDrop(m, "time");
         trimOrDrop(m, "note");
         if (!m.name) error("mealNoName", "diet", {}, mat);
-        m.items = (m.items || [])
-          .filter((it) => str(it.food).trim() || str(it.qty).trim() || it.alt)
+        const cleanItems = (items) => (items || [])
+          .filter((it) => str(it.food).trim() || str(it.qty).trim() || cleanList(it.alt).length)
           .map((it) => {
             const x = { ...it, food: str(it.food).trim() };
             if (!x.food) error("itemNoFood", "diet", {}, mat);
@@ -313,13 +391,33 @@ export function buildPlanFile(draft, base, now = new Date()) {
             else { delete x.qty; if (x.food) warn("itemNoQty", "diet", { food: x.food }, mat); }
             trimOrDrop(x, "unit");
             trimOrDrop(x, "note");
+            x.alt = cleanList(x.alt);
+            if (!x.alt.length) delete x.alt;
             return x;
           });
+        m.items = cleanItems(m.items);
+        m.options = (m.options || []).map((o, oi) => {
+          const x = { ...o, name: str(o.name).trim(), items: cleanItems(o.items) };
+          if (!x.name) error("optionNoName", "diet", { n: oi + 1 }, mat);
+          if (!x.items.length) warn("optionEmpty", "diet", { name: x.name || oi + 1 }, mat);
+          return x;
+        });
+        if (!m.options.length) delete m.options;
         if (!m.items.length && !(m.options || []).length) warn("mealEmpty", "diet", {}, mat);
         return m;
       });
       return day;
     });
+    d.substitutions = (d.substitutions || []).filter((x) => str(x.food).trim() || cleanList(x.alt).length).map((x) => {
+      const o = { ...x, food: str(x.food).trim(), alt: cleanList(x.alt) };
+      if (!o.food) error("substitutionNoFood", "diet");
+      if (!o.alt.length) warn("substitutionNoAlt", "diet", { food: o.food });
+      trimOrDrop(o, "note");
+      return o;
+    });
+    if (!d.substitutions.length) delete d.substitutions;
+    d.sections = cleanSections(d.sections, "diet", add);
+    if (!d.sections.length) delete d.sections;
     d.endDate = d.endDate || null;
     data.diets = { [d.id || "-"]: d };
     const prev = base?.activeDiet;
@@ -328,6 +426,37 @@ export function buildPlanFile(draft, base, now = new Date()) {
     }
     if (draft.dietActive) data.activeDiet = d.id;
     else if (isNew) warn("dietNotActive", "diet");
+  }
+
+  if (inc.plan) {
+    parts.push("plan");
+    const p = clone(draft.plan || {});
+    const sections = cleanSections(p.sections, "plan", add);
+    let yoga = null;
+    if (p.yoga) {
+      yoga = { ...p.yoga };
+      ["title", "intro", "why"].forEach((k) => trimOrDrop(yoga, k));
+      const poseIds = new Set();
+      yoga.blocks = (yoga.blocks || []).map((b, bi) => {
+        const x = { ...b, name: str(b.name).trim() };
+        if (!x.name) error("yogaBlockNoName", "plan", { n: bi + 1 });
+        x.poses = (b.poses || []).filter((q) => str(q.id).trim() || str(q.name).trim()).map((q) => {
+          const o = { ...q, id: str(q.id).trim(), name: str(q.name).trim() };
+          if (!o.id) error("poseNoId", "plan", { name: o.name || "?" });
+          else if (poseIds.has(o.id)) error("poseIdTwice", "plan", { id: o.id });
+          poseIds.add(o.id);
+          if (!o.name) error("poseNoName", "plan", { id: o.id || "?" });
+          trimOrDrop(o, "hold");
+          return o;
+        });
+        return x;
+      });
+      const before = new Set((base?.plan?.yoga?.blocks || []).flatMap((b) => (b.poses || []).map((q) => q.id)));
+      for (const id of before) if (!poseIds.has(id)) warn("poseRemoved", "plan", { id });
+    }
+    if (!sections.length && !yoga) warn("planEmpty", "plan");
+    const { sections: _s, yoga: _y, ...rest } = p;
+    data.plan = { ...rest, updatedAt: iso(now), sections, yoga };
   }
 
   if (inc.history) {

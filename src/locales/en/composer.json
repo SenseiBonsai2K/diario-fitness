@@ -2,11 +2,25 @@
   "pageTitle": "Edit plan · Diario Fitness",
   "back": "Diary",
   "title": "Edit plan",
-  "lead": "Change profile, program, diet and history, check the summary and apply. Logs (weight, workouts, runs, ticks) are never touched.",
+  "lead": "Change profile, program, diet, plan and yoga, check the summary and apply. Logs (weight, workouts, runs, ticks) are never touched.",
   "tabsLabel": "Plan sections",
   "included": "included",
-  "tabs": { "start": "Start", "profile": "Profile", "program": "Program", "diet": "Diet", "history": "History", "review": "Summary" },
-  "bar": { "errors_one": "{{count}} thing to fix", "errors_other": "{{count}} things to fix", "ready": "Ready", "nothing": "No section included", "review": "Summary" },
+  "tabs": {
+    "start": "Start",
+    "profile": "Profile",
+    "program": "Program",
+    "diet": "Diet",
+    "history": "History",
+    "review": "Summary",
+    "plan": "Plan"
+  },
+  "bar": {
+    "errors_one": "{{count}} thing to fix",
+    "errors_other": "{{count}} things to fix",
+    "ready": "Ready",
+    "nothing": "No section included",
+    "review": "Summary"
+  },
   "include": "Include",
   "macroCheck": "From macros: {{calc}} kcal ({{diff}} against the target)",
   "reset": "Start over",
@@ -29,14 +43,35 @@
   "recipes": {
     "title": "What do you want to change?",
     "lead": "Each choice includes the right section and prepares a history entry.",
-    "macro": { "title": "Calories and macros", "text": "For example −150 kcal after the Sunday check.", "history": "Calorie change" },
-    "phase": { "title": "Phase", "text": "Cut, maintenance, lean bulk: with goals and rules.", "history": "Phase change" },
-    "program": { "title": "Program", "text": "Edit the current one or create a new one, keeping the exercise ids.", "history": "New program" },
-    "diet": { "title": "Diet", "text": "Seven separate days, quantities and brands only.", "history": "Diet updated" }
+    "macro": {
+      "title": "Calories and macros",
+      "text": "For example −150 kcal after the Sunday check.",
+      "history": "Calorie change"
+    },
+    "phase": {
+      "title": "Phase",
+      "text": "Cut, maintenance, lean bulk: with goals and rules.",
+      "history": "Phase change"
+    },
+    "program": {
+      "title": "Program",
+      "text": "Edit the current one or create a new one, keeping the exercise ids.",
+      "history": "New program"
+    },
+    "diet": {
+      "title": "Diet",
+      "text": "Seven separate days, quantities and brands only.",
+      "history": "Diet updated"
+    },
+    "plan": {
+      "title": "Plan and yoga",
+      "text": "The plan's text sections (phases, running, rules) and the yoga routine.",
+      "history": "Plan updated"
+    }
   },
   "rules": {
     "title": "How it works",
-    "logs": "Logs stay as they are: only profile, programs, diet and history are updated.",
+    "logs": "Logs stay as they are: only profile, programs, diet, plan and history are updated.",
     "archive": "Every replaced version goes to Plan → Archive.",
     "newId": "A new program or diet gets a new id; the previous one gets an end date and stays among the previous ones.",
     "exerciseIds": "Exercise ids keep the strength charts: same exercise, same id."
@@ -46,7 +81,9 @@
     "lead": "Empty fields keep the current values.",
     "rules": "Adjustment rules",
     "perWeek": "kg/wk",
-    "rulesHint": "They drive the advice in the weekly check."
+    "rulesHint": "They drive the advice in the weekly check.",
+    "start": "Starting point",
+    "zone2": "Zone 2 (running)"
   },
   "fields": {
     "phase": "Phase",
@@ -78,7 +115,12 @@
     "rest": "Rest",
     "rir": "RIR",
     "date": "Date",
-    "title": "Title"
+    "title": "Title",
+    "heightCm": "Height",
+    "startWeight": "Starting weight",
+    "startBf": "Starting body fat",
+    "zone2Min": "Min heart rate",
+    "zone2Max": "Max heart rate"
   },
   "mode": {
     "label": "Starting point",
@@ -87,7 +129,9 @@
     "copy": "New, based on · {{name}}"
   },
   "program": {
-    "mode": { "new": "New empty program" },
+    "mode": {
+      "new": "New empty program"
+    },
     "title": "Program",
     "idHint": "name-YYYY-MM",
     "active": "Make this the active program",
@@ -105,10 +149,17 @@
     "removeExercise": "Delete exercise",
     "superset": "Superset with the next one",
     "perSide": "Reps per side",
-    "addExercise": "Add exercise"
+    "addExercise": "Add exercise",
+    "volume": "Weekly volume",
+    "volumeHint": "Sets per week per muscle group: shown as bars in the program.",
+    "muscle": "Muscle group",
+    "detail": "Detail",
+    "addVolume": "Add group"
   },
   "diet": {
-    "mode": { "new": "New empty diet" },
+    "mode": {
+      "new": "New empty diet"
+    },
     "title": "Diet",
     "idHint": "diet-name-YYYY-MM",
     "active": "Make this the active diet",
@@ -129,7 +180,20 @@
     "brand": "Brand or note",
     "removeFood": "Delete food",
     "addFood": "Add food",
-    "addMeal": "Add meal"
+    "addMeal": "Add meal",
+    "optionName": "Option name",
+    "removeOption": "Delete option",
+    "optionDefault": "Option {{n}}",
+    "addOption": "Add an option",
+    "optionsHint": "An option is an alternative to the whole meal (e.g. “Option 2”): the app shows it next to the main foods.",
+    "dayTargets": "Day targets",
+    "dayTargetsHint": "Only if this day has different macros from the diet's.",
+    "substitutions": "Swaps",
+    "alternatives": "Alternatives (one per line)",
+    "addSubstitution": "Add swap",
+    "sections": "Diet text sections",
+    "altCount_one": "{{count}} alternative",
+    "altCount_other": "Alternatives: {{count}}"
   },
   "history": {
     "title": "History entry",
@@ -181,7 +245,20 @@
     "historyNoDate": "The history entry has no date.",
     "historyNoTitle": "The history entry has no title.",
     "historySuggested": "No history entry: add one to find this change in the timeline.",
-    "nothingIncluded": "Pick at least one section to include."
+    "nothingIncluded": "Pick at least one section to include.",
+    "zone2": "Zone 2: both min and max heart rate are needed, with min below max.",
+    "volumeRow": "Volume: “{{name}}” needs a name and a number of sets.",
+    "optionNoName": "option {{n}} has no name.",
+    "optionEmpty": "option “{{name}}” is empty.",
+    "substitutionNoFood": "A swap has no food.",
+    "substitutionNoAlt": "The swap “{{food}}” has no alternatives.",
+    "sectionNoTitle": "Section {{n}} has no title.",
+    "yogaBlockNoName": "Yoga block {{n}} has no name.",
+    "poseNoId": "The pose “{{name}}” has no id.",
+    "poseIdTwice": "The id “{{id}}” is used by two poses.",
+    "poseNoName": "The pose “{{id}}” has no name.",
+    "poseRemoved": "The pose “{{id}}” is gone: past ticks stay, but it no longer shows in the routine.",
+    "planEmpty": "Plan with no sections and no yoga: the app keeps the current one."
   },
   "review": {
     "title": "Summary",
@@ -196,7 +273,7 @@
     "applyLead": "Updates the diary on this phone right away. Replaced versions go to the Archive.",
     "apply": "Apply the changes",
     "confirmTitle": "Apply the changes?",
-    "confirmText": "Profile, programs, diet and history are updated; logs stay as they are. You can always find the previous version in Plan → Archive.",
+    "confirmText": "Profile, programs, diet, plan and history are updated; logs stay as they are. An automatic copy is saved first (Settings → Automatic copies) and the previous version stays in Plan → Archive.",
     "confirm": "Yes, apply",
     "noApplyFile": "You are working on a loaded file: download the result and import it in the app with “Load plan, programs and diet only”.",
     "noApplyEmpty": "The diary is empty here. Opening this page from the app lets you apply directly; otherwise download the file and import it.",
@@ -216,5 +293,37 @@
     "copied": "Text copied.",
     "copyFailed": "Couldn't copy: the text is selected in the preview, copy it from the menu.",
     "preview": "File preview"
+  },
+  "remove": "Delete",
+  "sections": {
+    "none": "No sections.",
+    "untitled": "Section {{n}}",
+    "remove": "Delete section",
+    "paragraphs": "Paragraphs (one per line)",
+    "bullets": "Bulleted list (one item per line)",
+    "numbered": "Numbered list (one item per line)",
+    "table": "Table",
+    "tableHint": "One line per table row, cells split by |. The first line is the header.",
+    "idAuto": "from the title",
+    "add": "Add section"
+  },
+  "plan": {
+    "title": "Plan",
+    "lead": "The text sections you see in Plan → Plan and the yoga routine. Replaced versions go to the Archive.",
+    "sections": "Sections",
+    "yoga": "Yoga routine",
+    "addYoga": "Add the yoga routine",
+    "yogaIntro": "Introduction",
+    "poseIdsHint": "A pose's id ties it to the ticks already made on yoga days: don't change it for a pose that already exists.",
+    "block": "Block",
+    "removeBlock": "Delete block",
+    "poseId": "Id",
+    "hold": "Hold",
+    "removePose": "Delete pose",
+    "pose": "Pose",
+    "addPose": "Add pose",
+    "addBlock": "Add block",
+    "yogaWhy": "Why",
+    "removeYoga": "Remove the yoga routine"
   }
 }

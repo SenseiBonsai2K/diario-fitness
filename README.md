@@ -24,14 +24,24 @@ It works offline and keeps every piece of data on the phone: nothing is sent to 
   plan sections, yoga routine, history and an archive of every replaced version, all read from the
   user's data. Each diet has a "Print or save as PDF" button (browser print, A4, one page per day type).
 - **Edit plan** (`compositore.html`, opened from Settings → Edit plan): a second page of the app that
-  edits profile and macros, phase, programs (sessions, exercises, week), diets (seven days, meals,
-  foods) and a history entry, starting from the active program and diet. A summary lists errors and
+  edits everything that isn't a log: profile (targets, starting point, zone 2, rules), phase,
+  programs (sessions, exercises, week, weekly volume), diets (seven days, meals, foods with
+  alternatives, whole-meal options, per-day targets, swaps, text sections), the plan's text sections
+  (paragraphs, lists, tables) and the yoga routine, plus a history entry, starting from the active
+  program and diet. Yoga pose ids, like exercise ids, tie past logs to the routine. A summary lists errors and
   warnings (existing ids, renamed exercise ids, more than 3 sets, macros that don't add up to the
   kcal…), then **Apply** runs the same `mergePlan` as "Load plan only": logs untouched, replaced
   versions archived, the previous program/diet closed the day before the new one starts. The result
   can also be downloaded or shared as a plan file. Same origin and scope as the diary, so opened from
   the installed app on iPhone it shares the app's storage (Safari and the home-screen app have
   separate storage). Logic in `src/lib/compose.js` (tested), UI in `src/composer/`.
+- **Automatic copies** (`src/lib/snapshots.js`, IndexedDB): when the app opens it saves a copy of
+  the whole document once a week (keeps 8), and one before every plan edit, import or restore
+  (keeps 6). Settings → Automatic copies lists them with Restore and Download. They protect against
+  mistakes, not against losing the phone or deleting the app: the weekly file backup (on iPhone,
+  Share → Save to Files → iCloud Drive) is still needed. A web app can't write files on its own in
+  the background, so a fully automatic off-phone backup would need a server, which this app doesn't
+  have by design. "Delete all data" also deletes the copies.
 - **Settings**: appearance (neutral background: auto, light, grey, dark, black; and one of sixteen
   accent colours — eight soft, eight vivid — chosen separately; saved in `prefs.bg` / `prefs.accent` and in the backup), phase and targets, backup export (file or Android share sheet → Google Drive),
   restore from a backup, language (Italian / English).

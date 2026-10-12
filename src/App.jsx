@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import { Icon } from "./components/ui.jsx";
 import { today } from "./lib/dates.js";
 import { useStore } from "./lib/store.jsx";
+import { hasLogs, hasPlan } from "./lib/storage.js";
+import { weeklySnapshot } from "./lib/snapshots.js";
 import Today from "./screens/Today.jsx";
 import Workout from "./screens/Workout.jsx";
 import Progress from "./screens/Progress.jsx";
@@ -36,6 +38,9 @@ export default function App() {
     q?.addEventListener?.("change", on);
     return () => q?.removeEventListener?.("change", on);
   }, [bg, accent, theme]);
+  // One automatic copy a week, taken when the app is opened (see Settings → Automatic copies).
+  useEffect(() => { weeklySnapshot(data, hasLogs(data) || hasPlan(data)); }, []); // once per opening, with the data loaded at start
+
   const [tab, setTab] = useState(readTab);
   const [date, setDate] = useState(today);
   const [activity, setActivity] = useState(null);

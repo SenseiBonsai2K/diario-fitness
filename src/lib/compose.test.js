@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildPlanFile, emptyDraft, knownExercises, macroKcal, nextMonday, num, startFrom, suggestId } from "./compose.js";
+import { buildPlanFile, editablePlan, emptyDraft, knownExercises, macroKcal, nextMonday, num, startFrom, suggestId, tableToText, textToTable } from "./compose.js";
 import { emptyData, hasLogs, mergePlan, normalise } from "./storage.js";
 
 const TODAY = "2026-10-14"; // a Wednesday
@@ -141,5 +141,52 @@ describe("buildPlanFile", () => {
     expect(next.archive).toHaveLength(1);
     expect(next.archive[0]).toMatchObject({ kind: "program", id: "ul-2026-10" });
     expect(next.history.at(-1).title).toBe("Recupero panca");
+  });
+
+  it("round-trips the plan text and yoga, and warns when a pose id disappears", () => {
+    const b = base();
+    b.plan = { updatedAt: "2026-10-10", sections: [{ id: "corsa", title: "Corsa", bullets: ["Z2"], table: { head: ["Fase", "Kcal"], rows: [["Cut", "2200"]] } }],
+      yoga: { title: "Yoga", blocks: [{ name: "Apertura", poses: [{ id: "diaphragm", name: "Respiro", hold: "3'" }, { id: "cat", name: "Gatto", hold: "1'" }] }] } };
+    const draft = emptyDraft(TODAY, NAMES, b);
+    expect(draft.plan.sections[0].table).toBe("Fase | Kcal\nCut | 2200");
+    draft.include.plan = true;
+    draft.include.history = true;
+    draft.history.title = "Piano";
+    draft.plan.sections[0].bullets.push("Una lunga a settimana");
+    draft.plan.yoga.blocks[0].poses.pop();
+    const r = buildPlanFile(draft, b, NOW);
+    expect(r.errors).toBe(0);
+    expect(r.issues.map((i) => i.key)).toContain("poseRemoved");
+    expect(r.file.data.plan.sections[0]).toEqual({ id: "corsa", title: "Corsa", bullets: ["Z2", "Una lunga a settimana"], table: { head: ["Fase", "Kcal"], rows: [["Cut", "2200"]] } });
+    const next = mergePlan(b, normalise(r.file));
+    expect(next.archive.at(-1).kind).toBe("plan");
+    expect(next.plan.yoga.blocks[0].poses).toEqual([{ id: "diaphragm", name: "Respiro", hold: "3'" }]);
+  });
+
+  it("keeps food alternatives, meal options, swaps and day targets", () => {
+    const b = base();
+    const draft = emptyDraft(TODAY, NAMES, b);
+    draft.include.diet = true;
+    draft.include.history = true;
+    draft.history.title = "Dieta";
+    draft.diet.id = "dieta-x-2026-10";
+    draft.diet.name = "X";
+    draft.diet.substitutions = [{ food: "Riso 90 g", alt: ["Pasta 90 g", " "], note: "" }];
+    draft.diet.days.forEach((d) => {
+      d.targets = { kcal: "2100", prot: "", carb: "", fat: "" };
+      d.meals = [{ name: "Pranzo", items: [{ food: "Riso", qty: "90", unit: "g", alt: ["Farro 90 g", ""] }], options: [{ name: "Opzione 2", items: [{ food: "Pane", qty: "100", unit: "g", alt: [] }] }] }];
+    });
+    const r = buildPlanFile(draft, b, NOW);
+    expect(r.errors).toBe(0);
+    const diet = r.file.data.diets["dieta-x-2026-10"];
+    expect(diet.substitutions).toEqual([{ food: "Riso 90 g", alt: ["Pasta 90 g"] }]);
+    expect(diet.days[0].targets).toEqual({ kcal: 2100 });
+    expect(diet.days[0].meals[0]).toEqual({ name: "Pranzo", items: [{ food: "Riso", qty: 90, unit: "g", alt: ["Farro 90 g"] }], options: [{ name: "Opzione 2", items: [{ food: "Pane", qty: 100, unit: "g" }] }] });
+  });
+
+  it("converts tables to text and back", () => {
+    expect(textToTable(tableToText({ head: ["a", "b"], rows: [["1", "2"]] }))).toEqual({ head: ["a", "b"], rows: [["1", "2"]] });
+    expect(textToTable("  ")).toBeNull();
+    expect(editablePlan(undefined)).toEqual({ sections: [], yoga: null });
   });
 });

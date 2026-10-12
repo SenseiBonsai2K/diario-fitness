@@ -8,7 +8,7 @@
   },
   "editor": {
     "title": "Modifica piano",
-    "lead": "Cambia calorie e macro, fase, scheda e dieta direttamente da qui, con un riepilogo prima di applicare. I registri non vengono toccati e ogni versione sostituita resta nell'Archivio.",
+    "lead": "Cambia calorie e macro, fase, scheda, dieta (con opzioni, alternative e sostituzioni), sezioni del piano e yoga direttamente da qui, con un riepilogo prima di applicare. I registri non vengono toccati e ogni versione sostituita resta nell'Archivio.",
     "open": "Apri Modifica piano"
   },
   "profile": {
@@ -54,7 +54,10 @@
     "importChoice": "\"Ripristina tutto\" sostituisce tutti i dati del telefono. \"Carica solo piano, schede e dieta\" tiene i tuoi registri e aggiorna profilo, schede, dieta, piano e storico: le versioni sostituite finiscono nell'Archivio del Piano.",
     "planImported": "Piano, schede e dieta caricati. I registri non sono cambiati; le versioni precedenti sono nell'Archivio.",
     "emptyHint": "Prima volta? Ripristina il file di backup che hai ricevuto per caricare piano, schede e dieta.",
-    "planFileOnly": "Questo file contiene solo piano, schede e dieta, senza registri: viene caricato tenendo tutti i dati già salvati sul telefono. Le versioni sostituite finiscono nell'Archivio del Piano."
+    "planFileOnly": "Questo file contiene solo piano, schede e dieta, senza registri: viene caricato tenendo tutti i dati già salvati sul telefono. Le versioni sostituite finiscono nell'Archivio del Piano.",
+    "shareIos": "Salva su File o iCloud",
+    "shareHintIos": "«Salva su File o iCloud» apre il menu Condividi: scegli «Salva su File», poi iCloud Drive, per tenere il backup fuori dal telefono.",
+    "leadIos": "I dati sono solo su questo telefono: se elimini l'app, si perdono. Salva un backup ogni settimana su iCloud Drive (o Google Drive). Il backup contiene tutto: registri, schede, dieta, piano, storico, archivio e lingua."
   },
   "install": {
     "title": "Installare l'app",
@@ -129,6 +132,24 @@
       "marimba": "Marimba",
       "rise": "Via!",
       "whistle": "Fischietto"
+    }
+  },
+  "copies": {
+    "title": "Copie automatiche",
+    "lead": "Ogni settimana, all'apertura, l'app salva da sola una copia di tutti i dati su questo telefono, e ne salva una anche prima di ogni modifica del piano, importazione o ripristino. Se qualcosa va storto puoi tornare indietro da qui.",
+    "limit": "Le copie restano nel telefono: non ti proteggono se perdi il telefono o elimini l'app. Per quello serve il backup su file qui sopra.",
+    "none": "Ancora nessuna copia: la prima arriva alla prossima apertura dell'app con dei dati.",
+    "counts": "Giorni: {{days}} · allenamenti: {{workouts}}",
+    "restore": "Ripristina",
+    "download": "Scarica",
+    "confirm": "Tutti i dati attuali verranno sostituiti da questa copia. Prima viene salvata una copia di quelli attuali, così puoi tornare indietro.",
+    "restored": "Ripristinata la copia del {{date}}.",
+    "missing": "Questa copia non si può leggere.",
+    "kinds": {
+      "weekly": "Settimanale",
+      "beforeEdit": "Prima di una modifica",
+      "beforeImport": "Prima di un'importazione",
+      "beforeRestore": "Prima di un ripristino"
     }
   }
 }
