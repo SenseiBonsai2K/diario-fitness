@@ -16,11 +16,13 @@ Done
 - Appearance in Settings: neutral background (auto/light/grey/dark/black) + 8 accent colours, AA contrast.
 - Service worker: network-first page, so a deploy never leaves a blank screen.
 - Tickable foods in today's menu; app-wide rest timer with alarm sound.
+- Edit plan page (compositore.html): profile, phase, programs, diets and history edited in the app,
+  checked in a summary, applied with the plan-import rules (archive, no logs touched) or saved as a file.
 - UI refresh: week strip, hero card for the day, macro bars, today's menu, workout progress and
   superset grouping, tabbed Plan screen.
 
 Next
-- Edit programs from the app (today they arrive by importing a plan file).
+- Edit plan: meal options, swaps and alternatives per food are kept but not editable yet.
 - Weekly backup reminder as a notification instead of a banner.
 - Lean bulk changes when the phase switches (extra sets listed in the plan).
 - Archive manual edits of targets made in Settings (today only imports archive the old values).

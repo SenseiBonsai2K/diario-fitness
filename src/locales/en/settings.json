@@ -6,6 +6,11 @@
     "it": "Italiano",
     "en": "English"
   },
+  "editor": {
+    "title": "Edit plan",
+    "lead": "Change calories and macros, phase, program and diet right here, with a summary before applying. Logs are not touched and every replaced version stays in the Archive.",
+    "open": "Open Edit plan"
+  },
   "profile": {
     "title": "Phase and targets",
     "phase": "Current phase",

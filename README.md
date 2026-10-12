@@ -23,6 +23,15 @@ It works offline and keeps every piece of data on the phone: nothing is sent to 
   something archived) — the active training program and diet, previous programs and diets,
   plan sections, yoga routine, history and an archive of every replaced version, all read from the
   user's data. Each diet has a "Print or save as PDF" button (browser print, A4, one page per day type).
+- **Edit plan** (`compositore.html`, opened from Settings → Edit plan): a second page of the app that
+  edits profile and macros, phase, programs (sessions, exercises, week), diets (seven days, meals,
+  foods) and a history entry, starting from the active program and diet. A summary lists errors and
+  warnings (existing ids, renamed exercise ids, more than 3 sets, macros that don't add up to the
+  kcal…), then **Apply** runs the same `mergePlan` as "Load plan only": logs untouched, replaced
+  versions archived, the previous program/diet closed the day before the new one starts. The result
+  can also be downloaded or shared as a plan file. Same origin and scope as the diary, so opened from
+  the installed app on iPhone it shares the app's storage (Safari and the home-screen app have
+  separate storage). Logic in `src/lib/compose.js` (tested), UI in `src/composer/`.
 - **Settings**: appearance (neutral background: auto, light, grey, dark, black; and one of sixteen
   accent colours — eight soft, eight vivid — chosen separately; saved in `prefs.bg` / `prefs.accent` and in the backup), phase and targets, backup export (file or Android share sheet → Google Drive),
   restore from a backup, language (Italian / English).
@@ -87,6 +96,8 @@ app opens empty and is filled by importing a backup file. Backup files are git-i
   file (e.g. only `diets` + `activeDiet`) updates only what it carries: empty profile fields and an
   empty plan leave the current ones in place. A file with no logs is never offered as "restore
   everything" when the phone already has logs, so a plan file can't wipe the history.
+- The diary and the plan editor are two pages on the same `localStorage` key; the store listens for
+  `storage` events so an open page picks up the other page's write instead of saving a stale copy.
 - `SCHEMA_VERSION` in `src/lib/storage.js` must be bumped (with a migration in `normalise`) whenever
   the document shape changes, so older backups keep importing.
 

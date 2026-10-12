@@ -16,6 +16,7 @@ export default function Settings() {
   return (
     <>
       <h1 className="h-display text-3xl">{t("title")}</h1>
+      <PlanEditor />
       <Backup />
       <Profile />
       <TimerSettings />
@@ -25,6 +26,17 @@ export default function Settings() {
       <DangerZone />
       <p className="text-xs text-muted text-center pb-2">{t("privacy")}</p>
     </>
+  );
+}
+
+/** The plan editor is a separate page of the app (compositore.html): same storage, so it edits this diary directly. */
+function PlanEditor() {
+  const { t } = useTranslation("settings");
+  return (
+    <Card title={t("editor.title")}>
+      <p className="text-sm">{t("editor.lead")}</p>
+      <a href="./compositore.html" className="btn"><Icon name="list" size={18} />{t("editor.open")}</a>
+    </Card>
   );
 }
 

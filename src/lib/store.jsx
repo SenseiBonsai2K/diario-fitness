@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { load, mergePlan, save } from "./storage.js";
+import { STORAGE_KEY, load, mergePlan, normalise, save } from "./storage.js";
 
 const StoreContext = createContext(null);
 
@@ -14,11 +14,31 @@ export function StoreProvider({ children }) {
   const latest = useRef(data);
   latest.current = data;
 
+  const fromOtherPage = useRef(false);
+
   useEffect(() => {
     clearTimeout(timer.current);
+    if (fromOtherPage.current) { fromOtherPage.current = false; return undefined; }
     timer.current = setTimeout(() => setSaveError(!save(latest.current)), 300);
     return () => clearTimeout(timer.current);
   }, [data]);
+
+  // The diary and the plan editor are separate pages on the same storage: when
+  // one of them writes, the other takes the new document instead of later
+  // saving its stale copy over it.
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key !== STORAGE_KEY || !e.newValue) return;
+      try {
+        const next = normalise(JSON.parse(e.newValue));
+        clearTimeout(timer.current);
+        fromOtherPage.current = true;
+        setData(next);
+      } catch { /* unreadable: keep what we have */ }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
   // Flush immediately when the app goes to the background.
   useEffect(() => {

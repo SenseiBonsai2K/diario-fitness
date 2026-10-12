@@ -6,6 +6,11 @@
     "it": "Italiano",
     "en": "English"
   },
+  "editor": {
+    "title": "Modifica piano",
+    "lead": "Cambia calorie e macro, fase, scheda e dieta direttamente da qui, con un riepilogo prima di applicare. I registri non vengono toccati e ogni versione sostituita resta nell'Archivio.",
+    "open": "Apri Modifica piano"
+  },
   "profile": {
     "title": "Fase e obiettivi",
     "phase": "Fase attuale",
