@@ -25,6 +25,7 @@ export function TimerProvider({ children }) {
   const soundOn = data.prefs.timerSound !== false;
   const sound = useRef(soundOn);
   sound.current = soundOn;
+  tone.current = TONES[data.prefs.timerTone] ? data.prefs.timerTone : DEFAULT_TONE;
   const [timer, setTimerState] = useState(readSaved);
   // Every change comes from a tap, so the alarm can be scheduled right here.
   const setTimer = useCallback((t) => {
@@ -54,6 +55,7 @@ export function useRestTimer() {
 // over the audio: the user's music keeps playing (no "media" notification,
 // no pause), the beeps just play on top, at the media volume.
 let ctx = null;
+const tone = { current: "beep" }; // the chosen ringtone, kept in sync by the provider
 let pending = null; // { gain, when }
 
 function unlockAudio() {
@@ -63,24 +65,57 @@ function unlockAudio() {
   } catch { /* no audio */ }
 }
 
-const PATTERN = [[0, 880, 0.18], [0.28, 880, 0.18], [0.56, 1175, 0.4], [1.3, 880, 0.18], [1.58, 880, 0.18], [1.86, 1175, 0.4]];
+// Ringtones, all synthesised and short (≤ 2.5 s). A note: [start s, frequency Hz,
+// length s, wave, volume, "flat" (beep) | "bell" (struck, fading), glide-to Hz?].
+const n = (t, f, len, wave = "sine", vol = 0.3, shape = "bell", to) => [t, f, len, wave, vol, shape, to];
+const bell = (t, f, len, vol = 0.32) => [n(t, f, len, "sine", vol), n(t, f * 2.76, len * 0.5, "sine", vol * 0.25), n(t, f * 5.4, len * 0.25, "sine", vol * 0.1)];
+export const TONES = {
+  beep: [[0, 880, 0.18], [0.28, 880, 0.18], [0.56, 1175, 0.4], [1.3, 880, 0.18], [1.58, 880, 0.18], [1.86, 1175, 0.4]].map(([t, f, l]) => n(t, f, l, "square", 0.16, "flat")),
+  chime: [...bell(0, 659, 0.9), ...bell(0.18, 784, 0.9), ...bell(0.36, 1047, 1.4)],
+  ding: [...bell(0, 1319, 1.8, 0.36)],
+  boxing: [...bell(0, 988, 0.7, 0.34), ...bell(0.35, 988, 0.7, 0.34), ...bell(0.7, 988, 1.2, 0.34)],
+  digital: [0, 0.14, 0.28, 0.42, 0.9, 1.04, 1.18, 1.32].map((t) => n(t, 2093, 0.07, "square", 0.12, "flat")),
+  marimba: [[0, 523], [0.12, 659], [0.24, 784], [0.36, 1047], [0.5, 784], [0.62, 1047]].map(([t, f]) => n(t, f, 0.35, "triangle", 0.42)),
+  rise: [n(0, 440, 0.45, "sawtooth", 0.1, "flat", 880), n(0.55, 660, 0.45, "sawtooth", 0.1, "flat", 1320), n(1.1, 880, 0.6, "triangle", 0.3, "bell")],
+  whistle: [n(0, 2500, 0.35, "sine", 0.22, "flat"), n(0.5, 2500, 0.9, "sine", 0.22, "flat")],
+};
+export const TONE_IDS = Object.keys(TONES);
+export const DEFAULT_TONE = "beep";
 
-function playAt(when) {
+function playAt(when, toneId = DEFAULT_TONE) {
   const out = ctx.createGain();
   out.connect(ctx.destination);
-  for (const [d, f, len] of PATTERN) {
+  for (const [d, f, len, wave, vol, shape, to] of TONES[toneId] || TONES[DEFAULT_TONE]) {
     const o = ctx.createOscillator(), g = ctx.createGain();
-    o.type = "square";
-    o.frequency.value = f;
-    g.gain.setValueAtTime(0.0001, when + d);
-    g.gain.exponentialRampToValueAtTime(0.18, when + d + 0.015);
-    g.gain.setValueAtTime(0.18, when + d + len - 0.03);
-    g.gain.exponentialRampToValueAtTime(0.0001, when + d + len);
+    const t0 = when + d;
+    o.type = wave;
+    o.frequency.setValueAtTime(f, t0);
+    if (to) o.frequency.exponentialRampToValueAtTime(to, t0 + len);
+    if (toneId === "whistle") { // referee whistle: fast warble
+      const lfo = ctx.createOscillator(), depth = ctx.createGain();
+      lfo.frequency.value = 28; depth.gain.value = 120;
+      lfo.connect(depth).connect(o.frequency); lfo.start(t0); lfo.stop(t0 + len + 0.02);
+    }
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(vol, t0 + (shape === "bell" ? 0.006 : 0.015));
+    if (shape === "flat") g.gain.setValueAtTime(vol, t0 + len - 0.03);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + len);
     o.connect(g).connect(out);
-    o.start(when + d);
-    o.stop(when + d + len + 0.02);
+    o.start(t0);
+    o.stop(t0 + len + 0.02);
   }
   return out;
+}
+
+let previewNode = null;
+/** Play a ringtone now (from a tap in Settings). */
+export function previewTone(toneId) {
+  unlockAudio();
+  if (!ctx) return;
+  try {
+    if (previewNode) previewNode.disconnect();
+    previewNode = playAt(ctx.currentTime + 0.05, toneId);
+  } catch { /* no audio */ }
 }
 
 /** Cancel any scheduled alarm and, if a timer is given, schedule its beeps. */
@@ -91,7 +126,7 @@ function schedule(t) {
   if (left <= 0.2) return;
   try {
     const when = ctx.currentTime + left;
-    pending = { gain: playAt(when), when, at: t.at };
+    pending = { gain: playAt(when, tone.current), when, at: t.at };
   } catch { /* no audio */ }
 }
 
@@ -102,7 +137,7 @@ function ringIfMissed(at) {
     if (ctx.state === "suspended") ctx.resume();
     if (pending && pending.at === at && ctx.currentTime >= pending.when - 0.3) return; // played on time
     if (pending) { try { pending.gain.disconnect(); } catch { /* ignore */ } pending = null; }
-    playAt(ctx.currentTime + 0.05);
+    playAt(ctx.currentTime + 0.05, tone.current);
   } catch { /* no audio */ }
 }
 

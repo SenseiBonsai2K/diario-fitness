@@ -112,6 +112,18 @@
     "sound": "Suono a fine recupero",
     "on": "Attivo",
     "off": "Spento",
-    "note": "Il bip suona sopra la tua musica senza fermarla, al volume dei contenuti multimediali. La vibrazione c'è sempre (su Android)."
+    "note": "Il bip suona sopra la tua musica senza fermarla, al volume dei contenuti multimediali. La vibrazione c'è sempre (su Android).",
+    "tone": "Suoneria",
+    "toneHint": "Tocca una suoneria per sentirla. Durano tutte meno di 3 secondi.",
+    "tones": {
+      "beep": "Bip classico",
+      "chime": "Campanello",
+      "ding": "Ding",
+      "boxing": "Campana boxe",
+      "digital": "Orologio digitale",
+      "marimba": "Marimba",
+      "rise": "Via!",
+      "whistle": "Fischietto"
+    }
   }
 }

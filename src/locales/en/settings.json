@@ -112,6 +112,18 @@
     "sound": "Sound when rest ends",
     "on": "On",
     "off": "Off",
-    "note": "The beep plays over your music without stopping it, at the media volume. Vibration is always on (on Android)."
+    "note": "The beep plays over your music without stopping it, at the media volume. Vibration is always on (on Android).",
+    "tone": "Ringtone",
+    "toneHint": "Tap a ringtone to hear it. All last under 3 seconds.",
+    "tones": {
+      "beep": "Classic beep",
+      "chime": "Chime",
+      "ding": "Ding",
+      "boxing": "Boxing bell",
+      "digital": "Digital watch",
+      "marimba": "Marimba",
+      "rise": "Go!",
+      "whistle": "Whistle"
+    }
   }
 }

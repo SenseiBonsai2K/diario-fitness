@@ -15,7 +15,7 @@ It works offline and keeps every piece of data on the phone: nothing is sent to 
   the planned rest, keeps running across screens and app restarts (end time saved), keeps the
   screen on while resting, and beeps and vibrates at the end. The beeps are Web Audio scheduled in advance on
   the audio clock, so they mix over the user's music instead of pausing it; sound can be turned off
-  in Settings (`prefs.timerSound`). Run and yoga logs on their days.
+  in Settings (`prefs.timerSound`), with eight short synthesised ringtones to pick from (`prefs.timerTone`). Run and yoga logs on their days.
 - **Progress**: weekly summary with the calorie rule, weekly and monthly checks, charts for weight
   (7-day average), waist and estimated 1RM per exercise.
 - **Plan**: four tabs — Program (week, one session at a time, volume bars, notes), Diet (one

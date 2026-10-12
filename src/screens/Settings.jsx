@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, Grid, Icon, NumField, Segmented } from "../components/ui.jsx";
 import { LANGS } from "../i18n.js";
+import { DEFAULT_TONE, TONE_IDS, previewTone } from "../components/RestTimer.jsx";
 import { APPEARANCE } from "../lib/appearance.js";
 import { ACCENT_IDS, BG_IDS, resolveAppearance } from "../lib/themes-apply.js";
 import { today } from "../lib/dates.js";
@@ -39,6 +40,25 @@ function TimerSettings() {
         onChange={(v) => setPrefs({ timerSound: v === "on" })}
         options={[{ value: "on", label: t("timer.on") }, { value: "off", label: t("timer.off") }]}
       />
+      {data.prefs.timerSound !== false && (
+        <div className="flex flex-col gap-1.5">
+          <span id="tone-label" className="label">{t("timer.tone")}</span>
+          <div role="radiogroup" aria-labelledby="tone-label" className="grid grid-cols-2 gap-2">
+            {TONE_IDS.map((id) => {
+              const on = id === (TONE_IDS.includes(data.prefs.timerTone) ? data.prefs.timerTone : DEFAULT_TONE);
+              return (
+                <button key={id} type="button" role="radio" aria-checked={on}
+                  onClick={() => { setPrefs({ timerTone: id }); previewTone(id); }}
+                  className={`flex items-center gap-2.5 rounded-field border px-3 min-h-[48px] text-left text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${on ? "border-accent bg-accent-soft font-semibold" : "border-line/70"}`}>
+                  <span className={`w-7 h-7 rounded-full grid place-items-center shrink-0 ${on ? "bg-accent text-accent-ink" : "bg-raised text-muted"}`}><Icon name={on ? "check" : "play"} size={14} /></span>
+                  {t(`timer.tones.${id}`)}
+                </button>
+              );
+            })}
+          </div>
+          <span className="text-xs text-muted">{t("timer.toneHint")}</span>
+        </div>
+      )}
       <p className="text-xs text-muted">{t("timer.note")}</p>
     </Card>
   );
