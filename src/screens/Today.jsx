@@ -85,9 +85,13 @@ function WeekStrip({ date, setDate }) {
 }
 
 /** The day's diet from the active diet, by weekday. */
+/**
+ * The day's diet from the active diet, by weekday. Every food can be ticked
+ * off; ticks live in the day log as days[date].cibi = ["<dayId>|<meal>|<item>", …].
+ */
 function TodayMenu({ date, goTo }) {
   const { t, i18n } = useTranslation("today");
-  const { data } = useStore();
+  const { data, patch } = useStore();
   const diet = data.diets[data.activeDiet];
   if (!diet) return null;
   const wd = String(parseIso(date).getDay());
@@ -96,26 +100,84 @@ function TodayMenu({ date, goTo }) {
   const n = (v) => (typeof v === "number" ? v.toLocaleString(i18n.language, { maximumFractionDigits: 1 }) : v);
   const qty = (it) => [it.qty !== undefined && it.qty !== null ? n(it.qty) : null, it.unit].filter(Boolean).join(" ");
   const openDiet = () => { try { sessionStorage.setItem("diario-fitness:planTab", "diet"); } catch { /* ignore */ } goTo("plan"); };
+
+  const log = data.days[date] || {};
+  const ticked = new Set(Array.isArray(log.cibi) ? log.cibi : []);
+  const meals = day.meals.map((m, mi) => ({
+    m,
+    items: [...(m.items || []), ...(m.options?.[0]?.items || [])].map((it, ii) => ({ it, key: `${day.id}|${mi}|${ii}` })),
+  }));
+  const allKeys = meals.flatMap((x) => x.items.map((i) => i.key));
+  const doneCount = allKeys.filter((k) => ticked.has(k)).length;
+
+  const save = (next) => {
+    const list = allKeys.filter((k) => next.has(k));
+    const values = { cibi: list.length ? list : null };
+    // Everything eaten and no verdict yet: mark the diet as followed.
+    if (list.length === allKeys.length && !log.dieta) values.dieta = "ok";
+    patch("days", date, values);
+  };
+  const toggle = (key) => { const next = new Set(ticked); next.has(key) ? next.delete(key) : next.add(key); save(next); };
+  const toggleMeal = (keys) => {
+    const next = new Set(ticked);
+    const all = keys.every((k) => next.has(k));
+    keys.forEach((k) => (all ? next.delete(k) : next.add(k)));
+    save(next);
+  };
+
   return (
     <Card title={t("menuToday")} aside={<button type="button" onClick={openDiet} className="text-xs font-semibold text-accent py-1">{t("menuAll")}</button>}>
-      <div className="h-display text-xl -mt-1">{day.name}</div>
-      <ul className="flex flex-col">
-        {day.meals.map((m, i) => {
-          const items = [...(m.items || []), ...(m.options?.[0]?.items || [])];
+      <div className="flex items-end justify-between gap-3 -mt-1">
+        <div className="h-display text-xl min-w-0">{day.name}</div>
+        <span className={`text-xs font-semibold num shrink-0 ${doneCount === allKeys.length ? "text-good" : "text-muted"}`}>{t("foodsDone", { done: doneCount, total: allKeys.length })}</span>
+      </div>
+      <Meter value={doneCount} target={allKeys.length || 1} tone={doneCount === allKeys.length ? "good" : undefined} />
+      <div className="flex flex-col">
+        {meals.map(({ m, items }, mi) => {
+          const keys = items.map((i) => i.key);
+          const mealDone = keys.length > 0 && keys.every((k) => ticked.has(k));
           return (
-            <li key={i} className="grid grid-cols-[92px_1fr] gap-3 border-t border-line/70 py-2 first:border-t-0">
-              <span className="text-xs font-semibold text-muted pt-0.5">{m.name}{m.time && <span className="block font-normal">{m.time}</span>}</span>
-              <span className="text-sm leading-snug">
-                {items.map((it, k) => (
-                  <span key={k} className="block">
-                    {it.food} <span className="text-muted num">{qty(it)}</span>
-                  </span>
-                ))}
-              </span>
-            </li>
+            <div key={mi} className="border-t border-line/70 pt-2 pb-1 first:border-t-0">
+              <button
+                type="button"
+                onClick={() => toggleMeal(keys)}
+                aria-pressed={mealDone}
+                className="w-full flex items-center justify-between gap-3 py-1 text-left rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                <span className={`text-xs font-bold uppercase tracking-wider ${mealDone ? "text-good" : "text-muted"}`}>
+                  {m.name}{m.time && <span className="font-normal normal-case tracking-normal"> · {m.time}</span>}
+                </span>
+                <span className="text-[0.7rem] font-semibold text-accent">{mealDone ? t("mealUndo") : t("mealAll")}</span>
+              </button>
+              <ul className="flex flex-col">
+                {items.map(({ it, key }) => {
+                  const on = ticked.has(key);
+                  return (
+                    <li key={key}>
+                      <button
+                        type="button"
+                        role="checkbox"
+                        aria-checked={on}
+                        onClick={() => toggle(key)}
+                        className="w-full flex items-center gap-3 py-2 text-left rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                      >
+                        <span className={`w-6 h-6 shrink-0 rounded-md border-2 grid place-items-center transition-colors ${on ? "bg-good border-good text-surface" : "border-line"}`}>
+                          {on && <Icon name="check" size={14} />}
+                        </span>
+                        <span className={`flex-1 min-w-0 text-sm leading-snug ${on ? "text-muted line-through" : ""}`}>
+                          {it.food}
+                          {it.note && <span className="block text-xs text-muted no-underline">{it.note}</span>}
+                        </span>
+                        <span className={`shrink-0 text-sm font-semibold num ${on ? "text-muted" : ""}`}>{qty(it)}</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
           );
         })}
-      </ul>
+      </div>
     </Card>
   );
 }

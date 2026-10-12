@@ -37,5 +37,8 @@
   "menuAll": "Whole diet",
   "over": "{{value}} over",
   "sessionMeta": "{{exercises}} exercises · {{sets}} sets · about {{min}}'",
-  "resume": "Resume"
+  "resume": "Resume",
+  "foodsDone": "{{done}}/{{total}} foods",
+  "mealAll": "Tick all",
+  "mealUndo": "Clear ticks"
 }

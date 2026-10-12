@@ -4,7 +4,8 @@ Personal training and nutrition diary, installable on Android as a web app (PWA)
 It works offline and keeps every piece of data on the phone: nothing is sent to a server.
 
 - **Today**: week strip (planned and done per day), the day's session with progress ring and
-  estimated length, weight, calories and macros with progress bars, today's menu from the diet,
+  estimated length, weight, calories and macros with progress bars, today's menu from the diet
+  with a tick for every food (stored as `days[date].cibi`; ticking everything marks the diet as followed),
   sleep, energy, hunger, notes.
 - **Workout**: the day's session from the plan (sticky progress header, superset pairs grouped,
   finished exercises collapse to a summary), with kg × reps for every set, last time's numbers,

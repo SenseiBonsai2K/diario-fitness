@@ -37,5 +37,8 @@
   "menuAll": "Tutta la dieta",
   "over": "{{value}} oltre",
   "sessionMeta": "{{exercises}} esercizi · {{sets}} serie · circa {{min}}'",
-  "resume": "Riprendi"
+  "resume": "Riprendi",
+  "foodsDone": "{{done}}/{{total}} alimenti",
+  "mealAll": "Segna tutto",
+  "mealUndo": "Togli le spunte"
 }
