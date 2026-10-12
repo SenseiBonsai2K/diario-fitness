@@ -10,8 +10,16 @@
     <link rel="apple-touch-icon" href="./icon-192.png" />
     <title>Diario Fitness</title>
     <script>
-      // Apply the chosen colour pair before the first paint (no flash).
-      try { var t = localStorage.getItem("diario-fitness:theme"); if (t) document.documentElement.setAttribute("data-theme", t); } catch (e) {}
+      // Apply the saved background and accent before the first paint (no flash).
+      try {
+        var a = JSON.parse(localStorage.getItem("diario-fitness:appearance") || "{}");
+        var dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        var bg = !a.bg || a.bg === "auto" ? (dark ? "dark" : "light") : a.bg;
+        var r = document.documentElement;
+        r.setAttribute("data-bg", bg);
+        r.setAttribute("data-mode", bg === "dark" || bg === "black" ? "dark" : "light");
+        r.setAttribute("data-accent", a.accent || "blue");
+      } catch (e) {}
     </script>
   </head>
   <body>

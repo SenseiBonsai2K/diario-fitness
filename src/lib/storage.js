@@ -37,8 +37,8 @@ export function emptyData() {
     history: [],
     /** Every version replaced by a plan import: { at, kind, id?, data }. Never pruned. */
     archive: [],
-    /** Device preferences carried in the backup: language and colour pair. */
-    prefs: { lang: null, theme: null },
+    /** Device preferences carried in the backup: language, background and accent colour. */
+    prefs: { lang: null, bg: null, accent: null },
     days: {},
     workouts: {},
     runs: {},

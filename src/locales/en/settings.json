@@ -65,19 +65,27 @@
     "typeLabel": "Type {{word}} to confirm",
     "confirm": "Delete everything"
   },
-  "theme": {
-    "title": "Colours",
-    "lead": "Pick a colour pair: background and details are matched and readable by day and by night.",
-    "mode": "Light or dark follows your phone's setting. The choice is saved in the backup too.",
-    "names": {
-      "classic": "Classic · blue",
-      "sand": "Sand · terracotta",
-      "sage": "Sage · teal",
-      "lavender": "Lavender · violet",
-      "blush": "Blush · raspberry",
-      "graphite": "Graphite · orange",
-      "forest": "Forest · lime",
-      "ocean": "Ice · midnight blue"
+  "appearance": {
+    "title": "Appearance",
+    "background": "Background",
+    "accent": "Accent colour",
+    "note": "Every background works with every colour: details adapt to stay readable. \"Auto\" follows your phone's light or dark theme. The choice is saved in the backup too.",
+    "bgs": {
+      "auto": "Auto",
+      "light": "Light",
+      "grey": "Grey",
+      "dark": "Dark",
+      "black": "Black"
+    },
+    "accents": {
+      "blue": "Blue",
+      "teal": "Teal",
+      "lime": "Lime",
+      "violet": "Violet",
+      "raspberry": "Raspberry",
+      "orange": "Orange",
+      "amber": "Amber",
+      "mono": "Graphite"
     }
   }
 }

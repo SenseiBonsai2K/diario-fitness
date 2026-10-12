@@ -66,7 +66,7 @@ describe("full backup coverage", () => {
     d.plan = { sections: [{ id: "s", title: "Corsa" }], yoga: { title: "Yoga", blocks: [] }, updatedAt: "2026-10-10", extra: 1 };
     d.history = [{ date: "2026-10-10", title: "x" }];
     d.archive = [{ at: "2026-10-01", kind: "plan", data: { sections: [] } }];
-    d.prefs = { lang: "it", theme: "sand" };
+    d.prefs = { lang: "it", bg: "dark", accent: "teal" };
     for (const c of ["days", "workouts", "runs", "yoga", "weeks", "months"]) d[c] = { k: { v: 1 } };
     const restored = normalise(JSON.parse(JSON.stringify(toBackup(d))));
     expect(restored).toEqual({ ...d, version: SCHEMA_VERSION });

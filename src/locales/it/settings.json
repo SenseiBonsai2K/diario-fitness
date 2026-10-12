@@ -65,19 +65,27 @@
     "typeLabel": "Scrivi {{word}} per confermare",
     "confirm": "Cancella tutto"
   },
-  "theme": {
-    "title": "Colori",
-    "lead": "Scegli una coppia di colori: sfondo e dettagli sono abbinati e leggibili sia di giorno sia di notte.",
-    "mode": "Chiaro o scuro segue l'impostazione del telefono. La scelta viene salvata anche nel backup.",
-    "names": {
-      "classic": "Classico · blu",
-      "sand": "Sabbia · terracotta",
-      "sage": "Salvia · petrolio",
-      "lavender": "Lavanda · viola",
-      "blush": "Cipria · lampone",
-      "graphite": "Grafite · arancio",
-      "forest": "Bosco · lime",
-      "ocean": "Ghiaccio · blu notte"
+  "appearance": {
+    "title": "Aspetto",
+    "background": "Sfondo",
+    "accent": "Colore dei dettagli",
+    "note": "Ogni sfondo funziona con ogni colore: i dettagli si adattano per restare leggibili. \"Auto\" segue il tema chiaro o scuro del telefono. La scelta finisce anche nel backup.",
+    "bgs": {
+      "auto": "Auto",
+      "light": "Chiaro",
+      "grey": "Grigio",
+      "dark": "Scuro",
+      "black": "Nero"
+    },
+    "accents": {
+      "blue": "Blu",
+      "teal": "Petrolio",
+      "lime": "Lime",
+      "violet": "Viola",
+      "raspberry": "Lampone",
+      "orange": "Arancio",
+      "amber": "Ambra",
+      "mono": "Grafite"
     }
   }
 }

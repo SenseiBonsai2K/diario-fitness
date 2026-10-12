@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, Grid, Icon, NumField, Segmented } from "../components/ui.jsx";
 import { LANGS } from "../i18n.js";
-import { THEMES } from "../lib/themes.js";
-import { DEFAULT_THEME, THEME_IDS } from "../lib/themes-apply.js";
+import { APPEARANCE } from "../lib/appearance.js";
+import { ACCENT_IDS, BG_IDS, resolveAppearance } from "../lib/themes-apply.js";
 import { today } from "../lib/dates.js";
 import { countEntries, emptyData, hasLogs, hasPlan, normalise, toBackup } from "../lib/storage.js";
 import { useStore } from "../lib/store.jsx";
@@ -26,58 +26,52 @@ export default function Settings() {
   );
 }
 
-function usePrefersDark() {
-  const q = typeof window !== "undefined" && window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
-  const [dark, setDark] = useState(!!q?.matches);
-  useEffect(() => {
-    if (!q) return;
-    const on = (e) => setDark(e.matches);
-    q.addEventListener?.("change", on);
-    return () => q.removeEventListener?.("change", on);
-  }, [q]);
-  return dark;
-}
-
-/** Colour pairs: background family + accent, each checked for contrast in light and dark. */
+/** Neutral background and accent colour, picked separately; every combination keeps AA contrast. */
 function Appearance() {
   const { t } = useTranslation("settings");
   const { data, setPrefs } = useStore();
-  const dark = usePrefersDark();
-  const current = THEMES[data.prefs.theme] ? data.prefs.theme : DEFAULT_THEME;
+  const cur = resolveAppearance(data.prefs);
+  const bgs = APPEARANCE.backgrounds;
+  const half = (l, d) => `linear-gradient(135deg, ${l} 50%, ${d} 50%)`;
   return (
-    <Card title={t("theme.title")}>
-      <p className="text-sm text-muted">{t("theme.lead")}</p>
-      <div role="radiogroup" aria-label={t("theme.title")} className="grid grid-cols-2 gap-2.5">
-        {THEME_IDS.map((id) => {
-          const th = THEMES[id];
-          const bg = dark ? th.dark : th.light, surface = dark ? th.surfaceDark : th.surfaceLight, accent = dark ? th.accentDark : th.accentLight;
-          const on = id === current;
-          return (
-            <button
-              key={id}
-              type="button"
-              role="radio"
-              aria-checked={on}
-              onClick={() => setPrefs({ theme: id })}
-              className={`rounded-field border-2 p-1.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${on ? "border-accent" : "border-line/70"}`}
-            >
-              <span className="block rounded-[9px] p-2.5 h-[70px] relative overflow-hidden" style={{ background: bg }}>
-                <span className="block rounded-md h-full w-[72%] p-2 flex flex-col gap-1.5" style={{ background: surface }}>
-                  <span className="block h-1.5 w-3/4 rounded-full opacity-25" style={{ background: dark ? "#fff" : "#000" }} />
-                  <span className="block h-1.5 w-1/2 rounded-full opacity-25" style={{ background: dark ? "#fff" : "#000" }} />
-                  <span className="block h-3 w-10 rounded-full mt-auto" style={{ background: accent }} />
+    <Card title={t("appearance.title")}>
+      <div className="flex flex-col gap-2">
+        <span id="bg-label" className="label">{t("appearance.background")}</span>
+        <div role="radiogroup" aria-labelledby="bg-label" className="grid grid-cols-5 gap-2">
+          {BG_IDS.map((id) => {
+            const on = id === cur.bgPref;
+            const fill = id === "auto" ? half(bgs.light.bg, bgs.dark.bg) : bgs[id].bg;
+            return (
+              <button key={id} type="button" role="radio" aria-checked={on} onClick={() => setPrefs({ bg: id })}
+                className="flex flex-col items-center gap-1.5 rounded-field py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+                <span className={`w-12 h-12 rounded-full border-2 grid place-items-center ${on ? "border-accent ring-2 ring-accent/30" : "border-line"}`} style={{ background: fill }}>
+                  {on && <span className="w-5 h-5 rounded-full bg-accent text-accent-ink grid place-items-center"><Icon name="check" size={12} /></span>}
                 </span>
-                <span className="absolute right-2.5 top-2.5 w-6 h-6 rounded-full" style={{ background: accent }} />
-              </span>
-              <span className="flex items-center justify-between gap-2 px-1 pt-1.5 pb-0.5">
-                <span className="text-sm font-semibold">{t(`theme.names.${id}`)}</span>
-                {on && <span className="text-accent"><Icon name="check" size={16} /></span>}
-              </span>
-            </button>
-          );
-        })}
+                <span className={`text-[0.7rem] ${on ? "font-semibold" : "text-muted"}`}>{t(`appearance.bgs.${id}`)}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
-      <p className="text-xs text-muted">{t("theme.mode")}</p>
+      <div className="flex flex-col gap-2">
+        <span id="accent-label" className="label">{t("appearance.accent")}</span>
+        <div role="radiogroup" aria-labelledby="accent-label" className="grid grid-cols-4 gap-2">
+          {ACCENT_IDS.map((id) => {
+            const on = id === cur.accent;
+            const col = APPEARANCE.accents[id][cur.mode];
+            return (
+              <button key={id} type="button" role="radio" aria-checked={on} onClick={() => setPrefs({ accent: id })}
+                className={`flex flex-col items-center gap-1.5 rounded-field border py-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${on ? "border-accent bg-accent-soft" : "border-line/70"}`}>
+                <span className="w-8 h-8 rounded-full grid place-items-center text-white" style={{ background: col }}>
+                  {on && <Icon name="check" size={16} className={cur.mode === "dark" ? "text-black" : "text-white"} />}
+                </span>
+                <span className={`text-[0.7rem] ${on ? "font-semibold" : "text-muted"}`}>{t(`appearance.accents.${id}`)}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <p className="text-xs text-muted">{t("appearance.note")}</p>
     </Card>
   );
 }

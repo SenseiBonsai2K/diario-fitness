@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useState } from "react";
-import { applyTheme } from "./lib/themes-apply.js";
+import { applyAppearance } from "./lib/themes-apply.js";
 import { useTranslation } from "react-i18next";
 import { Icon } from "./components/ui.jsx";
 import { today } from "./lib/dates.js";
@@ -25,8 +25,17 @@ function readTab() {
 export default function App() {
   const { t } = useTranslation();
   const { saveError, data } = useStore();
-  const theme = data.prefs.theme;
-  useLayoutEffect(() => applyTheme(theme), [theme]);
+  const { bg, accent, theme } = data.prefs;
+  useLayoutEffect(() => {
+    const prefs = { bg, accent, theme };
+    applyAppearance(prefs);
+    // "Automatic" follows the phone switching between light and dark.
+    let q = null;
+    try { q = window.matchMedia("(prefers-color-scheme: dark)"); } catch { /* not supported */ }
+    const on = () => applyAppearance(prefs);
+    q?.addEventListener?.("change", on);
+    return () => q?.removeEventListener?.("change", on);
+  }, [bg, accent, theme]);
   const [tab, setTab] = useState(readTab);
   const [date, setDate] = useState(today);
   const [activity, setActivity] = useState(null);

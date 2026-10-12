@@ -1,8 +1,9 @@
-// Offline support: every same-origin GET is served from the cache first and
-// refreshed in the background (stale-while-revalidate). The first visit with
-// a connection fills the cache; after that the app opens without internet,
-// and a new deploy is picked up on the next launch with a connection.
-const CACHE = "diario-fitness-v1";
+// Offline support.
+// - Pages (index.html): network first, so a new deploy is used as soon as there is a
+//   connection; the cached copy is the fallback offline. This avoids an old page
+//   asking for script files that a newer deploy has removed (blank screen).
+// - Everything else (hashed assets, icons): cache first, filled on first use.
+const CACHE = "diario-fitness-v2";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", (event) => {
@@ -20,13 +21,21 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET" || new URL(req.url).origin !== self.location.origin) return;
+  if (req.mode === "navigate") {
+    event.respondWith(
+      fetch(req)
+        .then((res) => { if (res.ok) caches.open(CACHE).then((c) => c.put("./index.html", res.clone())); return res; })
+        .catch(() => caches.match("./index.html", { ignoreSearch: true }))
+    );
+    return;
+  }
   event.respondWith(
     caches.open(CACHE).then(async (cache) => {
-      const cached = await cache.match(req, { ignoreSearch: req.mode === "navigate" });
-      const network = fetch(req)
-        .then((res) => { if (res.ok) cache.put(req, res.clone()); return res; })
-        .catch(() => (req.mode === "navigate" ? cache.match("./index.html") : undefined));
-      return cached || network;
+      const cached = await cache.match(req);
+      if (cached) return cached;
+      const res = await fetch(req);
+      if (res.ok) cache.put(req, res.clone());
+      return res;
     })
   );
 });
