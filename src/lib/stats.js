@@ -150,3 +150,71 @@ export function waistSeries(data) {
 export function currentMonday() {
   return iso(mondayOf(new Date()));
 }
+
+/**
+ * Run time typed by the user → seconds. Accepts ":" or "," (or "." / space)
+ * as separator, because phone number pads often have no colon:
+ * "52,30" / "52:30" = 52 min 30 s · "1,02,30" = 1 h 2 min 30 s · "52" = 52 min.
+ * The part after a separator is always seconds (so "52,5" = 52:05).
+ */
+export function parseDuration(v) {
+  if (v === undefined || v === null || v === "") return null;
+  if (typeof v === "number") return Number.isFinite(v) && v > 0 ? v * 60 : null;
+  const parts = String(v).trim().split(/[:,.\s]+/).filter(Boolean);
+  if (!parts.length || parts.length > 3 || parts.some((x) => !/^\d+$/.test(x))) return null;
+  const n = parts.map(Number);
+  if (n.length > 1 && n.slice(1).some((x) => x >= 60)) return null;
+  const sec = n.length === 1 ? n[0] * 60 : n.length === 2 ? n[0] * 60 + n[1] : n[0] * 3600 + n[1] * 60 + n[2];
+  return sec > 0 ? sec : null;
+}
+
+/** Seconds → "52:30" or "1:02:30". */
+export function fmtDuration(sec) {
+  if (sec === null || sec === undefined || !Number.isFinite(sec)) return "—";
+  const s = Math.round(sec);
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = s % 60;
+  const pad = (x) => String(x).padStart(2, "0");
+  return h ? `${h}:${pad(m)}:${pad(r)}` : `${m}:${pad(r)}`;
+}
+
+/** One logged run with derived pace (seconds per km); null when no distance. */
+export function runInfo(r) {
+  const km = num(r?.km);
+  if (!km) return null;
+  const sec = parseDuration(r.durata);
+  return { km, sec, pace: sec ? sec / km : null, fc: num(r.fc) };
+}
+
+/** Every logged run since `fromIso` (inclusive), oldest first. */
+export function runSeries(data, fromIso) {
+  return Object.keys(data.runs || {}).sort().flatMap((date) => {
+    if (fromIso && date < fromIso) return [];
+    const info = runInfo(data.runs[date]);
+    return info ? [{ date, ...info }] : [];
+  });
+}
+
+/** Totals for a list of runs: km, time, average pace (total time / km with a time), average HR. */
+export function runTotals(runs) {
+  const km = runs.reduce((s, r) => s + r.km, 0);
+  const timed = runs.filter((r) => r.sec);
+  const sec = timed.reduce((s, r) => s + r.sec, 0);
+  const timedKm = timed.reduce((s, r) => s + r.km, 0);
+  return {
+    count: runs.length,
+    km: Math.round(km * 10) / 10,
+    sec: timed.length ? sec : null,
+    pace: timedKm ? sec / timedKm : null,
+    fc: avg(runs.map((r) => r.fc)),
+  };
+}
+
+/** Kilometres per ISO week (keyed by Monday) since `fromIso`, oldest first, weeks without runs skipped. */
+export function weeklyKmSeries(data, fromIso) {
+  const by = {};
+  for (const r of runSeries(data, fromIso)) {
+    const m = iso(mondayOf(parseIso(r.date)));
+    by[m] = (by[m] || 0) + r.km;
+  }
+  return Object.keys(by).sort().map((date) => ({ date, value: Math.round(by[date] * 10) / 10 }));
+}

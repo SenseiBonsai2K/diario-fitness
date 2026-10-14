@@ -17,7 +17,10 @@ It works offline and keeps every piece of data on the phone: nothing is sent to 
   the audio clock, so they mix over the user's music instead of pausing it; sound can be turned off
   in Settings (`prefs.timerSound`), with eight short synthesised ringtones to pick from (`prefs.timerTone`). Run and yoga logs on their days.
 - **Progress**: weekly summary with the calorie rule, weekly and monthly checks, charts for weight
-  (7-day average), waist and estimated 1RM per exercise.
+  (7-day average), waist and estimated 1RM per exercise. Running: the week's runs (km, time, pace,
+  average HR against zone 2, compared with the week before) and a chart of pace, average HR or km per
+  week. Run times can be typed as `52,30` as well as `52:30` (phone number pads often lack a colon);
+  `runs[d].durata` stays the text the user typed and is parsed by `parseDuration` in `src/lib/stats.js`.
 - **Plan**: four tabs — Program (week, one session at a time, volume bars, notes), Diet (one
   weekday at a time, today first), Plan (goals, plan sections, yoga), Archive (only when there is
   something archived) — the active training program and diet, previous programs and diets,

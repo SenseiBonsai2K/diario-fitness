@@ -4,7 +4,7 @@ import { Card, Grid, NumField, Segmented, Stat, Stepper, TextField } from "../co
 import { LineChart } from "../components/LineChart.jsx";
 import { exerciseNames, weeklyTargets } from "../lib/program.js";
 import { addDays, fmtDate, fmtMonth, iso, isoWeek, monthKey, parseIso, today } from "../lib/dates.js";
-import { adviceKey, avg, currentMonday, exerciseSeries, num, waistSeries, weekStats, weightSeries } from "../lib/stats.js";
+import { adviceKey, avg, currentMonday, exerciseSeries, fmtDuration, num, runSeries, runTotals, waistSeries, weekStats, weeklyKmSeries, weightSeries } from "../lib/stats.js";
 import { useStore } from "../lib/store.jsx";
 
 export default function Progress() {
@@ -78,6 +78,7 @@ function WeekView() {
         </Grid>
         <p className="rounded-field bg-accent-soft border-l-4 border-accent px-3 py-2.5 text-sm">{t(`advice.${advice}`, adviceVars)}</p>
       </Card>
+      <WeekRuns monday={monday} sunday={sunday} />
       <Card title={t("weeklyCheck")} aside={<span className="text-xs text-muted">{t("onSunday")}</span>}>
         <Grid>
           <NumField label={t("waist")} unit="cm" value={w.vita} onChange={set("vita")} placeholder="" />
@@ -200,6 +201,8 @@ function ChartsView() {
         )}
       </Card>
 
+      <RunCharts />
+
       <Card title={t("waistChart")}>
         {waist.length >= 2 ? <LineChart points={waist} unit="cm" lang={lang} ariaLabel={t("waistChart")} /> : <Empty text={t("emptyWaist")} />}
       </Card>
@@ -234,6 +237,111 @@ function ChartsView() {
         </Card>
       )}
     </>
+  );
+}
+
+/** Pace and heart rate cell, HR coloured against the zone-2 band. */
+function RunRow({ r, lang, z2, f1, showDate = true }) {
+  const high = z2 && r.fc && r.fc > z2.max;
+  return (
+    <tr className="border-t border-line">
+      {showDate && <td className="py-1.5 pr-3 whitespace-nowrap">{fmtDate(r.date, lang)}</td>}
+      <td className="py-1.5 pr-3 font-mono">{f1(r.km)}</td>
+      <td className="py-1.5 pr-3 font-mono">{fmtDuration(r.sec)}</td>
+      <td className="py-1.5 pr-3 font-mono">{r.pace ? fmtDuration(r.pace) : "—"}</td>
+      <td className={`py-1.5 font-mono text-right ${high ? "text-warn" : ""}`}>{r.fc ? Math.round(r.fc) : "—"}</td>
+    </tr>
+  );
+}
+
+function RunTableHead({ t, showDate = true }) {
+  return (
+    <thead>
+      <tr className="text-left">
+        {showDate && <th className="eyebrow py-1 pr-3 font-semibold">{t("date")}</th>}
+        <th className="eyebrow py-1 pr-3 font-semibold">km</th>
+        <th className="eyebrow py-1 pr-3 font-semibold">{t("run.time")}</th>
+        <th className="eyebrow py-1 pr-3 font-semibold whitespace-nowrap">{t("run.paceShort")}</th>
+        <th className="eyebrow py-1 font-semibold text-right">{t("run.hrShort")}</th>
+      </tr>
+    </thead>
+  );
+}
+
+function WeekRuns({ monday, sunday }) {
+  const { t } = useTranslation("progress");
+  const { data } = useStore();
+  const { lang, f1, f0 } = useFmt();
+  const runs = useMemo(() => runSeries(data, monday).filter((r) => r.date <= sunday), [data, monday, sunday]);
+  const prevMonday = iso(addDays(parseIso(monday), -7));
+  const prev = useMemo(() => runTotals(runSeries(data, prevMonday).filter((r) => r.date < monday)), [data, prevMonday, monday]);
+  const tot = runTotals(runs);
+  const z2 = data.profile.zone2;
+  const inZone = z2 ? runs.filter((r) => r.fc && r.fc <= z2.max).length : 0;
+  const withHr = runs.filter((r) => r.fc).length;
+  const target = weeklyTargets(data).runs;
+
+  return (
+    <Card title={t("run.title")} aside={<span className="text-xs text-muted">{t("run.count", { done: tot.count, target: target || "—" })}</span>}>
+      {runs.length ? (
+        <>
+          <Grid>
+            <Stat label={t("run.km")} value={f1(tot.km)} sub={prev.count ? t("prev", { value: f1(prev.km) }) : t("noPrev")} />
+            <Stat label={t("run.avgPace")} value={tot.pace ? `${fmtDuration(tot.pace)}` : "—"} sub={prev.pace ? t("run.prevPace", { value: fmtDuration(prev.pace) }) : t("run.perKm")} />
+            <Stat label={t("run.avgHr")} value={tot.fc ? f0(tot.fc) : "—"} sub={z2 && withHr ? t("run.inZone", { n: inZone, count: withHr, min: z2.min, max: z2.max }) : undefined} tone={z2 && withHr ? (inZone === withHr ? "good" : "warn") : undefined} />
+            <Stat label={t("run.totalTime")} value={fmtDuration(tot.sec)} />
+          </Grid>
+          <table className="w-full text-sm num">
+            <RunTableHead t={t} />
+            <tbody>{runs.map((r) => <RunRow key={r.date} r={r} lang={lang} z2={z2} f1={f1} />)}</tbody>
+          </table>
+        </>
+      ) : <Empty text={t("run.emptyWeek")} />}
+    </Card>
+  );
+}
+
+function RunCharts() {
+  const from = null;
+  const { t } = useTranslation("progress");
+  const { data } = useStore();
+  const { lang, f1 } = useFmt();
+  const [metric, setMetric] = useState("pace");
+  const runs = useMemo(() => runSeries(data, from), [data, from]);
+  const z2 = data.profile.zone2;
+  const series = useMemo(() => {
+    if (metric === "km") return weeklyKmSeries(data, from);
+    if (metric === "hr") return runs.filter((r) => r.fc).map((r) => ({ date: r.date, value: r.fc }));
+    return runs.filter((r) => r.pace).map((r) => ({ date: r.date, value: Math.round(r.pace) }));
+  }, [metric, runs, data, from]);
+  const chart = {
+    pace: { unit: "/km", format: fmtDuration, minPad: 10, note: t("run.paceNote") },
+    hr: { unit: "bpm", decimals: 0, minPad: 3, note: z2 ? t("run.hrNote", { min: z2.min, max: z2.max }) : undefined },
+    km: { unit: "km", decimals: 1, minPad: 1, note: t("run.kmNote") },
+  }[metric];
+
+  return (
+    <Card title={t("run.chart")}>
+      <Segmented
+        label={t("run.metric")}
+        clearable={false}
+        value={metric}
+        onChange={setMetric}
+        options={[{ value: "pace", label: t("run.pace") }, { value: "hr", label: t("run.hr") }, { value: "km", label: t("run.weeklyKm") }]}
+      />
+      {series.length >= 2 ? (
+        <>
+          <LineChart points={series} unit={chart.unit} lang={lang} ariaLabel={`${t("run.chart")} · ${t(`run.${metric === "km" ? "weeklyKm" : metric}`)}`} format={chart.format} decimals={chart.decimals} minPad={chart.minPad} />
+          {chart.note && <p className="text-xs text-muted">{chart.note}</p>}
+        </>
+      ) : <Empty text={t("run.emptyChart")} />}
+      {runs.length > 0 && (
+        <table className="w-full text-sm num">
+          <RunTableHead t={t} />
+          <tbody>{runs.slice(-5).reverse().map((r) => <RunRow key={r.date} r={r} lang={lang} z2={z2} f1={f1} />)}</tbody>
+        </table>
+      )}
+    </Card>
   );
 }
 

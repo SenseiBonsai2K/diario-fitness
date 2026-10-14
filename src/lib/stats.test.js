@@ -79,3 +79,47 @@ describe("weightSeries", () => {
     expect(s.trend.at(-1).value).toBe(83);
   });
 });
+
+describe("running", () => {
+  it("reads run times typed with a comma or a colon", async () => {
+    const { parseDuration } = await import("./stats.js");
+    expect(parseDuration("52,30")).toBe(3150);
+    expect(parseDuration("52:30")).toBe(3150);
+    expect(parseDuration("52.30")).toBe(3150);
+    expect(parseDuration("52,5")).toBe(3125);
+    expect(parseDuration("1,02,30")).toBe(3750);
+    expect(parseDuration("52")).toBe(3120);
+    expect(parseDuration(" 48 , 05 ")).toBe(2885);
+    expect(parseDuration("52,75")).toBeNull();
+    expect(parseDuration("abc")).toBeNull();
+    expect(parseDuration("")).toBeNull();
+  });
+
+  it("formats durations and paces", async () => {
+    const { fmtDuration } = await import("./stats.js");
+    expect(fmtDuration(3150)).toBe("52:30");
+    expect(fmtDuration(3750)).toBe("1:02:30");
+    expect(fmtDuration(315)).toBe("5:15");
+    expect(fmtDuration(null)).toBe("—");
+  });
+
+  it("builds run series, totals and weekly km", async () => {
+    const { runSeries, runTotals, weeklyKmSeries } = await import("./stats.js");
+    const data = emptyData();
+    data.runs["2026-10-14"] = { km: "10", durata: "60,00", fc: "135" };
+    data.runs["2026-10-17"] = { km: "8,5", durata: "51,00", fc: "145" };
+    data.runs["2026-10-21"] = { km: "10", durata: "", fc: "" };
+    data.runs["2026-10-22"] = { km: "", durata: "30,00" };
+    const runs = runSeries(data);
+    expect(runs.map((r) => r.date)).toEqual(["2026-10-14", "2026-10-17", "2026-10-21"]);
+    expect(runs[0].pace).toBe(360);
+    const tot = runTotals(runs.slice(0, 2));
+    expect(tot.km).toBe(18.5);
+    expect(tot.sec).toBe(6660);
+    expect(tot.pace).toBeCloseTo(6660 / 18.5);
+    expect(tot.fc).toBe(140);
+    expect(runTotals(runs).pace).toBeCloseTo(6660 / 18.5);
+    expect(weeklyKmSeries(data)).toEqual([{ date: "2026-10-12", value: 18.5 }, { date: "2026-10-19", value: 10 }]);
+    expect(runSeries(data, "2026-10-15").length).toBe(2);
+  });
+});

@@ -3,8 +3,9 @@ import { parseIso } from "../lib/dates.js";
 /**
  * Small time-series chart in inline SVG. `points` are drawn as dots, `trend`
  * as a line with an emphasised, labelled endpoint. Colours come from tokens.
+ * `format` (value → text) replaces the number format, e.g. for a pace in m:ss.
  */
-export function LineChart({ points = [], trend = [], unit = "", lang, ariaLabel, decimals = 1 }) {
+export function LineChart({ points = [], trend = [], unit = "", lang, ariaLabel, decimals = 1, format, minPad = 0.5 }) {
   const all = [...points, ...trend];
   if (all.length < 2) return null;
 
@@ -13,7 +14,7 @@ export function LineChart({ points = [], trend = [], unit = "", lang, ariaLabel,
   const t0 = Math.min(...times), t1 = Math.max(...times);
   const span = Math.max(t1 - t0, 86400000);
   const vals = all.map((p) => p.value);
-  const pad = Math.max((Math.max(...vals) - Math.min(...vals)) * 0.15, 0.5);
+  const pad = Math.max((Math.max(...vals) - Math.min(...vals)) * 0.15, minPad);
   let lo = Math.min(...vals) - pad, hi = Math.max(...vals) + pad;
   const step = niceStep((hi - lo) / 4);
   lo = Math.floor(lo / step) * step;
@@ -21,7 +22,7 @@ export function LineChart({ points = [], trend = [], unit = "", lang, ariaLabel,
 
   const x = (d) => L + ((parseIso(d).getTime() - t0) / span) * (W - L - R);
   const y = (v) => T + ((hi - v) / (hi - lo)) * (H - T - B);
-  const fmt = (v, dp = decimals) => v.toLocaleString(lang, { minimumFractionDigits: dp, maximumFractionDigits: dp });
+  const fmt = (v, dp = decimals) => (format ? format(v) : v.toLocaleString(lang, { minimumFractionDigits: dp, maximumFractionDigits: dp }));
   const dateFmt = new Intl.DateTimeFormat(lang, { day: "numeric", month: "short" });
 
   const grid = [];

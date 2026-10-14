@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Card, Grid, Icon, NumField, Ring, TextField } from "../components/ui.jsx";
 import { EXTRA_ACTIVITIES, activeProgram, activityLabel, findSession, fmtRest, plannedFor, sessionsOf } from "../lib/program.js";
 import { fmtDate, parseIso } from "../lib/dates.js";
-import { lastPerformance, num, shouldIncrease } from "../lib/stats.js";
+import { fmtDuration, lastPerformance, num, parseDuration, shouldIncrease } from "../lib/stats.js";
 import { useStore } from "../lib/store.jsx";
 import { DateStepper } from "./Today.jsx";
 import { useRestTimer } from "../components/RestTimer.jsx";
@@ -288,16 +288,6 @@ function Row({ n, row, placeholderKg, placeholderReps, onKg, onReps, onToggle, e
 }
 
 
-/** "52:30" or "1:02:30" or "52" (minutes) → seconds. */
-function parseDuration(s) {
-  if (!s) return null;
-  const parts = String(s).trim().split(":").map((x) => parseFloat(x.replace(",", ".")));
-  if (parts.some((x) => !Number.isFinite(x))) return null;
-  if (parts.length === 1) return parts[0] * 60;
-  if (parts.length === 2) return parts[0] * 60 + parts[1];
-  return parts[0] * 3600 + parts[1] * 60 + parts[2];
-}
-
 function RunLog({ date }) {
   const { t } = useTranslation("workout");
   const { data, patch } = useStore();
@@ -305,7 +295,8 @@ function RunLog({ date }) {
   const set = (k) => (v) => patch("runs", date, { [k]: v });
   const km = num(r.km), sec = parseDuration(r.durata);
   const pace = km && sec ? sec / km : null;
-  const paceStr = pace ? `${Math.floor(pace / 60)}:${String(Math.round(pace % 60)).padStart(2, "0")} /km` : "—";
+  const paceStr = pace ? `${fmtDuration(pace)} /km` : "—";
+  const timeBad = r.durata && String(r.durata).trim() && !sec;
   const fc = num(r.fc);
   const z2 = data.profile.zone2;
 
@@ -318,7 +309,8 @@ function RunLog({ date }) {
           <NumField label={t("distance")} unit="km" value={r.km} onChange={set("km")} placeholder="" />
           <div className="flex flex-col gap-1 min-w-0">
             <label htmlFor="run-time" className="label">{t("duration")} <span className="font-mono text-[0.7rem]">{t("durationFormat")}</span></label>
-            <input id="run-time" className="input font-mono" type="text" inputMode="numeric" value={r.durata ?? ""} placeholder="mm:ss" onChange={(e) => set("durata")(e.target.value)} />
+            <input id="run-time" className="input font-mono" type="text" inputMode="decimal" autoComplete="off" value={r.durata ?? ""} placeholder="52,30" aria-invalid={timeBad || undefined} aria-describedby="run-time-hint" onChange={(e) => set("durata")(e.target.value)} />
+            <span id="run-time-hint" className={`text-xs ${timeBad ? "text-warn" : "text-muted"}`}>{timeBad ? t("durationInvalid") : sec ? t("durationRead", { value: fmtDuration(sec) }) : t("durationHelp")}</span>
           </div>
           <NumField label={t("avgHr")} unit="bpm" decimal={false} value={r.fc} onChange={set("fc")} placeholder="" hint={fc && z2 ? (fc > z2.max ? t("hrHigh") : t("hrOk")) : undefined} />
           <div className="flex flex-col gap-1 min-w-0">

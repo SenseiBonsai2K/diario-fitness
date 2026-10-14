@@ -81,5 +81,30 @@
     "braccio": "Braccio",
     "coscia": "Coscia"
   },
-  "noExercises": "Nessun esercizio: importa il backup o registra un allenamento."
+  "noExercises": "Nessun esercizio: importa il backup o registra un allenamento.",
+  "run": {
+    "title": "Corsa",
+    "count": "{{done}}/{{target}} uscite",
+    "km": "Km totali",
+    "avgPace": "Ritmo medio",
+    "perKm": "min/km",
+    "prevPace": "settimana prima {{value}}",
+    "avgHr": "FC media",
+    "inZone_one": "{{n}}/{{count}} corsa in Z2 ({{min}}–{{max}})",
+    "inZone_other": "{{n}}/{{count}} corse in Z2 ({{min}}–{{max}})",
+    "totalTime": "Tempo totale",
+    "time": "Tempo",
+    "paceShort": "Ritmo",
+    "hrShort": "FC",
+    "emptyWeek": "Nessuna corsa registrata questa settimana: si registra in Allenamento.",
+    "chart": "Corsa",
+    "metric": "Dato",
+    "pace": "Ritmo",
+    "hr": "FC media",
+    "weeklyKm": "Km/settimana",
+    "paceNote": "Minuti al km: più in basso = più veloce. In Z2 il progresso è correre più veloce a parità di frequenza cardiaca.",
+    "hrNote": "Il tuo range di corsa facile è {{min}}–{{max}} bpm: a parità di ritmo, una FC che scende indica un motore aerobico migliore.",
+    "kmNote": "Somma dei km di ogni settimana (lunedì–domenica).",
+    "emptyChart": "Registra almeno due corse con distanza e tempo (e FC per il grafico della frequenza)."
+  }
 }

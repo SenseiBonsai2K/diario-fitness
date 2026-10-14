@@ -23,6 +23,8 @@ Done
 - Automatic local copies: weekly and before every replace, restorable from Settings.
 - UI refresh: week strip, hero card for the day, macro bars, today's menu, workout progress and
   superset grouping, tabbed Plan screen.
+- Running in Progress (14 Oct 2026): weekly runs card and pace / HR / km-per-week chart; run time
+  accepted with a comma (52,30) with the reading shown under the field.
 
 Next
 - Weekly backup reminder as a notification instead of a banner.

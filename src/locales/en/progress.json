@@ -81,5 +81,30 @@
     "braccio": "Arm",
     "coscia": "Thigh"
   },
-  "noExercises": "No exercises yet: import your backup or log a workout."
+  "noExercises": "No exercises yet: import your backup or log a workout.",
+  "run": {
+    "title": "Running",
+    "count": "{{done}}/{{target}} runs",
+    "km": "Total km",
+    "avgPace": "Average pace",
+    "perKm": "min/km",
+    "prevPace": "week before {{value}}",
+    "avgHr": "Average HR",
+    "inZone_one": "{{n}}/{{count}} run in Z2 ({{min}}–{{max}})",
+    "inZone_other": "{{n}}/{{count}} runs in Z2 ({{min}}–{{max}})",
+    "totalTime": "Total time",
+    "time": "Time",
+    "paceShort": "Pace",
+    "hrShort": "HR",
+    "emptyWeek": "No runs logged this week: log them in Workout.",
+    "chart": "Running",
+    "metric": "Metric",
+    "pace": "Pace",
+    "hr": "Average HR",
+    "weeklyKm": "Km/week",
+    "paceNote": "Minutes per km: lower = faster. In Z2, progress means running faster at the same heart rate.",
+    "hrNote": "Your easy-run range is {{min}}–{{max}} bpm: at the same pace, a falling heart rate means a better aerobic engine.",
+    "kmNote": "Kilometres summed per week (Monday–Sunday).",
+    "emptyChart": "Log at least two runs with distance and time (and HR for the heart-rate chart)."
+  }
 }
