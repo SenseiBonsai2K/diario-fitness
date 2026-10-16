@@ -46,23 +46,27 @@
     "open": "Sposta",
     "title": "Sposta {{activity}}",
     "cancel": "Annulla",
-    "lead": "Cambia solo queste date: lo schema della settimana resta com'è.",
-    "to": "Giorno",
+    "lead": "Puoi spostare ogni sessione quante volte vuoi: cambiano solo queste date, lo schema della settimana resta com'è.",
+    "to": "Dove",
     "free": "{{day}} è libero.",
     "busy": "{{day}} c'è {{activity}}.",
     "here": "Sposta a {{day}}",
     "swap": "Scambia: {{activity}} va a {{day}}",
     "replace": "Sposta e salta {{activity}}",
-    "movedWith": "Cambiato rispetto al piano, insieme a {{day}}.",
-    "undo": "Ripristina",
-    "both": "Fai entrambi {{day}}"
+    "both": "Fai entrambi {{day}}: {{activity}} + {{other}}",
+    "titleAny": "Sposta una sessione",
+    "which": "Cosa spostare",
+    "remove": "Togli {{activity}} da questo giorno",
+    "dayChanged": "Giorno cambiato rispetto al piano.",
+    "weekChanged": "Questa settimana ha giorni cambiati.",
+    "undoDay": "Ripristina giorno",
+    "undoWeek": "Ripristina settimana"
   },
   "add": {
     "open": "Aggiungi sessione",
     "title": "Aggiungi una sessione",
     "lead": "Si aggiunge solo a questo giorno: lo schema della settimana resta com'è.",
     "count_one": "{{count}} sessione",
-    "count_other": "{{count}} sessioni",
-    "changed": "Cambiato rispetto al piano."
+    "count_other": "{{count}} sessioni"
   }
 }

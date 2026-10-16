@@ -31,6 +31,9 @@ Done
 - More sessions a day (16 Oct 2026): add a session to any day, or move one onto a day that already
   has one ("do both"); the day card lists each with its own start button. A second lifting session
   is logged in `workouts[d].more`, so nothing is overwritten; charts and "last time" read every session.
+- Chained moves (16 Oct 2026): every activity moves on its own and changed days can be changed again
+  (Lower B to Saturday, then the run to Sunday with yoga); remove one activity from a day; restore
+  a day or the whole week.
 
 Next
 - Weekly backup reminder as a notification instead of a banner.

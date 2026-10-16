@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, Grid, Icon, Meter, NumField, Ring, Segmented, Stepper, TextField } from "../components/ui.jsx";
-import { activeProgram, activityLabel, addEntry, findSession, moveEntries, plannedListOn, sessionMinutes, sessionsOf, undoEntries } from "../lib/program.js";
+import { activeProgram, activityLabel, addEntry, findSession, moveEntries, plannedListOn, removeEntry, sessionMinutes, sessionsOf, undoEntries } from "../lib/program.js";
 import { hasPlan } from "../lib/storage.js";
 import { addDays, fmtDate, iso, mondayOf, parseIso, today, weekDays } from "../lib/dates.js";
 import { num, rangeAvg, sessionLog } from "../lib/stats.js";
@@ -201,53 +201,68 @@ function TodayMenu({ date, goTo }) {
 }
 
 /**
- * Move the day's activity to another day (Lower B from Friday to Saturday):
- * swap the two days or leave this one as rest. Only the dates change, never
- * the weekly scheme of the program; "Restore" puts both days back.
+ * Move one activity of the day to another date (Lower B from Friday to
+ * Saturday): add it to what is there, swap, or replace. Any day can be
+ * changed again, as many times as needed; only those dates change, never the
+ * weekly scheme of the program.
  */
 function MoveDay({ date, list, onClose }) {
   const { t, i18n } = useTranslation("today");
   const { data, setEntries } = useStore();
+  const [what, setWhat] = useState(list.length === 1 ? list[0] : null);
   const [target, setTarget] = useState(null);
   const lang = i18n.language;
   const day = (d) => fmtDate(d, lang, { weekday: "short", day: "numeric" });
+  const long = (d) => fmtDate(d, lang, { weekday: "long", day: "numeric" });
   // Three days back, a week ahead: enough to shift a session within the week or into the next.
   const options = Array.from({ length: 11 }, (_, i) => iso(addDays(parseIso(date), i - 3))).filter((d) => d !== date);
-  const there = target ? realList(plannedListOn(data, target)) : [];
+  const there = target ? realList(plannedListOn(data, target)).filter((a) => a !== what) : [];
   const free = there.length === 0;
   const thereLabel = listLabel(data, there, t);
-  const apply = (mode) => { setEntries("moves", moveEntries(data, date, target, mode)); onClose(target); };
+  const whatLabel = what ? activityLabel(data, what, t) : "";
+  const apply = (mode) => { setEntries("moves", moveEntries(data, date, target, what, mode)); onClose(target); };
+  const close = <button type="button" onClick={() => onClose(null)} aria-label={t("move.cancel")} className="w-9 h-9 -mr-1 grid place-items-center rounded-full text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"><Icon name="close" size={18} /></button>;
   return (
-    <Card title={t("move.title", { activity: listLabel(data, list, t) })} aside={<button type="button" onClick={() => onClose(null)} aria-label={t("move.cancel")} className="w-9 h-9 -mr-1 grid place-items-center rounded-full text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"><Icon name="close" size={18} /></button>}>
+    <Card title={what ? t("move.title", { activity: whatLabel }) : t("move.titleAny")} aside={close}>
       <p className="text-sm text-muted -mt-1">{t("move.lead")}</p>
-      <div role="radiogroup" aria-label={t("move.to")} className="scroller">
-        {options.map((d) => {
-          const busy = !!data.moves?.[d];
-          return (
-            <button key={d} type="button" role="radio" aria-checked={target === d} disabled={busy} onClick={() => setTarget(d)} className="chip flex-col !items-start !gap-0 py-1.5 disabled:opacity-40">
-              <span className="num">{day(d)}</span>
-              <span className="text-[0.7rem] font-normal opacity-80">{busy ? t("moved") : listLabel(data, plannedListOn(data, d), t)}</span>
-            </button>
-          );
-        })}
-      </div>
-      {target && (
+      {list.length > 1 && (
+        <div role="radiogroup" aria-label={t("move.which")} className="flex flex-wrap gap-2">
+          {list.map((a) => (
+            <button key={a} type="button" role="radio" aria-checked={what === a} onClick={() => setWhat(a)} className="chip">{activityLabel(data, a, t)}</button>
+          ))}
+        </div>
+      )}
+      {what && (
+        <>
+          <span className="label -mb-1">{t("move.to")}</span>
+          <div role="radiogroup" aria-label={t("move.to")} className="scroller">
+            {options.map((d) => (
+              <button key={d} type="button" role="radio" aria-checked={target === d} onClick={() => setTarget(d)} className="chip flex-col !items-start !gap-0 py-1.5">
+                <span className="num">{day(d)}{data.moves?.[d] ? " •" : ""}</span>
+                <span className="text-[0.7rem] font-normal opacity-80">{listLabel(data, plannedListOn(data, d), t)}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+      {what && target && (
         <div className="flex flex-col gap-2">
-          <p className="text-sm">
-            {free
-              ? t("move.free", { day: fmtDate(target, lang, { weekday: "long", day: "numeric" }) })
-              : t("move.busy", { day: fmtDate(target, lang, { weekday: "long", day: "numeric" }), activity: thereLabel })}
-          </p>
+          <p className="text-sm">{free ? t("move.free", { day: long(target) }) : t("move.busy", { day: long(target), activity: thereLabel })}</p>
           {free ? (
-            <button type="button" className="btn w-full" onClick={() => apply("replace")}>{t("move.here", { day: day(target) })}</button>
+            <button type="button" className="btn w-full" onClick={() => apply("both")}>{t("move.here", { day: day(target) })}</button>
           ) : (
             <>
-              <button type="button" className="btn w-full" onClick={() => apply("swap")}>{t("move.swap", { activity: thereLabel, day: day(date) })}</button>
-              <button type="button" className="btn-ghost w-full" onClick={() => apply("both")}>{t("move.both", { day: day(target) })}</button>
+              <button type="button" className="btn w-full" onClick={() => apply("both")}>{t("move.both", { day: day(target), activity: whatLabel, other: thereLabel })}</button>
+              <button type="button" className="btn-ghost w-full" onClick={() => apply("swap")}>{t("move.swap", { activity: thereLabel, day: day(date) })}</button>
               <button type="button" className="btn-ghost w-full" onClick={() => apply("replace")}>{t("move.replace", { activity: thereLabel })}</button>
             </>
           )}
         </div>
+      )}
+      {what && (
+        <button type="button" className="text-sm font-semibold text-bad self-start py-1" onClick={() => { setEntries("moves", removeEntry(data, date, what)); onClose(null); }}>
+          {t("move.remove", { activity: whatLabel })}
+        </button>
       )}
     </Card>
   );
@@ -342,6 +357,8 @@ export default function Today({ date, setDate, openWorkout, goTo }) {
   const move = data.moves?.[date];
   const list = plannedListOn(data, date);
   const acts = realList(list);
+  const week = weekDays(mondayOf(parseIso(date)));
+  const weekChanged = week.some((d) => data.moves?.[d]);
 
   const avg7 = rangeAvg(data, iso(addDays(parseIso(date), -6)), date, "peso");
   const fmt1 = (v) => v.toLocaleString(lang, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -377,15 +394,18 @@ export default function Today({ date, setDate, openWorkout, goTo }) {
               <PlannedItem data={data} date={date} planned={a} compact={acts.length > 1} openWorkout={openWorkout} t={t} />
             </div>
           ))}
-          {move && (
-            <div className="flex items-center justify-between gap-3 rounded-field bg-hero-ink/10 px-3 py-2 text-sm">
-              <span className="min-w-0">{move.pair ? t("move.movedWith", { day: fmtDate(move.pair, lang, { weekday: "long", day: "numeric" }) }) : t("add.changed")}</span>
-              <button type="button" className="shrink-0 font-semibold text-hero-accent py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hero-ink rounded" onClick={() => setEntries("moves", undoEntries(data, date))}>{t("move.undo")}</button>
+          {(move || weekChanged) && (
+            <div className="flex flex-col gap-1 rounded-field bg-hero-ink/10 px-3 py-2 text-sm">
+              <span>{move ? t("move.dayChanged") : t("move.weekChanged")}</span>
+              <div className="flex flex-wrap gap-x-4">
+                {move && <button type="button" className="font-semibold text-hero-accent py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hero-ink rounded" onClick={() => setEntries("moves", undoEntries(data, date))}>{t("move.undoDay")}</button>}
+                <button type="button" className="font-semibold text-hero-accent py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hero-ink rounded" onClick={() => setEntries("moves", undoEntries(data, week))}>{t("move.undoWeek")}</button>
+              </div>
             </div>
           )}
           {!open && (
             <div className="-mt-1 flex flex-wrap justify-center gap-x-4">
-              {acts.length > 0 && !move && (
+              {acts.length > 0 && (
                 <button type="button" className="text-sm font-semibold text-hero-muted py-1 px-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hero-ink" onClick={() => setPanel({ date, kind: "move" })}>{t("move.open")}</button>
               )}
               <button type="button" className="text-sm font-semibold text-hero-muted py-1 px-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hero-ink" onClick={() => setPanel({ date, kind: "add" })}>{t("add.open")}</button>
@@ -394,7 +414,7 @@ export default function Today({ date, setDate, openWorkout, goTo }) {
         </section>
       )}
 
-      {open === "move" && acts.length > 0 && !move && (
+      {open === "move" && acts.length > 0 && (
         <MoveDay date={date} list={acts} onClose={(to) => { setPanel(null); if (to) setDate(to); }} />
       )}
       {open === "add" && <AddSession date={date} list={acts} onClose={() => setPanel(null)} />}

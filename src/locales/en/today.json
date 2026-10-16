@@ -46,23 +46,27 @@
     "open": "Move",
     "title": "Move {{activity}}",
     "cancel": "Cancel",
-    "lead": "Only these dates change: the weekly scheme stays as it is.",
-    "to": "Day",
+    "lead": "Move any session as many times as you like: only these dates change, the weekly scheme stays as it is.",
+    "to": "Where",
     "free": "{{day}} is free.",
     "busy": "{{day}} has {{activity}}.",
     "here": "Move to {{day}}",
     "swap": "Swap: {{activity}} goes to {{day}}",
     "replace": "Move and skip {{activity}}",
-    "movedWith": "Changed from the plan, together with {{day}}.",
-    "undo": "Restore",
-    "both": "Do both on {{day}}"
+    "both": "Do both on {{day}}: {{activity}} + {{other}}",
+    "titleAny": "Move a session",
+    "which": "What to move",
+    "remove": "Remove {{activity}} from this day",
+    "dayChanged": "Day changed from the plan.",
+    "weekChanged": "This week has changed days.",
+    "undoDay": "Restore day",
+    "undoWeek": "Restore week"
   },
   "add": {
     "open": "Add session",
     "title": "Add a session",
     "lead": "Added to this day only: the weekly scheme stays as it is.",
     "count_one": "{{count}} session",
-    "count_other": "{{count}} sessions",
-    "changed": "Changed from the plan."
+    "count_other": "{{count}} sessions"
   }
 }
