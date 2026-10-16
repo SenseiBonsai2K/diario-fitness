@@ -25,24 +25,51 @@ export function plannedFor(data, weekday) {
  * scheme of the active program.
  */
 export function plannedOn(data, date) {
-  const m = data.moves?.[date];
-  if (m?.activity) return m.activity;
-  return plannedFor(data, parseIso(date).getDay());
+  return plannedListOn(data, date)[0] ?? null;
 }
 
 /**
- * The entries to write in data.moves to move the activity of `from` to `to`.
- * With swap, the activity of `to` goes to `from`; otherwise `from` becomes a
- * rest day and the activity of `to` is skipped. Each entry names its pair so
- * the two days can be put back together.
+ * Everything planned on a date, in order: usually one activity, more when a
+ * session was added or two activities were put on the same day. A rest day
+ * is ["rest"]; nothing planned is [].
  */
-export function moveEntries(data, from, to, swap) {
-  const a = plannedOn(data, from);
-  const b = plannedOn(data, to);
+export function plannedListOn(data, date) {
+  const m = data.moves?.[date];
+  const list = Array.isArray(m?.activities) ? m.activities : m?.activity ? [m.activity] : null;
+  if (list) {
+    const real = list.filter((a) => a && a !== "rest");
+    return real.length ? real : ["rest"];
+  }
+  const w = plannedFor(data, parseIso(date).getDay());
+  return w ? [w] : [];
+}
+
+const real = (list) => list.filter((a) => a && a !== "rest");
+// Weights before running and yoga on a shared day, otherwise in the order given.
+const liftsFirst = (list) => [...list.filter((a) => !EXTRA_ACTIVITIES.includes(a)), ...list.filter((a) => EXTRA_ACTIVITIES.includes(a))];
+
+/**
+ * The entries to write in data.moves to move the activity of `from` to `to`.
+ * mode "swap": the activities of `to` go to `from`; "both": `to` keeps its
+ * own and adds the moved one, `from` becomes rest; "replace": `from` becomes
+ * rest and what was on `to` is skipped. Each entry names its pair so the two
+ * days can be put back together.
+ */
+export function moveEntries(data, from, to, mode) {
+  const a = real(plannedListOn(data, from));
+  const b = real(plannedListOn(data, to));
+  const rest = (l) => (l.length ? l : ["rest"]);
   return {
-    [from]: { activity: swap && b ? b : "rest", pair: to },
-    [to]: { activity: a || "rest", pair: from },
+    [from]: { activities: rest(mode === "swap" ? b : []), pair: to },
+    [to]: { activities: rest(mode === "both" ? liftsFirst([...b, ...a.filter((x) => !b.includes(x))]) : a), pair: from },
   };
+}
+
+/** The entry that adds one more activity to a date (a second session, a run on a lifting day). */
+export function addEntry(data, date, activity) {
+  const list = real(plannedListOn(data, date));
+  const m = data.moves?.[date];
+  return { [date]: { ...(m?.pair ? { pair: m.pair } : {}), activities: list.includes(activity) ? list : liftsFirst([...list, activity]) } };
 }
 
 /** The entries that undo a move: the day and its pair go back to the weekly scheme. */

@@ -24,9 +24,33 @@ export function rangeAvg(data, fromIso, toIso, key) {
   return avg(out);
 }
 
-/** True when a workout log has at least one completed set. */
+/**
+ * Every lifting session logged on one day. The first one lives in the day's
+ * log itself ({ program, session, sets, note }); further sessions on the
+ * same day live in `more`, keyed by session id.
+ */
+export function liftLogs(w) {
+  if (!w) return [];
+  const out = w.session || w.sets ? [{ program: w.program, session: w.session, sets: w.sets || {}, note: w.note }] : [];
+  for (const [id, x] of Object.entries(w.more || {})) if (x) out.push({ ...x, session: x.session || id, sets: x.sets || {} });
+  return out;
+}
+
+/** The log of one session on one day, or null. */
+export function sessionLog(w, sessionId) {
+  return liftLogs(w).find((l) => l.session === sessionId) || null;
+}
+
+const hasDoneSet = (l) => Object.values(l.sets || {}).some((sets) => sets.some((s) => s.done));
+
+/** True when a day's workout log has at least one completed set. */
 export function workoutDone(w) {
-  return !!w && Object.values(w.sets || {}).some((sets) => sets.some((s) => s.done));
+  return liftLogs(w).some(hasDoneSet);
+}
+
+/** Lifting sessions with at least one completed set on a day. */
+export function liftsDone(w) {
+  return liftLogs(w).filter(hasDoneSet).length;
 }
 
 /** Everything the weekly check shows, computed from daily logs. */
@@ -37,7 +61,7 @@ export function weekStats(data, mondayIsoStr) {
   const weights = field(data, days, "peso");
   let lifts = 0, runs = 0, km = 0, yoga = 0;
   for (const d of days) {
-    if (workoutDone(data.workouts[d])) lifts++;
+    lifts += liftsDone(data.workouts[d]);
     const r = data.runs[d];
     if (r && num(r.km)) { runs++; km += num(r.km); }
     if (data.yoga[d]?.done) yoga++;
@@ -104,9 +128,9 @@ export function e1rm(kg, reps) {
   return reps === 1 ? kg : kg * (1 + reps / 30);
 }
 
-/** Completed sets of one exercise on one day. */
+/** Completed sets of one exercise on one day, across every session of that day. */
 export function doneSets(w, exerciseId) {
-  return (w?.sets?.[exerciseId] || []).filter((s) => s.done && num(s.kg) !== null && num(s.reps) !== null);
+  return liftLogs(w).flatMap((l) => (l.sets?.[exerciseId] || []).filter((s) => s.done && num(s.kg) !== null && num(s.reps) !== null));
 }
 
 /** Most recent day before `beforeIso` with completed sets of the exercise. */

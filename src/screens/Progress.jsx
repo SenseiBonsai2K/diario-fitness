@@ -146,7 +146,7 @@ function ChartsView() {
   const [range, setRange] = useState("90");
   const names = useMemo(() => {
     const n = exerciseNames(data);
-    for (const w of Object.values(data.workouts)) for (const id of Object.keys(w.sets || {})) if (!n[id]) n[id] = id;
+    for (const w of Object.values(data.workouts)) for (const l of liftLogs(w)) for (const id of Object.keys(l.sets)) if (!n[id]) n[id] = id;
     return n;
   }, [data]);
   const ids = Object.keys(names);

@@ -1,7 +1,7 @@
 {
   "chooseActivity": "Choose the activity",
   "setsDone": "{{done}}/{{planned}} sets",
-  "otherSession": "This day already has a {{name}} log. Saving here replaces it.",
+  "otherSession": "Second session of the day: {{name}} stays logged separately, nothing is replaced.",
   "howTo": "Tap the tick when you finish a set: empty fields fill with last time's numbers and the timer starts with the planned rest (in a superset, after the second exercise). The timer keeps running if you switch screen or lock the phone.",
   "sessionNotes": "Notes",
   "sessionNotesPlaceholder": "How it felt, machine settings, aches",

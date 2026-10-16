@@ -43,7 +43,7 @@
   "mealUndo": "Togli le spunte",
   "moved": "Spostato",
   "move": {
-    "open": "Sposta su un altro giorno",
+    "open": "Sposta",
     "title": "Sposta {{activity}}",
     "cancel": "Annulla",
     "lead": "Cambia solo queste date: lo schema della settimana resta com'è.",
@@ -54,6 +54,15 @@
     "swap": "Scambia: {{activity}} va a {{day}}",
     "replace": "Sposta e salta {{activity}}",
     "movedWith": "Cambiato rispetto al piano, insieme a {{day}}.",
-    "undo": "Ripristina"
+    "undo": "Ripristina",
+    "both": "Fai entrambi {{day}}"
+  },
+  "add": {
+    "open": "Aggiungi sessione",
+    "title": "Aggiungi una sessione",
+    "lead": "Si aggiunge solo a questo giorno: lo schema della settimana resta com'è.",
+    "count_one": "{{count}} sessione",
+    "count_other": "{{count}} sessioni",
+    "changed": "Cambiato rispetto al piano."
   }
 }

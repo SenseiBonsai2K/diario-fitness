@@ -98,8 +98,11 @@ app opens empty and is filled by importing a backup file. Backup files are git-i
   `activeDiet` (shape below), `plan` (`sections[]`, `yoga`), `history[]`, `archive[]`
   (`{ at, kind: "plan" | "profile" | "program" | "diet", id?, data }`), `prefs` (`lang`), `meta`,
   and the logs `days`, `workouts`, `runs`, `yoga`, `weeks`, `months`, `moves`.
-  `moves[d] = { activity, pair }` overrides the weekly scheme on one date only ("move Lower B from
-  Friday to Saturday", swapping or leaving a rest day); `plannedOn` in `src/lib/program.js` reads it.
+  `moves[d] = { activities: [...], pair? }` overrides the weekly scheme on one date only: a moved
+  session (swap, both on the same day, or leave a rest day) or an added one. Older entries may carry a
+  single `activity`. `plannedListOn` in `src/lib/program.js` reads it.
+  More than one lifting session a day: the first lives in `workouts[d]` itself, the others in
+  `workouts[d].more[sessionId]` with the same shape; `liftLogs` in `src/lib/stats.js` returns them all.
 - Diet: `{ id, name, author?, startDate?, endDate?, note?, targets?: { kcal, prot, carb, fat },
   week?: { "0".."6": dayId }, days: [{ id, name, note?, targets?, meals: [{ name, time?, note?,
   items: [{ food, qty?, unit?, note?, alt?: [] }], options?: [{ name, items }] }] }],

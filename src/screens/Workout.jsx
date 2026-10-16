@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Card, Grid, Icon, NumField, Ring, TextField } from "../components/ui.jsx";
 import { EXTRA_ACTIVITIES, activeProgram, activityLabel, findSession, fmtRest, plannedOn, sessionsOf } from "../lib/program.js";
 import { fmtDate } from "../lib/dates.js";
-import { fmtDuration, lastPerformance, num, parseDuration, shouldIncrease } from "../lib/stats.js";
+import { fmtDuration, lastPerformance, liftLogs, num, parseDuration, shouldIncrease } from "../lib/stats.js";
 import { useStore } from "../lib/store.jsx";
 import { DateStepper } from "./Today.jsx";
 import { useRestTimer } from "../components/RestTimer.jsx";
@@ -27,6 +27,10 @@ export default function Workout({ date, setDate, activity, setActivity }) {
   const ids = [...sessionsOf(program).map((x) => x.id), ...EXTRA_ACTIVITIES];
   // A log from an older program still opens with that program's session.
   if (!ids.includes(current) && findSession(data, current)) ids.unshift(current);
+  const logged = new Set(liftLogs(data.workouts[date]).filter((l) => Object.values(l.sets).some((r) => r.some((x) => x.done))).map((l) => l.session));
+  if (num(data.runs[date]?.km)) logged.add("run");
+  if (data.yoga[date]?.done) logged.add("yoga");
+  for (const id of logged) if (!ids.includes(id) && findSession(data, id)) ids.unshift(id);
   const found = !EXTRA_ACTIVITIES.includes(current) ? findSession(data, current, data.workouts[date]?.program) : null;
 
   // Changing day resets the manual choice so the new day opens on its own plan.
@@ -45,6 +49,7 @@ export default function Workout({ date, setDate, activity, setActivity }) {
             onClick={() => setActivity(a)}
             className="chip"
           >
+            {logged.has(a) && <Icon name="check" size={14} />}
             {activityLabel(data, a, t)}
           </button>
         ))}
@@ -61,10 +66,17 @@ function LiftSession({ date, session, programId }) {
   const { t, i18n } = useTranslation("workout");
   const { data, patch } = useStore();
   const log = data.workouts[date];
-  const sets = log?.session === session.id ? log.sets || {} : {};
+  // The day's first session lives in the log itself; a second (third…) one in log.more[sessionId].
+  const primary = !log?.session || log.session === session.id;
+  const entry = primary ? log : log.more?.[session.id];
+  const sets = entry?.sets || {};
   const { start: startRest } = useRestTimer();
 
-  const write = (nextSets, extra = {}) => patch("workouts", date, { program: programId, session: session.id, sets: nextSets, ...extra });
+  const write = (nextSets, extra = {}) => {
+    const value = { program: programId, session: session.id, sets: nextSets, ...extra };
+    if (primary) patch("workouts", date, value);
+    else patch("workouts", date, { more: { ...(log.more || {}), [session.id]: { ...(log.more?.[session.id] || {}), ...value } } });
+  };
 
   const totals = session.exercises.reduce(
     (acc, ex) => {
@@ -75,7 +87,7 @@ function LiftSession({ date, session, programId }) {
     { planned: 0, done: 0 }
   );
 
-  const otherSession = log?.session && log.session !== session.id;
+  const otherSession = !primary;
   const pct = totals.planned ? totals.done / totals.planned : 0;
   const complete = totals.planned > 0 && totals.done >= totals.planned;
   const volume = Object.values(sets).reduce((a, rows) => a + rows.filter((r) => r.done).reduce((b, r) => b + (num(r.kg) || 0) * (num(r.reps) || 0), 0), 0);
@@ -111,7 +123,7 @@ function LiftSession({ date, session, programId }) {
         </div>
       </div>
       {otherSession && (
-        <p className="text-sm text-warn">{t("otherSession", { name: activityLabel(data, log.session, t) })}</p>
+        <p className="text-sm text-muted">{t("otherSession", { name: activityLabel(data, log.session, t) })}</p>
       )}
       {totals.done === 0 && <p className="text-sm text-muted -mt-1">{t("howTo")}</p>}
 
@@ -140,7 +152,7 @@ function LiftSession({ date, session, programId }) {
       )}
 
       <Card>
-        <TextField label={t("sessionNotes")} multiline value={log?.session === session.id ? log.note : ""} onChange={(v) => write(sets, { note: v })} placeholder={t("sessionNotesPlaceholder")} />
+        <TextField label={t("sessionNotes")} multiline value={entry?.note || ""} onChange={(v) => write(sets, { note: v })} placeholder={t("sessionNotesPlaceholder")} />
       </Card>
 
     </>

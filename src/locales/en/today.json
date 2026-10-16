@@ -43,7 +43,7 @@
   "mealUndo": "Clear ticks",
   "moved": "Moved",
   "move": {
-    "open": "Move to another day",
+    "open": "Move",
     "title": "Move {{activity}}",
     "cancel": "Cancel",
     "lead": "Only these dates change: the weekly scheme stays as it is.",
@@ -54,6 +54,15 @@
     "swap": "Swap: {{activity}} goes to {{day}}",
     "replace": "Move and skip {{activity}}",
     "movedWith": "Changed from the plan, together with {{day}}.",
-    "undo": "Restore"
+    "undo": "Restore",
+    "both": "Do both on {{day}}"
+  },
+  "add": {
+    "open": "Add session",
+    "title": "Add a session",
+    "lead": "Added to this day only: the weekly scheme stays as it is.",
+    "count_one": "{{count}} session",
+    "count_other": "{{count}} sessions",
+    "changed": "Changed from the plan."
   }
 }

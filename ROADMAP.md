@@ -28,6 +28,9 @@ Done
 - Move a day (16 Oct 2026): from Today, move the day's activity to another date (swap, or leave a
   rest day); dates only, the weekly scheme is unchanged; "Restore" puts both days back. Schema v4
   adds the `moves` log, kept by every import.
+- More sessions a day (16 Oct 2026): add a session to any day, or move one onto a day that already
+  has one ("do both"); the day card lists each with its own start button. A second lifting session
+  is logged in `workouts[d].more`, so nothing is overwritten; charts and "last time" read every session.
 
 Next
 - Weekly backup reminder as a notification instead of a banner.
