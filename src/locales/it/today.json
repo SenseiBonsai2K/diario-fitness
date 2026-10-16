@@ -40,5 +40,20 @@
   "resume": "Riprendi",
   "foodsDone": "{{done}}/{{total}} alimenti",
   "mealAll": "Segna tutto",
-  "mealUndo": "Togli le spunte"
+  "mealUndo": "Togli le spunte",
+  "moved": "Spostato",
+  "move": {
+    "open": "Sposta su un altro giorno",
+    "title": "Sposta {{activity}}",
+    "cancel": "Annulla",
+    "lead": "Cambia solo queste date: lo schema della settimana resta com'è.",
+    "to": "Giorno",
+    "free": "{{day}} è libero.",
+    "busy": "{{day}} c'è {{activity}}.",
+    "here": "Sposta a {{day}}",
+    "swap": "Scambia: {{activity}} va a {{day}}",
+    "replace": "Sposta e salta {{activity}}",
+    "movedWith": "Cambiato rispetto al piano, insieme a {{day}}.",
+    "undo": "Ripristina"
+  }
 }

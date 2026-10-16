@@ -46,7 +46,7 @@
     },
     "confirmTitle": "Restore this backup?",
     "exportedAt": "Made on {{date}}",
-    "contains": "Contents — programs: {{programs}} · diets: {{diets}} · history entries: {{history}} · archived versions: {{archive}} · days: {{days}} · workouts: {{workouts}} · runs: {{runs}} · weekly checks: {{weeks}} · monthly checks: {{months}}.",
+    "contains": "Contents — programs: {{programs}} · diets: {{diets}} · history entries: {{history}} · archived versions: {{archive}} · days: {{days}} · workouts: {{workouts}} · runs: {{runs}} · weekly checks: {{weeks}} · monthly checks: {{months}} · moved days: {{moves}}.",
     "replaceWarning": "Everything on this phone will be replaced by the backup. Make a backup of the current data first if you need it.",
     "imported": "Backup restored.",
     "importAll": "Restore everything",

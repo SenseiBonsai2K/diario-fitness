@@ -25,6 +25,9 @@ Done
   superset grouping, tabbed Plan screen.
 - Running in Progress (14 Oct 2026): weekly runs card and pace / HR / km-per-week chart; run time
   accepted with a comma (52,30) with the reading shown under the field.
+- Move a day (16 Oct 2026): from Today, move the day's activity to another date (swap, or leave a
+  rest day); dates only, the weekly scheme is unchanged; "Restore" puts both days back. Schema v4
+  adds the `moves` log, kept by every import.
 
 Next
 - Weekly backup reminder as a notification instead of a banner.

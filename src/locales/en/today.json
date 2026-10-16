@@ -40,5 +40,20 @@
   "resume": "Resume",
   "foodsDone": "{{done}}/{{total}} foods",
   "mealAll": "Tick all",
-  "mealUndo": "Clear ticks"
+  "mealUndo": "Clear ticks",
+  "moved": "Moved",
+  "move": {
+    "open": "Move to another day",
+    "title": "Move {{activity}}",
+    "cancel": "Cancel",
+    "lead": "Only these dates change: the weekly scheme stays as it is.",
+    "to": "Day",
+    "free": "{{day}} is free.",
+    "busy": "{{day}} has {{activity}}.",
+    "here": "Move to {{day}}",
+    "swap": "Swap: {{activity}} goes to {{day}}",
+    "replace": "Move and skip {{activity}}",
+    "movedWith": "Changed from the plan, together with {{day}}.",
+    "undo": "Restore"
+  }
 }

@@ -3,7 +3,7 @@
 // source code: profile, programs, diets and plan arrive only by importing a backup.
 
 export const STORAGE_KEY = "diario-fitness:data";
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 export const BACKUP_APP = "diario-fitness";
 
 export const DEFAULT_PROFILE = {
@@ -45,11 +45,13 @@ export function emptyData() {
     yoga: {},
     weeks: {},
     months: {},
+    /** Day-by-day changes to the weekly plan: { "YYYY-MM-DD": { activity, pair } }. A log: imports never touch it. */
+    moves: {},
     meta: { createdAt: new Date().toISOString(), lastBackup: null },
   };
 }
 
-export const LOG_COLLECTIONS = ["days", "workouts", "runs", "yoga", "weeks", "months"];
+export const LOG_COLLECTIONS = ["days", "workouts", "runs", "yoga", "weeks", "months", "moves"];
 
 const isObj = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
 
@@ -63,6 +65,7 @@ export function normalise(raw) {
   const doc = isObj(raw.data) && raw.app === BACKUP_APP ? raw.data : raw;
   if (!isObj(doc) || typeof doc.version !== "number") throw new Error("notBackup");
   if (doc.version > SCHEMA_VERSION) throw new Error("newerVersion");
+  // v3 → v4 only adds the "moves" log, which starts empty: nothing to migrate.
   const out = emptyData();
   // Keys this version doesn't know are carried through untouched, so nothing
   // in a backup is ever dropped silently.

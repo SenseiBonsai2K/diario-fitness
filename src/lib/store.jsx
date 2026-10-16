@@ -63,6 +63,15 @@ export function StoreProvider({ children }) {
     });
   }, []);
 
+  /** Replace several whole entries of one collection at once; null removes an entry. */
+  const setEntries = useCallback((collection, entries) => {
+    setData((d) => {
+      const coll = { ...d[collection] };
+      for (const [k, v] of Object.entries(entries)) { if (v) coll[k] = v; else delete coll[k]; }
+      return { ...d, [collection]: coll };
+    });
+  }, []);
+
   const setProfile = useCallback((values) => setData((d) => ({ ...d, profile: { ...d.profile, ...values } })), []);
   const setPrefs = useCallback((values) => setData((d) => ({ ...d, prefs: { ...d.prefs, ...values } })), []);
   const replaceAll = useCallback((next) => { setData(next); save(next); }, []);
@@ -70,8 +79,8 @@ export function StoreProvider({ children }) {
   const markBackup = useCallback(() => setData((d) => ({ ...d, meta: { ...d.meta, lastBackup: new Date().toISOString() } })), []);
 
   const value = useMemo(
-    () => ({ data, patch, setProfile, setPrefs, replaceAll, importPlan, markBackup, saveError }),
-    [data, patch, setProfile, setPrefs, replaceAll, importPlan, markBackup, saveError]
+    () => ({ data, patch, setEntries, setProfile, setPrefs, replaceAll, importPlan, markBackup, saveError }),
+    [data, patch, setEntries, setProfile, setPrefs, replaceAll, importPlan, markBackup, saveError]
   );
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }

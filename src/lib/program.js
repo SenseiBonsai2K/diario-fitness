@@ -1,6 +1,8 @@
 // Training programs live in the user's data (imported from a backup), never
 // in the source code. These helpers read them.
 
+import { parseIso } from "./dates.js";
+
 /** Activities that exist without a program session. */
 export const EXTRA_ACTIVITIES = ["run", "yoga"];
 
@@ -16,6 +18,39 @@ export function sessionsOf(program) {
 export function plannedFor(data, weekday) {
   const p = activeProgram(data);
   return p?.week?.[String(weekday)] ?? null;
+}
+
+/**
+ * What is planned on a given date: a day-by-day move wins over the weekly
+ * scheme of the active program.
+ */
+export function plannedOn(data, date) {
+  const m = data.moves?.[date];
+  if (m?.activity) return m.activity;
+  return plannedFor(data, parseIso(date).getDay());
+}
+
+/**
+ * The entries to write in data.moves to move the activity of `from` to `to`.
+ * With swap, the activity of `to` goes to `from`; otherwise `from` becomes a
+ * rest day and the activity of `to` is skipped. Each entry names its pair so
+ * the two days can be put back together.
+ */
+export function moveEntries(data, from, to, swap) {
+  const a = plannedOn(data, from);
+  const b = plannedOn(data, to);
+  return {
+    [from]: { activity: swap && b ? b : "rest", pair: to },
+    [to]: { activity: a || "rest", pair: from },
+  };
+}
+
+/** The entries that undo a move: the day and its pair go back to the weekly scheme. */
+export function undoEntries(data, date) {
+  const pair = data.moves?.[date]?.pair;
+  const out = { [date]: null };
+  if (pair && data.moves?.[pair]?.pair === date) out[pair] = null;
+  return out;
 }
 
 /** Find a session by id, in the active program first, then in any program. */

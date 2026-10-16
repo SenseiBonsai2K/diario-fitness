@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, Grid, Icon, Meter, NumField, Ring, Segmented, Stepper, TextField } from "../components/ui.jsx";
-import { activityLabel, findSession, plannedFor, sessionMinutes } from "../lib/program.js";
+import { activityLabel, findSession, moveEntries, plannedOn, sessionMinutes, undoEntries } from "../lib/program.js";
 import { hasPlan } from "../lib/storage.js";
 import { addDays, fmtDate, iso, mondayOf, parseIso, today, weekDays } from "../lib/dates.js";
 import { num, rangeAvg, workoutDone } from "../lib/stats.js";
@@ -57,7 +58,8 @@ function WeekStrip({ date, setDate }) {
     <div role="group" aria-label={t("week")} className="grid grid-cols-7 gap-1.5">
       {days.map((d) => {
         const dt = parseIso(d);
-        const planned = plannedFor(data, dt.getDay());
+        const planned = plannedOn(data, d);
+        const moved = !!data.moves?.[d];
         const tag = activityTag(data, planned);
         const done = planned && planned !== "rest" && isDone(data, d, planned);
         const sel = d === date;
@@ -67,7 +69,7 @@ function WeekStrip({ date, setDate }) {
             type="button"
             onClick={() => setDate(d)}
             aria-pressed={sel}
-            aria-label={`${fmtDate(d, i18n.language, { weekday: "long", day: "numeric" })} · ${activityLabel(data, planned, t)}${done ? ` · ${t("done")}` : ""}`}
+            aria-label={`${fmtDate(d, i18n.language, { weekday: "long", day: "numeric" })} · ${activityLabel(data, planned, t)}${moved ? ` · ${t("moved")}` : ""}${done ? ` · ${t("done")}` : ""}`}
             className={`relative flex flex-col items-center gap-1 rounded-field py-2 border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent
               ${sel ? "bg-ink border-ink text-surface" : d === now ? "bg-accent-soft border-accent/40 text-ink" : "bg-surface border-line/70 text-ink"}`}
           >
@@ -76,6 +78,7 @@ function WeekStrip({ date, setDate }) {
             <span className={`h-5 grid place-items-center text-[0.62rem] font-bold tracking-wide ${sel ? "" : "text-muted"}`}>
               {tag.text ? tag.text : <Icon name={tag.icon} size={14} />}
             </span>
+            {moved && <span className={`absolute top-1 left-1 w-1.5 h-1.5 rounded-full ring-1 ${sel ? "ring-surface" : "ring-accent"}`} />}
             {done && <span className={`absolute top-1 right-1 w-1.5 h-1.5 rounded-full ${sel ? "bg-surface" : "bg-good"}`} />}
           </button>
         );
@@ -182,6 +185,57 @@ function TodayMenu({ date, goTo }) {
   );
 }
 
+/**
+ * Move the day's activity to another day (Lower B from Friday to Saturday):
+ * swap the two days or leave this one as rest. Only the dates change, never
+ * the weekly scheme of the program; "Restore" puts both days back.
+ */
+function MoveDay({ date, planned, onClose }) {
+  const { t, i18n } = useTranslation("today");
+  const { data, setEntries } = useStore();
+  const [target, setTarget] = useState(null);
+  const lang = i18n.language;
+  const day = (d) => fmtDate(d, lang, { weekday: "short", day: "numeric" });
+  // Three days back, a week ahead: enough to shift a session within the week or into the next.
+  const options = Array.from({ length: 11 }, (_, i) => iso(addDays(parseIso(date), i - 3))).filter((d) => d !== date);
+  const there = target ? plannedOn(data, target) : null;
+  const free = !there || there === "rest";
+  const apply = (swap) => { setEntries("moves", moveEntries(data, date, target, swap)); onClose(target); };
+  return (
+    <Card title={t("move.title", { activity: activityLabel(data, planned, t) })} aside={<button type="button" onClick={() => onClose(null)} aria-label={t("move.cancel")} className="w-9 h-9 -mr-1 grid place-items-center rounded-full text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"><Icon name="close" size={18} /></button>}>
+      <p className="text-sm text-muted -mt-1">{t("move.lead")}</p>
+      <div role="radiogroup" aria-label={t("move.to")} className="scroller">
+        {options.map((d) => {
+          const busy = !!data.moves?.[d];
+          return (
+            <button key={d} type="button" role="radio" aria-checked={target === d} disabled={busy} onClick={() => setTarget(d)} className="chip flex-col !items-start !gap-0 py-1.5 disabled:opacity-40">
+              <span className="num">{day(d)}</span>
+              <span className="text-[0.7rem] font-normal opacity-80">{busy ? t("moved") : activityLabel(data, plannedOn(data, d), t)}</span>
+            </button>
+          );
+        })}
+      </div>
+      {target && (
+        <div className="flex flex-col gap-2">
+          <p className="text-sm">
+            {free
+              ? t("move.free", { day: fmtDate(target, lang, { weekday: "long", day: "numeric" }) })
+              : t("move.busy", { day: fmtDate(target, lang, { weekday: "long", day: "numeric" }), activity: activityLabel(data, there, t) })}
+          </p>
+          {free ? (
+            <button type="button" className="btn w-full" onClick={() => apply(false)}>{t("move.here", { day: day(target) })}</button>
+          ) : (
+            <>
+              <button type="button" className="btn w-full" onClick={() => apply(true)}>{t("move.swap", { activity: activityLabel(data, there, t), day: day(date) })}</button>
+              <button type="button" className="btn-ghost w-full" onClick={() => apply(false)}>{t("move.replace", { activity: activityLabel(data, there, t) })}</button>
+            </>
+          )}
+        </div>
+      )}
+    </Card>
+  );
+}
+
 function MacroRow({ label, unit, value, onChange, target, t }) {
   const v = num(value);
   return (
@@ -199,13 +253,17 @@ function MacroRow({ label, unit, value, onChange, target, t }) {
 
 export default function Today({ date, setDate, openWorkout, goTo }) {
   const { t, i18n } = useTranslation("today");
-  const { data, patch } = useStore();
+  const { data, patch, setEntries } = useStore();
   const day = data.days[date] || {};
   const set = (k) => (v) => patch("days", date, { [k]: v });
   const lang = i18n.language;
   const p = data.profile;
 
-  const planned = plannedFor(data, parseIso(date).getDay());
+  // The panel belongs to the day it was opened on: changing day closes it.
+  const [movingFrom, setMovingFrom] = useState(null);
+  const moving = movingFrom === date;
+  const move = data.moves?.[date];
+  const planned = plannedOn(data, date);
   const plannedSession = planned && !["run", "yoga", "rest"].includes(planned) ? findSession(data, planned) : null;
   const done = isDone(data, date, planned);
   const hint = plannedSession?.session.note || data.programs[data.activeProgram]?.activityNotes?.[planned] || "";
@@ -259,13 +317,28 @@ export default function Today({ date, setDate, openWorkout, goTo }) {
               <span className="w-12 h-12 rounded-full bg-hero-ink/10 grid place-items-center text-hero-accent shrink-0"><Icon name={planned === "run" ? "run" : planned === "yoga" ? "yoga" : "dumbbell"} size={22} /></span>
             ) : null}
           </div>
+          {move && (
+            <div className="flex items-center justify-between gap-3 rounded-field bg-hero-ink/10 px-3 py-2 text-sm">
+              <span className="min-w-0">{move.pair ? t("move.movedWith", { day: fmtDate(move.pair, lang, { weekday: "long", day: "numeric" }) }) : t("moved")}</span>
+              <button type="button" className="shrink-0 font-semibold text-hero-accent py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hero-ink rounded" onClick={() => setEntries("moves", undoEntries(data, date))}>{t("move.undo")}</button>
+            </div>
+          )}
           {planned && planned !== "rest" && (
             <button type="button" className="inline-flex items-center justify-center gap-2 rounded-field px-4 py-3 font-semibold text-sm bg-hero-accent text-hero active:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hero-ink" onClick={() => openWorkout(date, planned)}>
               {sess ? (doneSets >= plannedSets ? t("openLog") : doneSets > 0 ? t("resume") : t("start")) : done ? t("openLog") : t("start")}
               <Icon name="chevronRight" size={18} />
             </button>
           )}
+          {planned && planned !== "rest" && !move && !moving && (
+            <button type="button" className="-mt-1 self-center text-sm font-semibold text-hero-muted py-1 px-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hero-ink" onClick={() => setMovingFrom(date)}>
+              {t("move.open")}
+            </button>
+          )}
         </section>
+      )}
+
+      {moving && planned && planned !== "rest" && !move && (
+        <MoveDay date={date} planned={planned} onClose={(to) => { setMovingFrom(null); if (to) setDate(to); }} />
       )}
 
       <Card title={t("body")}>

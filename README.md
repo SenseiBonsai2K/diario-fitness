@@ -93,11 +93,13 @@ app opens empty and is filled by importing a backup file. Backup files are git-i
 ## Data and backups
 
 - Backup file: `{ app: "diario-fitness", exportedAt, data }`, where `data` is the whole document:
-  `version` (3), `profile` (targets, weekly-advice `rules`, `zone2` heart-rate band), `programs`
+  `version` (4), `profile` (targets, weekly-advice `rules`, `zone2` heart-rate band), `programs`
   (each with `sessions[].exercises[]`, `week`, `notes`, `volume`), `activeProgram`, `diets` and
   `activeDiet` (shape below), `plan` (`sections[]`, `yoga`), `history[]`, `archive[]`
   (`{ at, kind: "plan" | "profile" | "program" | "diet", id?, data }`), `prefs` (`lang`), `meta`,
-  and the logs `days`, `workouts`, `runs`, `yoga`, `weeks`, `months`.
+  and the logs `days`, `workouts`, `runs`, `yoga`, `weeks`, `months`, `moves`.
+  `moves[d] = { activity, pair }` overrides the weekly scheme on one date only ("move Lower B from
+  Friday to Saturday", swapping or leaving a rest day); `plannedOn` in `src/lib/program.js` reads it.
 - Diet: `{ id, name, author?, startDate?, endDate?, note?, targets?: { kcal, prot, carb, fat },
   week?: { "0".."6": dayId }, days: [{ id, name, note?, targets?, meals: [{ name, time?, note?,
   items: [{ food, qty?, unit?, note?, alt?: [] }], options?: [{ name, items }] }] }],

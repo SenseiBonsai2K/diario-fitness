@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, Grid, Icon, NumField, Ring, TextField } from "../components/ui.jsx";
-import { EXTRA_ACTIVITIES, activeProgram, activityLabel, findSession, fmtRest, plannedFor, sessionsOf } from "../lib/program.js";
-import { fmtDate, parseIso } from "../lib/dates.js";
+import { EXTRA_ACTIVITIES, activeProgram, activityLabel, findSession, fmtRest, plannedOn, sessionsOf } from "../lib/program.js";
+import { fmtDate } from "../lib/dates.js";
 import { fmtDuration, lastPerformance, num, parseDuration, shouldIncrease } from "../lib/stats.js";
 import { useStore } from "../lib/store.jsx";
 import { DateStepper } from "./Today.jsx";
@@ -14,7 +14,7 @@ function defaultActivity(data, date) {
   if (data.workouts[date]?.session) return data.workouts[date].session;
   if (data.runs[date]) return "run";
   if (data.yoga[date]) return "yoga";
-  const planned = plannedFor(data, parseIso(date).getDay());
+  const planned = plannedOn(data, date);
   if (planned && planned !== "rest") return planned;
   return sessionsOf(activeProgram(data))[0]?.id || "run";
 }
