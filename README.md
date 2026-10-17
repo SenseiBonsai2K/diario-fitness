@@ -102,6 +102,8 @@ app opens empty and is filled by importing a backup file. Backup files are git-i
   moved on its own (add to the target day, swap, or replace) and any day can be changed again; a day
   whose list matches the scheme again loses its entry. Older entries may carry `activity` and `pair`
   (ignored). `plannedListOn` in `src/lib/program.js` reads it; restore works per day or per week.
+  `days[d].menu = "<dietDayId>"` gives one date another diet day's menu (take it, or swap the two
+  dates); `src/lib/diet.js` reads it, and the entry is dropped when it matches the diet's scheme again.
   More than one lifting session a day: the first lives in `workouts[d]` itself, the others in
   `workouts[d].more[sessionId]` with the same shape; `liftLogs` in `src/lib/stats.js` returns them all.
 - Diet: `{ id, name, author?, startDate?, endDate?, note?, targets?: { kcal, prot, carb, fat },

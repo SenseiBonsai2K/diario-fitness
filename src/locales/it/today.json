@@ -68,5 +68,16 @@
     "lead": "Si aggiunge solo a questo giorno: lo schema della settimana resta com'è.",
     "count_one": "{{count}} sessione",
     "count_other": "{{count}} sessioni"
+  },
+  "menu": {
+    "open": "Cambia menu",
+    "title": "Mangia il menu di un altro giorno",
+    "lead": "Cambiano solo queste date: lo schema della dieta resta com'è.",
+    "from": "Giorno",
+    "same": "stesso menu",
+    "take": "{{here}}: menu di {{day}}",
+    "swap": "Scambia i menu di {{here}} e {{day}}",
+    "changed": "Menu cambiato rispetto al piano.",
+    "restore": "Ripristina menu"
   }
 }

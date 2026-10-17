@@ -5,6 +5,7 @@ import { activeProgram, activityLabel, addEntry, findSession, moveEntries, plann
 import { hasPlan } from "../lib/storage.js";
 import { addDays, fmtDate, iso, mondayOf, parseIso, today, weekDays } from "../lib/dates.js";
 import { num, rangeAvg, sessionLog } from "../lib/stats.js";
+import { dietDayIdOn, dietDayOn, menuChanged, menuEntries } from "../lib/diet.js";
 import { useStore } from "../lib/store.jsx";
 
 const SCALE = [1, 2, 3, 4, 5].map((v) => ({ value: v, label: String(v) }));
@@ -110,11 +111,14 @@ function WeekStrip({ date, setDate }) {
 function TodayMenu({ date, goTo }) {
   const { t, i18n } = useTranslation("today");
   const { data, patch } = useStore();
+  // The "change menu" panel belongs to the day it was opened on.
+  const [changingOn, setChangingOn] = useState(null);
   const diet = data.diets[data.activeDiet];
   if (!diet) return null;
-  const wd = String(parseIso(date).getDay());
-  const day = diet.days.find((d) => d.id === diet.week?.[wd]) || (diet.days.length === 1 ? diet.days[0] : null);
+  const day = dietDayOn(data, date);
   if (!day) return null;
+  const changed = menuChanged(data, date);
+  const canChange = diet.days.length > 1;
   const n = (v) => (typeof v === "number" ? v.toLocaleString(i18n.language, { maximumFractionDigits: 1 }) : v);
   const qty = (it) => [it.qty !== undefined && it.qty !== null ? n(it.qty) : null, it.unit].filter(Boolean).join(" ");
   const openDiet = () => { try { sessionStorage.setItem("diario-fitness:planTab", "diet"); } catch { /* ignore */ } goTo("plan"); };
@@ -150,6 +154,14 @@ function TodayMenu({ date, goTo }) {
         <span className={`text-xs font-semibold num shrink-0 ${doneCount === allKeys.length ? "text-good" : "text-muted"}`}>{t("foodsDone", { done: doneCount, total: allKeys.length })}</span>
       </div>
       <Meter value={doneCount} target={allKeys.length || 1} tone={doneCount === allKeys.length ? "good" : undefined} />
+      {canChange && (changed || changingOn !== date) && (
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+          {changed && <span className="text-muted">{t("menu.changed")}</span>}
+          {changed && <button type="button" className="font-semibold text-accent py-1" onClick={() => patch("days", date, { menu: null })}>{t("menu.restore")}</button>}
+          {changingOn !== date && <button type="button" className="font-semibold text-accent py-1" onClick={() => setChangingOn(date)}>{t("menu.open")}</button>}
+        </div>
+      )}
+      {canChange && changingOn === date && <ChangeMenu date={date} onClose={() => setChangingOn(null)} />}
       <div className="flex flex-col">
         {meals.map(({ m, items }, mi) => {
           const keys = items.map((i) => i.key);
@@ -197,6 +209,53 @@ function TodayMenu({ date, goTo }) {
         })}
       </div>
     </Card>
+  );
+}
+
+/**
+ * Eat another day's menu today (Sunday's on Saturday): take it, keeping the
+ * other day as it is, or swap the two days. Only those dates change; the
+ * diet's weekly scheme stays as it is.
+ */
+function ChangeMenu({ date, onClose }) {
+  const { t, i18n } = useTranslation("today");
+  const { data, patch } = useStore();
+  const [other, setOther] = useState(null);
+  const lang = i18n.language;
+  const day = (d) => fmtDate(d, lang, { weekday: "short", day: "numeric" });
+  const name = (d) => dietDayOn(data, d)?.name || "—";
+  const mine = dietDayIdOn(data, date);
+  // Three days back, a week ahead, like moving a session.
+  const options = Array.from({ length: 11 }, (_, i) => iso(addDays(parseIso(date), i - 3))).filter((d) => d !== date);
+  const apply = (swap) => {
+    for (const [d, menu] of Object.entries(menuEntries(data, date, other, swap))) patch("days", d, { menu });
+    onClose();
+  };
+  return (
+    <div className="rounded-field border border-line bg-bg p-3 flex flex-col gap-3">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-sm font-semibold">{t("menu.title")}</span>
+        <button type="button" onClick={onClose} aria-label={t("move.cancel")} className="w-8 h-8 -mr-1 grid place-items-center rounded-full text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"><Icon name="close" size={16} /></button>
+      </div>
+      <p className="text-xs text-muted -mt-2">{t("menu.lead")}</p>
+      <div role="radiogroup" aria-label={t("menu.from")} className="scroller !mx-0 !px-0">
+        {options.map((d) => {
+          const same = dietDayIdOn(data, d) === mine;
+          return (
+            <button key={d} type="button" role="radio" aria-checked={other === d} disabled={same} onClick={() => setOther(d)} className="chip flex-col !items-start !gap-0 py-1.5 max-w-[11rem] disabled:opacity-40">
+              <span className="num">{day(d)}{menuChanged(data, d) ? " •" : ""}</span>
+              <span className="text-[0.7rem] font-normal opacity-80 truncate max-w-full">{same ? t("menu.same") : name(d)}</span>
+            </button>
+          );
+        })}
+      </div>
+      {other && (
+        <div className="flex flex-col gap-2">
+          <button type="button" className="btn w-full" onClick={() => apply(false)}>{t("menu.take", { here: day(date), day: day(other) })}</button>
+          <button type="button" className="btn-ghost w-full" onClick={() => apply(true)}>{t("menu.swap", { here: day(date), day: day(other) })}</button>
+        </div>
+      )}
+    </div>
   );
 }
 

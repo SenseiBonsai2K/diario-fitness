@@ -34,6 +34,8 @@ Done
 - Chained moves (16 Oct 2026): every activity moves on its own and changed days can be changed again
   (Lower B to Saturday, then the run to Sunday with yoga); remove one activity from a day; restore
   a day or the whole week.
+- Change a day's menu (17 Oct 2026): from Today's menu, eat another date's menu (e.g. Sunday's on
+  Saturday) or swap the two; stored as `days[d].menu`, restorable, the diet's scheme unchanged.
 
 Next
 - Weekly backup reminder as a notification instead of a banner.

@@ -68,5 +68,16 @@
     "lead": "Added to this day only: the weekly scheme stays as it is.",
     "count_one": "{{count}} session",
     "count_other": "{{count}} sessions"
+  },
+  "menu": {
+    "open": "Change menu",
+    "title": "Eat another day's menu",
+    "lead": "Only these dates change: the diet's weekly scheme stays as it is.",
+    "from": "Day",
+    "same": "same menu",
+    "take": "{{here}}: {{day}}'s menu",
+    "swap": "Swap the menus of {{here}} and {{day}}",
+    "changed": "Menu changed from the plan.",
+    "restore": "Restore menu"
   }
 }
