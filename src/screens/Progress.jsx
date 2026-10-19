@@ -4,7 +4,7 @@ import { Card, Grid, NumField, Segmented, Stat, Stepper, TextField } from "../co
 import { LineChart } from "../components/LineChart.jsx";
 import { exerciseNames, weeklyTargets } from "../lib/program.js";
 import { addDays, fmtDate, fmtMonth, iso, isoWeek, monthKey, parseIso, today } from "../lib/dates.js";
-import { adviceKey, avg, currentMonday, exerciseSeries, fmtDuration, num, runSeries, runTotals, waistSeries, weekStats, weeklyKmSeries, weightSeries } from "../lib/stats.js";
+import { adviceKey, avg, currentMonday, exerciseSeries, fmtDuration, liftLogs, num, runSeries, runTotals, waistSeries, weekStats, weeklyKmSeries, weightSeries } from "../lib/stats.js";
 import { useStore } from "../lib/store.jsx";
 
 export default function Progress() {
