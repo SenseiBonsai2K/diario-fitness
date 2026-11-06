@@ -6,7 +6,7 @@ import { BACKUP_APP, SCHEMA_VERSION } from "./storage.js";
 
 export const WEEK_KEYS = ["1", "2", "3", "4", "5", "6", "0"]; // Monday first; "0" = Sunday
 export const DIET_DAY_IDS = ["lun", "mar", "mer", "gio", "ven", "sab", "dom"];
-export const ACTIVITIES = ["run", "yoga", "rest"];
+export const ACTIVITIES = ["rest"];
 export const PHASES = ["cut", "maintain", "bulk", "minicut"];
 export const PROFILE_FIELDS = ["kcal", "prot", "carb", "fat", "maintenance", "goalWeight", "goalBf", "heightCm", "startWeight", "startBf"];
 /** Bumped when the draft shape changes, so an old saved draft is replaced instead of misread. */
@@ -60,9 +60,6 @@ export const blankOption = (name = "") => ({ name, items: [blankItem()] });
 export const blankSubstitution = () => ({ food: "", alt: [], note: "" });
 export const blankVolume = () => ({ name: "", sets: "", detail: "" });
 export const blankSection = () => ({ id: "", title: "", paragraphs: [], bullets: [], numbered: [], table: "", note: "" });
-export const blankPose = () => ({ id: "", name: "", hold: "" });
-export const blankYogaBlock = () => ({ name: "", poses: [blankPose()] });
-export const blankYoga = () => ({ title: "", intro: "", why: "", blocks: [blankYogaBlock()] });
 
 /** Tables are edited as text: one line per row, cells split by "|", first line = header. */
 export function tableToText(t) {
@@ -84,12 +81,7 @@ export function editableSection(s) {
 
 export function editablePlan(plan) {
   const p = isObj(plan) ? clone(plan) : {};
-  const y = isObj(p.yoga) ? p.yoga : null;
-  return {
-    ...p,
-    sections: (Array.isArray(p.sections) ? p.sections : []).map(editableSection),
-    yoga: y ? { ...y, title: str(y.title), intro: str(y.intro), why: str(y.why), blocks: (y.blocks || []).map((b) => ({ ...b, name: str(b.name), poses: (b.poses || []).map((x) => ({ ...x, id: str(x.id), name: str(x.name), hold: str(x.hold) })) })) } : null,
-  };
+  return { ...p, sections: (Array.isArray(p.sections) ? p.sections : []).map(editableSection), yoga: null };
 }
 
 export function blankProgram(todayIso) {
@@ -97,7 +89,6 @@ export function blankProgram(todayIso) {
     id: `scheda-${todayIso.slice(0, 7)}`, name: "", author: "", goal: "",
     startDate: nextMonday(todayIso), endDate: null,
     week: { 0: "rest", 1: "rest", 2: "rest", 3: "rest", 4: "rest", 5: "rest", 6: "rest" },
-    activityNotes: { run: "", yoga: "" },
     sessions: [blankSession()],
     notes: [],
   };
@@ -155,7 +146,6 @@ export function editableProfile(p = {}) {
   const r = isObj(p.rules) ? p.rules : {};
   out.rules = Object.fromEntries([...RULE_FIELDS, "step"].map((k) => [k, str(r[k])]));
   out.startDate = str(p.startDate);
-  out.zone2 = { min: str(p.zone2?.min), max: str(p.zone2?.max) };
   return out;
 }
 
@@ -249,11 +239,6 @@ export function buildPlanFile(draft, base, now = new Date()) {
     if (str(p.rules?.step).trim()) rules.step = str(p.rules.step).trim();
     if (Object.keys(rules).length) out.rules = { ...(isObj(base?.profile?.rules) ? base.profile.rules : {}), ...rules };
     if (str(p.startDate)) out.startDate = str(p.startDate);
-    const z = { min: num(p.zone2?.min), max: num(p.zone2?.max) };
-    if (z.min !== undefined || z.max !== undefined) {
-      if (z.min === undefined || z.max === undefined || z.min >= z.max) error("zone2", "profile");
-      else out.zone2 = z;
-    }
     if (out.kcal && out.prot && out.carb && out.fat) {
       const calc = macroKcal(out.prot, out.carb, out.fat);
       if (Math.abs(calc - out.kcal) > KCAL_TOLERANCE) warn("macroMismatch", "profile", { calc, kcal: out.kcal });
@@ -432,31 +417,9 @@ export function buildPlanFile(draft, base, now = new Date()) {
     parts.push("plan");
     const p = clone(draft.plan || {});
     const sections = cleanSections(p.sections, "plan", add);
-    let yoga = null;
-    if (p.yoga) {
-      yoga = { ...p.yoga };
-      ["title", "intro", "why"].forEach((k) => trimOrDrop(yoga, k));
-      const poseIds = new Set();
-      yoga.blocks = (yoga.blocks || []).map((b, bi) => {
-        const x = { ...b, name: str(b.name).trim() };
-        if (!x.name) error("yogaBlockNoName", "plan", { n: bi + 1 });
-        x.poses = (b.poses || []).filter((q) => str(q.id).trim() || str(q.name).trim()).map((q) => {
-          const o = { ...q, id: str(q.id).trim(), name: str(q.name).trim() };
-          if (!o.id) error("poseNoId", "plan", { name: o.name || "?" });
-          else if (poseIds.has(o.id)) error("poseIdTwice", "plan", { id: o.id });
-          poseIds.add(o.id);
-          if (!o.name) error("poseNoName", "plan", { id: o.id || "?" });
-          trimOrDrop(o, "hold");
-          return o;
-        });
-        return x;
-      });
-      const before = new Set((base?.plan?.yoga?.blocks || []).flatMap((b) => (b.poses || []).map((q) => q.id)));
-      for (const id of before) if (!poseIds.has(id)) warn("poseRemoved", "plan", { id });
-    }
-    if (!sections.length && !yoga) warn("planEmpty", "plan");
+    if (!sections.length) warn("planEmpty", "plan");
     const { sections: _s, yoga: _y, ...rest } = p;
-    data.plan = { ...rest, updatedAt: iso(now), sections, yoga };
+    data.plan = { ...rest, updatedAt: iso(now), sections, yoga: null };
   }
 
   if (inc.history) {

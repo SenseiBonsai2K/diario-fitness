@@ -63,11 +63,12 @@ describe("full backup coverage", () => {
     d.activeProgram = "p";
     d.diets = { d1: sampleDiet() };
     d.activeDiet = "d1";
-    d.plan = { sections: [{ id: "s", title: "Corsa" }], yoga: { title: "Yoga", blocks: [] }, updatedAt: "2026-10-10", extra: 1 };
+    d.plan = { sections: [{ id: "s", title: "Corsa" }], yoga: null, updatedAt: "2026-10-10", extra: 1 };
+    d.game = { startDate: "2026-11-09", routine: { 1: [{ type: "steps", target: 9000, mode: "prop" }] }, seen: { level: 3, tier: 0 } };
     d.history = [{ date: "2026-10-10", title: "x" }];
     d.archive = [{ at: "2026-10-01", kind: "plan", data: { sections: [] } }];
-    d.prefs = { lang: "it", bg: "dark", accent: "teal" };
-    for (const c of ["days", "workouts", "runs", "yoga", "weeks", "months"]) d[c] = { k: { v: 1 } };
+    d.prefs = { lang: "it", bg: "dark", accent: "teal", style: "cyber" };
+    for (const c of ["days", "workouts", "weeks", "months", "questDays"]) d[c] = { k: { v: 1 } };
     const restored = normalise(JSON.parse(JSON.stringify(toBackup(d))));
     expect(restored).toEqual({ ...d, version: SCHEMA_VERSION });
   });
@@ -152,7 +153,49 @@ describe("hasLogs", () => {
     const { hasLogs } = await import("./storage.js");
     const d = emptyData();
     expect(hasLogs(d)).toBe(false);
-    d.runs["2026-10-14"] = { km: 10 };
+    d.questDays["2026-10-14"] = { quests: [] };
     expect(hasLogs(d)).toBe(true);
+  });
+});
+
+describe("v5: running and yoga removed", () => {
+  it("drops their logs, the yoga routine, zone 2 and run/yoga days, in the archive too", () => {
+    const out = normalise({
+      version: 4,
+      profile: { kcal: 2200, zone2: { min: 120, max: 140 } },
+      programs: { p: { id: "p", week: { 0: "yoga", 1: "upperA", 3: "run" }, activityNotes: { run: "Z2", yoga: "50'" }, sessions: [{ id: "upperA", exercises: [] }] } },
+      plan: { sections: [{ id: "s", title: "Fasi" }], yoga: { title: "Yoga", blocks: [] } },
+      runs: { "2026-10-14": { km: 10 } },
+      yoga: { "2026-10-18": { done: true } },
+      moves: {
+        "2026-10-16": { activities: ["rest"] },
+        "2026-10-17": { activities: ["lowerB", "run"] },
+        "2026-10-18": { activities: ["run", "yoga"] },
+      },
+      archive: [
+        { at: "2026-10-01", kind: "plan", data: { sections: [], yoga: { title: "Yoga" } } },
+        { at: "2026-10-01", kind: "profile", data: { kcal: 2300, zone2: { min: 1, max: 2 } } },
+      ],
+    });
+    expect(out.runs).toBeUndefined();
+    expect(out.yoga).toBeUndefined();
+    expect(out.profile.zone2).toBeUndefined();
+    expect(out.profile.kcal).toBe(2200);
+    expect(out.plan.yoga).toBeNull();
+    expect(out.programs.p.week).toEqual({ 0: "rest", 1: "upperA", 3: "rest" });
+    expect(out.programs.p.activityNotes).toBeUndefined();
+    expect(out.moves).toEqual({ "2026-10-16": { activities: ["rest"] }, "2026-10-17": { activities: ["lowerB"] } });
+    expect(out.archive[0].data.yoga).toBeNull();
+    expect(out.archive[1].data).toEqual({ kcal: 2300 });
+    expect(out.game).toEqual({ startDate: null, routine: null, seen: null });
+  });
+
+  it("takes the quest routine from a plan file and archives the one it replaces", () => {
+    const current = emptyData();
+    current.game = { startDate: "2026-11-09", routine: { 1: [] }, seen: null };
+    const incoming = normalise({ version: 5, game: { routine: { 1: [{ type: "steps" }] } } });
+    const out = mergePlan(current, incoming);
+    expect(out.game).toEqual({ startDate: "2026-11-09", routine: { 1: [{ type: "steps" }] }, seen: null });
+    expect(out.archive.at(-1)).toMatchObject({ kind: "routine", data: { 1: [] } });
   });
 });

@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, Grid, Icon, NumField, Ring, TextField } from "../components/ui.jsx";
-import { EXTRA_ACTIVITIES, activeProgram, activityLabel, findSession, fmtRest, plannedOn, sessionsOf } from "../lib/program.js";
+import { activeProgram, activityLabel, findSession, fmtRest, plannedOn, sessionsOf } from "../lib/program.js";
 import { fmtDate } from "../lib/dates.js";
-import { fmtDuration, lastPerformance, liftLogs, num, parseDuration, shouldIncrease } from "../lib/stats.js";
+import { lastPerformance, liftLogs, num, shouldIncrease } from "../lib/stats.js";
 import { useStore } from "../lib/store.jsx";
 import { DateStepper } from "./Today.jsx";
 import { useRestTimer } from "../components/RestTimer.jsx";
@@ -12,11 +12,9 @@ import { useRestTimer } from "../components/RestTimer.jsx";
 /** What the day's log already contains, else what the weekly plan says. */
 function defaultActivity(data, date) {
   if (data.workouts[date]?.session) return data.workouts[date].session;
-  if (data.runs[date]) return "run";
-  if (data.yoga[date]) return "yoga";
   const planned = plannedOn(data, date);
   if (planned && planned !== "rest") return planned;
-  return sessionsOf(activeProgram(data))[0]?.id || "run";
+  return sessionsOf(activeProgram(data))[0]?.id || null;
 }
 
 export default function Workout({ date, setDate, activity, setActivity }) {
@@ -24,14 +22,12 @@ export default function Workout({ date, setDate, activity, setActivity }) {
   const { data } = useStore();
   const current = activity || defaultActivity(data, date);
   const program = activeProgram(data);
-  const ids = [...sessionsOf(program).map((x) => x.id), ...EXTRA_ACTIVITIES];
+  const ids = sessionsOf(program).map((x) => x.id);
   // A log from an older program still opens with that program's session.
-  if (!ids.includes(current) && findSession(data, current)) ids.unshift(current);
+  if (current && !ids.includes(current) && findSession(data, current)) ids.unshift(current);
   const logged = new Set(liftLogs(data.workouts[date]).filter((l) => Object.values(l.sets).some((r) => r.some((x) => x.done))).map((l) => l.session));
-  if (num(data.runs[date]?.km)) logged.add("run");
-  if (data.yoga[date]?.done) logged.add("yoga");
   for (const id of logged) if (!ids.includes(id) && findSession(data, id)) ids.unshift(id);
-  const found = !EXTRA_ACTIVITIES.includes(current) ? findSession(data, current, data.workouts[date]?.program) : null;
+  const found = current ? findSession(data, current, data.workouts[date]?.program) : null;
 
   // Changing day resets the manual choice so the new day opens on its own plan.
   const changeDate = (d) => { setActivity(null); setDate(d); };
@@ -54,10 +50,8 @@ export default function Workout({ date, setDate, activity, setActivity }) {
           </button>
         ))}
       </div>
-      {!program && !found && !EXTRA_ACTIVITIES.includes(current) && <p className="card text-sm">{t("noProgram")}</p>}
+      {!program && !found && <p className="card text-sm">{t("noProgram")}</p>}
       {found && <LiftSession key={`${date}-${current}`} date={date} session={found.session} programId={found.program.id} />}
-      {current === "run" && <RunLog date={date} />}
-      {current === "yoga" && <YogaLog date={date} />}
     </>
   );
 }
@@ -295,92 +289,6 @@ function Row({ n, row, placeholderKg, placeholderReps, onKg, onReps, onToggle, e
       >
         <Icon name="check" />
       </button>
-    </>
-  );
-}
-
-
-function RunLog({ date }) {
-  const { t } = useTranslation("workout");
-  const { data, patch } = useStore();
-  const r = data.runs[date] || {};
-  const set = (k) => (v) => patch("runs", date, { [k]: v });
-  const km = num(r.km), sec = parseDuration(r.durata);
-  const pace = km && sec ? sec / km : null;
-  const paceStr = pace ? `${fmtDuration(pace)} /km` : "—";
-  const timeBad = r.durata && String(r.durata).trim() && !sec;
-  const fc = num(r.fc);
-  const z2 = data.profile.zone2;
-
-  return (
-    <>
-      <h1 className="h-display text-3xl">{t("common:activity.run")}</h1>
-      {z2 && <p className="text-sm text-muted">{t("runHint", { min: z2.min, max: z2.max })}</p>}
-      <Card>
-        <Grid>
-          <NumField label={t("distance")} unit="km" value={r.km} onChange={set("km")} placeholder="" />
-          <div className="flex flex-col gap-1 min-w-0">
-            <label htmlFor="run-time" className="label">{t("duration")} <span className="font-mono text-[0.7rem]">{t("durationFormat")}</span></label>
-            <input id="run-time" className="input font-mono" type="text" inputMode="decimal" autoComplete="off" value={r.durata ?? ""} placeholder="52,30" aria-invalid={timeBad || undefined} aria-describedby="run-time-hint" onChange={(e) => set("durata")(e.target.value)} />
-            <span id="run-time-hint" className={`text-xs ${timeBad ? "text-warn" : "text-muted"}`}>{timeBad ? t("durationInvalid") : sec ? t("durationRead", { value: fmtDuration(sec) }) : t("durationHelp")}</span>
-          </div>
-          <NumField label={t("avgHr")} unit="bpm" decimal={false} value={r.fc} onChange={set("fc")} placeholder="" hint={fc && z2 ? (fc > z2.max ? t("hrHigh") : t("hrOk")) : undefined} />
-          <div className="flex flex-col gap-1 min-w-0">
-            <span className="label">{t("pace")}</span>
-            <span className="input font-mono bg-raised border-transparent">{paceStr}</span>
-          </div>
-        </Grid>
-        <TextField label={t("sessionNotes")} multiline value={r.note} onChange={set("note")} placeholder={t("runNotesPlaceholder")} />
-      </Card>
-    </>
-  );
-}
-
-function YogaLog({ date }) {
-  const { t } = useTranslation("workout");
-  const { data, patch } = useStore();
-  const y = data.yoga[date] || {};
-  const ticked = y.poses || [];
-  const routine = data.plan.yoga;
-  const tick = (id) => {
-    const next = ticked.includes(id) ? ticked.filter((x) => x !== id) : [...ticked, id];
-    patch("yoga", date, { poses: next.length ? next : null });
-  };
-
-  return (
-    <>
-      <div className="flex items-baseline justify-between gap-3">
-        <h1 className="h-display text-3xl">{t("common:activity.yoga")}</h1>
-      </div>
-      {routine?.intro && <p className="text-sm text-muted">{routine.intro}</p>}
-      {!routine && <p className="text-sm text-muted">{t("yogaEmpty")}</p>}
-      {(routine?.blocks || []).map((block) => (
-        <Card key={block.name} title={block.name}>
-          <ul className="flex flex-col divide-y divide-line">
-            {block.poses.map((p) => {
-              const on = ticked.includes(p.id);
-              return (
-                <li key={p.id}>
-                  <button type="button" aria-pressed={on} onClick={() => tick(p.id)} className="w-full flex items-center gap-3 py-2.5 text-left focus-visible:outline-none focus-visible:bg-accent-soft rounded">
-                    <span className={`w-6 h-6 shrink-0 rounded-md border grid place-items-center ${on ? "bg-good border-good text-surface" : "border-line"}`}>
-                      {on && <Icon name="check" size={14} />}
-                    </span>
-                    <span className={`flex-1 min-w-0 ${on ? "text-muted line-through" : ""}`}>{p.name}</span>
-                    <span className="text-xs text-muted font-mono num shrink-0">{p.hold}</span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </Card>
-      ))}
-      <Card>
-        <NumField label={t("minutes")} unit="min" decimal={false} value={y.minuti} onChange={(v) => patch("yoga", date, { minuti: v })} placeholder="" />
-        <TextField label={t("sessionNotes")} multiline value={y.note} onChange={(v) => patch("yoga", date, { note: v })} />
-        <button type="button" className={y.done ? "btn-ghost w-full" : "btn w-full"} onClick={() => patch("yoga", date, { done: y.done ? null : true })}>
-          {y.done ? <><Icon name="check" size={18} />{t("yogaDone")}</> : t("markYogaDone")}
-        </button>
-      </Card>
     </>
   );
 }

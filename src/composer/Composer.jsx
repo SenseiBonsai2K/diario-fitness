@@ -366,13 +366,6 @@ function Profile({ draft, update }) {
         </div>
       </details>
       <details className="rounded-field border border-line p-3">
-        <summary className="text-sm font-semibold cursor-pointer">{t("profile.zone2")}</summary>
-        <div className="grid grid-cols-2 gap-3 pt-3">
-          <NumField label={t("fields.zone2Min")} unit="bpm" decimal={false} {...b("profile.zone2.min")} />
-          <NumField label={t("fields.zone2Max")} unit="bpm" decimal={false} {...b("profile.zone2.max")} />
-        </div>
-      </details>
-      <details className="rounded-field border border-line p-3">
         <summary className="text-sm font-semibold cursor-pointer">{t("profile.rules")}</summary>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-3">
           {C.RULE_FIELDS.map((k) => <NumField key={k} label={t(`fields.${k}`)} unit={t("profile.perWeek")} {...b(`profile.rules.${k}`)} />)}
@@ -433,10 +426,6 @@ function Program({ draft, update, base, dayNames }) {
       <Card title={t("program.week")}>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {C.WEEK_KEYS.map((k, i) => <Select key={k} label={dayNames[i]} options={sessionOptions} {...b(`program.week.${k}`)} />)}
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Field label={t("program.runNote")} {...b("program.activityNotes.run")} />
-          <Field label={t("program.yogaNote")} {...b("program.activityNotes.yoga")} />
         </div>
       </Card>
 
@@ -714,45 +703,12 @@ function SectionsEditor({ title, path, sections, section, draft, update }) {
 function PlanText({ draft, update }) {
   const { t } = useTranslation("composer");
   const P = draft.plan || { sections: [], yoga: null };
-  const b = (p) => bind(draft, update, `plan.${p}`, "plan");
-  const yoga = (fn) => update((d) => fn(d.plan.yoga), "plan");
   return (
     <>
       <Card title={t("plan.title")} aside={<IncludeToggle section="plan" draft={draft} update={update} />}>
         <p className="text-sm text-muted">{t("plan.lead")}</p>
       </Card>
       <SectionsEditor title={t("plan.sections")} path="plan.sections" sections={P.sections || []} section="plan" draft={draft} update={update} />
-      <Card title={t("plan.yoga")}>
-        {!P.yoga ? (
-          <button type="button" className="btn-ghost" onClick={() => update((d) => { d.plan ||= { sections: [] }; d.plan.yoga = C.blankYoga(); }, "plan")}>{t("plan.addYoga")}</button>
-        ) : (
-          <>
-            <Field label={t("fields.title")} {...b("yoga.title")} />
-            <TextField multiline label={t("plan.yogaIntro")} {...b("yoga.intro")} />
-            <p className="text-xs text-muted">{t("plan.poseIdsHint")}</p>
-            {P.yoga.blocks.map((blk, bi) => (
-              <div key={bi} className="rounded-field border border-line bg-bg p-3 flex flex-col gap-3">
-                <div className="flex items-end gap-2">
-                  <Field label={t("plan.block")} {...b(`yoga.blocks.${bi}.name`)} className="flex-1" />
-                  <IconButton label={t("plan.removeBlock")} icon="close" onClick={() => yoga((y) => { y.blocks.splice(bi, 1); })} />
-                </div>
-                {blk.poses.map((q, qi) => (
-                  <div key={qi} className="grid grid-cols-[1fr_5rem_auto] sm:grid-cols-[2fr_1fr_5rem_auto] gap-2 items-end border-t border-line/70 pt-3">
-                    <Field label={t("plan.pose")} {...b(`yoga.blocks.${bi}.poses.${qi}.name`)} className="col-span-3 sm:col-span-1" />
-                    <Field label={t("plan.poseId")} mono {...b(`yoga.blocks.${bi}.poses.${qi}.id`)} />
-                    <Field label={t("plan.hold")} {...b(`yoga.blocks.${bi}.poses.${qi}.hold`)} placeholder="1'" />
-                    <IconButton label={t("plan.removePose")} icon="close" onClick={() => yoga((y) => { y.blocks[bi].poses.splice(qi, 1); })} />
-                  </div>
-                ))}
-                <button type="button" className="btn-ghost" onClick={() => yoga((y) => { y.blocks[bi].poses.push(C.blankPose()); })}>{t("plan.addPose")}</button>
-              </div>
-            ))}
-            <button type="button" className="btn-ghost" onClick={() => yoga((y) => { y.blocks.push(C.blankYogaBlock()); })}>{t("plan.addBlock")}</button>
-            <TextField multiline label={t("plan.yogaWhy")} {...b("yoga.why")} />
-            <ConfirmButton label={t("plan.removeYoga")} confirmLabel={t("confirmRemove")} onConfirm={() => update((d) => { d.plan.yoga = null; }, "plan")} />
-          </>
-        )}
-      </Card>
     </>
   );
 }

@@ -51,3 +51,13 @@ export function menuEntries(data, date, other, swap) {
   if (swap) out[other] = menuValue(data, other, mine);
   return out;
 }
+
+/**
+ * Every tickable food of the menu eaten on a date, as the keys stored in
+ * days[date].cibi ("<dayId>|<meal>|<item>"); a meal with options counts its first option.
+ */
+export function menuKeys(data, date) {
+  const day = dietDayOn(data, date);
+  if (!day) return [];
+  return day.meals.flatMap((m, mi) => [...(m.items || []), ...(m.options?.[0]?.items || [])].map((_, ii) => `${day.id}|${mi}|${ii}`));
+}

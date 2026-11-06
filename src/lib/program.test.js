@@ -9,7 +9,7 @@ function sample() {
   d.programs.p = {
     id: "p",
     sessions: [{ id: "lowerB", name: "Lower B", exercises: [] }],
-    week: { 0: "yoga", 1: "rest", 2: "rest", 3: "rest", 4: "rest", 5: "lowerB", 6: "run" },
+    week: { 0: "upperB", 1: "rest", 2: "rest", 3: "rest", 4: "rest", 5: "lowerB", 6: "lowerA" },
   };
   d.activeProgram = "p";
   return d;
@@ -28,7 +28,7 @@ describe("moving and adding", () => {
 
   it("swaps two days only on those dates", () => {
     const d = apply(sample(), moveEntries(sample(), "2026-10-16", "2026-10-17", "lowerB", "swap"));
-    expect(plannedListOn(d, "2026-10-16")).toEqual(["run"]);
+    expect(plannedListOn(d, "2026-10-16")).toEqual(["lowerA"]);
     expect(plannedListOn(d, "2026-10-17")).toEqual(["lowerB"]);
     expect(plannedOn(d, "2026-10-23")).toBe("lowerB");
   });
@@ -39,13 +39,13 @@ describe("moving and adding", () => {
     expect(plannedListOn(d, "2026-10-17")).toEqual(["lowerB"]);
   });
 
-  it("chains moves: Lower B to Saturday, then the run to Sunday with yoga", () => {
+  it("chains moves: Lower B to Saturday, then Lower A to Sunday with Upper B", () => {
     let d = apply(sample(), moveEntries(sample(), "2026-10-16", "2026-10-17", "lowerB", "both"));
-    expect(plannedListOn(d, "2026-10-17")).toEqual(["lowerB", "run"]);
-    d = apply(d, moveEntries(d, "2026-10-17", "2026-10-18", "run", "both"));
+    expect(plannedListOn(d, "2026-10-17")).toEqual(["lowerA", "lowerB"]);
+    d = apply(d, moveEntries(d, "2026-10-17", "2026-10-18", "lowerA", "both"));
     expect(plannedListOn(d, "2026-10-16")).toEqual(["rest"]);
     expect(plannedListOn(d, "2026-10-17")).toEqual(["lowerB"]);
-    expect(plannedListOn(d, "2026-10-18")).toEqual(["run", "yoga"]);
+    expect(plannedListOn(d, "2026-10-18")).toEqual(["upperB", "lowerA"]);
   });
 
   it("forgets a change that goes back to the scheme", () => {
@@ -56,7 +56,7 @@ describe("moving and adding", () => {
 
   it("restores one day or the whole week", () => {
     let d = apply(sample(), moveEntries(sample(), "2026-10-16", "2026-10-17", "lowerB", "both"));
-    d = apply(d, moveEntries(d, "2026-10-17", "2026-10-18", "run", "both"));
+    d = apply(d, moveEntries(d, "2026-10-17", "2026-10-18", "lowerA", "both"));
     expect(Object.keys(apply(d, undoEntries(d, "2026-10-18")).moves)).toEqual(["2026-10-16", "2026-10-17"]);
     expect(apply(d, undoEntries(d, ["2026-10-12", "2026-10-13", "2026-10-14", "2026-10-15", "2026-10-16", "2026-10-17", "2026-10-18"])).moves).toEqual({});
   });
@@ -69,18 +69,18 @@ describe("moving and adding", () => {
   });
 
   it("still reads older single-activity entries", () => {
-    const d = { ...sample(), moves: { "2026-10-16": { activity: "run", pair: "2026-10-17" } } };
-    expect(plannedListOn(d, "2026-10-16")).toEqual(["run"]);
+    const d = { ...sample(), moves: { "2026-10-16": { activity: "lowerA", pair: "2026-10-17" } } };
+    expect(plannedListOn(d, "2026-10-16")).toEqual(["lowerA"]);
   });
 
   it("adds and removes a session on one day, without duplicates", () => {
-    let d = apply(sample(), addEntry(sample(), "2026-10-16", "run"));
-    expect(plannedListOn(d, "2026-10-16")).toEqual(["lowerB", "run"]);
-    d = apply(d, addEntry(d, "2026-10-16", "run"));
-    expect(plannedListOn(d, "2026-10-16")).toEqual(["lowerB", "run"]);
+    let d = apply(sample(), addEntry(sample(), "2026-10-16", "lowerA"));
+    expect(plannedListOn(d, "2026-10-16")).toEqual(["lowerB", "lowerA"]);
+    d = apply(d, addEntry(d, "2026-10-16", "lowerA"));
+    expect(plannedListOn(d, "2026-10-16")).toEqual(["lowerB", "lowerA"]);
     d = apply(d, addEntry(d, "2026-10-12", "lowerB"));
     expect(plannedListOn(d, "2026-10-12")).toEqual(["lowerB"]);
-    d = apply(d, removeEntry(d, "2026-10-16", "run"));
+    d = apply(d, removeEntry(d, "2026-10-16", "lowerA"));
     expect(d.moves["2026-10-16"]).toBeUndefined();
   });
 });

@@ -1,7 +1,7 @@
 import { storeKey } from "../lib/ns.js";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { activityLabel, fmtRest } from "../lib/program.js";
+import { activityLabel, findSession, fmtRest } from "../lib/program.js";
 import { fmtDate } from "../lib/dates.js";
 import { num } from "../lib/stats.js";
 import { useStore } from "../lib/store.jsx";
@@ -76,7 +76,6 @@ function ArchivedItem({ a, data, t, lang, n }) {
             <Content s={s} />
           </div>
         ))}
-        {d.yoga?.blocks?.length > 0 && <p className="text-sm text-muted">{t("archive.yoga", { title: d.yoga.title || t("common:activity.yoga") })}</p>}
       </>
     );
   }
@@ -168,7 +167,7 @@ function ProgramTab({ program, data, t, lang }) {
           <div className="grid grid-cols-7 gap-1">
             {DAY_ORDER.map((d) => {
               const a = program.week[d];
-              const isSession = a && !["run", "yoga", "rest"].includes(a);
+              const isSession = a && a !== "rest" && !!findSession(data, a);
               const isToday = String(new Date().getDay()) === d;
               return (
                 <button
@@ -182,7 +181,7 @@ function ProgramTab({ program, data, t, lang }) {
                 >
                   <span className="text-[0.62rem] font-semibold uppercase opacity-70">{short.format(new Date(2026, 9, 11 + Number(d)))}</span>
                   <span className="text-[0.66rem] font-bold leading-none h-4 grid place-items-center">
-                    {isSession ? activityLabel(data, a, t).replace(/^(\w)\w*\s+(\w).*$/, "$1$2").slice(0, 3) : <Icon name={a === "run" ? "run" : a === "yoga" ? "yoga" : "rest"} size={14} />}
+                    {isSession ? activityLabel(data, a, t).replace(/^(\w)\w*\s+(\w).*$/, "$1$2").slice(0, 3) : <Icon name="rest" size={14} />}
                   </span>
                 </button>
               );
@@ -431,25 +430,6 @@ export default function Plan() {
               <Content s={s} />
             </Section>
           ))}
-          {data.plan.yoga && (
-            <Section title={data.plan.yoga.title || t("common:activity.yoga")}>
-              {data.plan.yoga.intro && <p>{data.plan.yoga.intro}</p>}
-              {data.plan.yoga.blocks?.map((b) => (
-                <div key={b.name} className="flex flex-col gap-1">
-                  <h3 className="eyebrow">{b.name}</h3>
-                  <ul className="flex flex-col">
-                    {b.poses.map((x) => (
-                      <li key={x.id} className="flex justify-between gap-3 border-t border-line/70 py-1.5 text-sm">
-                        <span>{x.name}</span>
-                        <span className="font-mono text-muted shrink-0">{x.hold}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-              {data.plan.yoga.why && <p className="text-sm text-muted">{data.plan.yoga.why}</p>}
-            </Section>
-          )}
         </>
       )}
 
