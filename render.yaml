@@ -1,0 +1,34 @@
+# Render blueprint for the push server (server/). Free plan: it sleeps when
+# idle, but the Supabase cron calls /api/v1/tick every minute, which keeps it
+# awake within the free 750 hours a month (one service).
+services:
+  - type: web
+    name: diario-fitness-push
+    runtime: python
+    plan: free
+    region: frankfurt
+    rootDir: server
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips="*"
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: APP_ENV
+        value: production
+      - key: ALLOWED_ORIGINS
+        value: https://senseibonsai2k.github.io
+      - key: DATABASE_URL
+        sync: false
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        sync: false
+      - key: REGISTER_KEY
+        generateValue: true
+      - key: CRON_SECRET
+        generateValue: true
+      - key: SENTRY_DSN
+        sync: false

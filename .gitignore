@@ -6,3 +6,6 @@ dist
 *backup*.json
 dati-iniziali*.json
 __pycache__/
+.env.server
+server/.env
+.venv/

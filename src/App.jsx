@@ -15,6 +15,7 @@ import Settings from "./screens/Settings.jsx";
 import Profile from "./screens/Profile.jsx";
 import Routine from "./screens/Routine.jsx";
 import { Hud, LevelUp } from "./components/game.jsx";
+import { NotifySync } from "./components/Notifications.jsx";
 
 const TABS = [
   { id: "today", icon: "today" },
@@ -101,6 +102,7 @@ export default function App() {
         </div>
       </nav>
       <LevelUp />
+      <NotifySync />
     </div>
   );
 }

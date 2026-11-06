@@ -86,7 +86,7 @@
   "appearance": {
     "title": "Appearance",
     "background": "Background",
-    "note": "Every background works with every colour: details adapt to stay readable. \"Auto\" follows your phone's light or dark theme. The choice is saved in the backup too.",
+    "note": "The detail colour adapts to the style to stay readable. The choice is saved in the backup too.",
     "bgs": {
       "auto": "Auto",
       "light": "Light",

@@ -3,7 +3,10 @@
 Personal training and nutrition diary run as a quest game (levels, ranks, streaks), installable on Android (Chrome) and iPhone (Safari →
 Add to Home Screen) as a web app (PWA). On iPhone there is no vibration and the rest alarm may not
 sound with the screen locked.
-It works offline and keeps every piece of data on the phone: nothing is sent to a server.
+It works offline and keeps every piece of data on the phone. The only exception is optional: the
+push server in `server/` (FastAPI on Render + Supabase) gets reminder rules, quiet hours and which
+quests are due/done for the next days, so reminders arrive with the app closed — never weights,
+food or workouts.
 
 - **Quest** (the first tab): an always-visible bar on top (rank emblem, level, XP, streak, jolly),
   the week strip (a dot on perfect days), **today's quests** — one per planned lifting session,
@@ -26,7 +29,24 @@ It works offline and keeps every piece of data on the phone: nothing is sent to 
   (the active program's `week`) and which quests are due with their target, partial rule,
   deadline and bonus flag (`game.routine`) — or one week at a time, where each date changes on
   its own (`moves` for sessions, `questDays[d] = { quests }` for quests) and can be restored.
-- **Profile**: emblem, rank, level and XP, streak and best streak, jolly, constancy (week, 30 days,
+- **Weekly, monthly and boss quests** (they earn XP and never cost any): every planned session of
+  the week (150), the week's steps (100), a perfect week (200), the monthly check (150), a month at
+  85% constancy (300), each personal record (75, at most 3 a day; a day's best estimated 1RM beating
+  every earlier day of that exercise), streaks of 7 (250) and 30 (1000) days. Shown under today's
+  quests. Achievements (28 trophies, each unlocking a title shown on the profile, `game.title`) and
+  RPG stats (strength, endurance, discipline, 1–99) are derived the same way.
+- **Styles** (`prefs.style`, `src/game-styles.css`): fantasy (Cinzel), system (Rajdhani) and
+  cyberpunk (Orbitron) repaint the dark neutrals and decoration; the app is always dark and keeps
+  the chosen accent. Each style has its own synthesised sounds (`src/lib/sfx.js`, over the music
+  like the timer), vibration patterns and wording; both switchable (`prefs.gameSound`,
+  `prefs.vibration`). Toasts announce done quests, records, trophies and earned period quests.
+- **Notifications** (Settings): turn on push for this phone (server address + the server's
+  registration key), choose reminders (workout, steps, weigh-in, water, diet, sleep, weekly check,
+  backup, streak at risk, weekly summary) with time and weekdays, and quiet hours
+  (`prefs.notifications`). `NotifySync` sends the server the rules and the next 8 days a few seconds
+  after any change and when the app goes to the background (`src/lib/notify.js`). The device id and
+  token stay in this phone's storage only. Server: see `server/README.md`.
+- **Profile**: emblem, rank, level and XP, title, stats, trophies, recent records, streak and best streak, jolly, constancy (week, 30 days,
   all time, per quest), the last 7 days' XP, the rank ladder and the rules.
 - **Workout**: the day's session from the plan (sticky progress header, superset pairs grouped,
   finished exercises collapse to a summary), with kg × reps for every set, last time's numbers,
@@ -64,8 +84,9 @@ It works offline and keeps every piece of data on the phone: nothing is sent to 
 - Sharing a backup (`src/lib/share.js`): Chrome on Android refuses `.json` files in the share
   sheet (it can even pass `canShare` and fail in `share`), so outside iPhone the backup is shared as
   `.txt` (same content); restore accepts `.json` and `.txt`.
-- **Settings** (gear in the top bar): game style, appearance (neutral background: auto, light, grey, dark, black; and one of sixteen
-  accent colours — eight soft, eight vivid — chosen separately; saved in `prefs.bg` / `prefs.accent` and in the backup), phase and targets, backup export (file or Android share sheet → Google Drive),
+- **Settings** (gear in the top bar): game style with sounds and vibration, accent colour (one of
+  sixteen, saved in `prefs.accent` and in the backup; the old background choice is ignored since v2),
+  notifications, phase and targets, backup export (file or Android share sheet → Google Drive),
   restore from a backup, language (Italian / English).
 
 ## Stack
@@ -75,8 +96,9 @@ React 18 + Vite + Tailwind CSS, react-i18next (English + Italian). No backend: d
 (`public/sw.js`) caches the app so it opens without a connection: the page is network-first (a new
 deploy is picked up right away when online), hashed assets are cache-first.
 
-Deliberately not included: Supabase, Sentry or any other service from the usual stack. The app
-has no server and no network calls, so there is nothing for them to do; errors stay on the device.
+The app itself has no server and stays usable fully offline; errors stay on the device (no Sentry in
+the app on purpose). The optional push server (`server/`, FastAPI + Supabase + Render, Sentry when
+`SENTRY_DSN` is set) only handles reminders.
 
 ## Appearance
 
@@ -94,8 +116,10 @@ npm run check:locales  # every key exists in both en and it
 npm run build          # static site in dist/
 ```
 
-One build variable, committed in `.env` (not a secret): `VITE_KEY_PREFIX`, the prefix of every
-key stored on the phone (`diario-fitness`). The preview build uses `diario-fitness-prova`.
+Build variables, committed in `.env` (not secrets; `.env.example` lists them too):
+`VITE_KEY_PREFIX`, the prefix of every key stored on the phone (`diario-fitness`; the preview build
+uses `diario-fitness-prova`), and `VITE_PUSH_SERVER`, the push server's address to prefill in
+Settings (empty = typed in the app). The push server's own variables are in `server/.env.example`.
 
 ## Deploy
 

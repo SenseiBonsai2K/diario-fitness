@@ -86,7 +86,7 @@
   "appearance": {
     "title": "Aspetto",
     "background": "Sfondo",
-    "note": "Ogni sfondo funziona con ogni colore: i dettagli si adattano per restare leggibili. \"Auto\" segue il tema chiaro o scuro del telefono. La scelta finisce anche nel backup.",
+    "note": "Il colore dei dettagli si adatta allo stile per restare leggibile. La scelta finisce anche nel backup.",
     "bgs": {
       "auto": "Auto",
       "light": "Chiaro",

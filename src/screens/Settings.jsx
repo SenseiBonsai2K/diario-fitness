@@ -1,3 +1,4 @@
+import Notifications from "../components/Notifications.jsx";
 import { playSfx, vibrate } from "../lib/sfx.js";
 import { DEFAULT_STYLE, STYLES } from "../lib/game.js";
 import { useEffect, useRef, useState } from "react";
@@ -20,13 +21,14 @@ export default function Settings() {
   return (
     <>
       <h1 className="h-display text-3xl">{t("title")}</h1>
+      <GameStyle />
+      <Appearance />
+      <Notifications />
       <PlanEditor />
       <Backup />
       <AutoCopies />
       <Profile />
       <TimerSettings />
-      <GameStyle />
-      <Appearance />
       <Language />
       <Install />
       <DangerZone />

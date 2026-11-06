@@ -6,12 +6,17 @@
    weekly routine (default scheme + per-week changes); XP with partial rules, deadlines, step bonus
    and penalties; levels, 7 rank tiers, streak, jolly, constancy; Quest screen, top bar, Profile,
    level/rank dialog; game style picker (fantasy, system, cyber) for rank names.
-2. Next: the three styles as full visual themes (dark only, chosen accent): graphics, fonts for
-   titles and numbers, sounds and vibration (switchable), wording per style.
-3. Weekly, monthly and boss quests, achievements, RPG stats (strength, endurance, discipline),
-   personal records as events, unlockable titles.
-4. Notifications: a small push server (FastAPI on Render, free tier) that only gets times, texts
-   and done/not-done; chosen in the app, quiet hours, skipped when the quest is done.
+2. **Done (6 Nov 2026)**: the three styles as full visual themes (dark only, chosen accent), fonts,
+   sounds and vibration (switchable), wording per style, toasts.
+3. **Done (6 Nov 2026)**: weekly, monthly and boss quests, personal records, RPG stats, 28 trophies
+   with titles.
+4. **Done in code (6 Nov 2026)**: push server (`server/`, FastAPI + Supabase + Render, tested) and
+   the app side (Settings → Notifications, sync, service worker). **To do by the owner**: create the
+   Supabase project and the Render service and set the keys (`server/README.md` → Deploy).
+
+Open decisions
+- Supabase free projects pause after a week of inactivity: watch whether the per-minute cron and
+  queries keep it awake; if not, a paid plan or another trigger.
 
 ## v1 (from 12 October 2026)
 
@@ -51,7 +56,7 @@ Done
   Saturday) or swap the two; stored as `days[d].menu`, restorable, the diet's scheme unchanged.
 
 Next
-- Weekly backup reminder as a notification instead of a banner (phase 4).
+- Weekly backup reminder: now a quest and an optional notification; the banner stays as a fallback.
 - Lean bulk changes when the phase switches (extra sets listed in the plan).
 - Archive manual edits of targets made in Settings (today only imports archive the old values).
 
