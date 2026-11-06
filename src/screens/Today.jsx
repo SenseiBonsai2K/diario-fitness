@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, Grid, Icon, Meter, NumField, Segmented, Stat, Stepper, TextField } from "../components/ui.jsx";
 import QuestBoard, { PeriodQuests } from "../components/QuestBoard.jsx";
+import { QuestHero, useGame } from "../components/game.jsx";
 import { evaluateDay, routineQuestsOn } from "../lib/game.js";
 import { activeProgram, activityLabel, addEntry, findSession, moveEntries, plannedListOn, removeEntry, sessionsOf, undoEntries } from "../lib/program.js";
 import { hasPlan } from "../lib/storage.js";
@@ -351,9 +352,10 @@ function MacroRow({ label, unit, value, onChange, target, t }) {
   );
 }
 
-export default function Today({ date, setDate, openWorkout, goTo, onRoutine }) {
+export default function Today({ date, setDate, openWorkout, goTo, onRoutine, onProfile }) {
   const { t, i18n } = useTranslation("today");
   const { data, patch, setEntries } = useStore();
+  const game = useGame();
   const day = data.days[date] || {};
   const set = (k) => (v) => patch("days", date, { [k]: v });
   const lang = i18n.language;
@@ -379,6 +381,10 @@ export default function Today({ date, setDate, openWorkout, goTo, onRoutine }) {
 
   return (
     <>
+      <div className="flex justify-end -mb-2">
+        <button type="button" onClick={() => goTo("settings")} aria-label={t("common:nav.settings")} className="w-10 h-10 rounded-full border border-line bg-surface/70 backdrop-blur grid place-items-center text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"><Icon name="gear" size={18} /></button>
+      </div>
+      <QuestHero onProfile={onProfile} />
       <DateStepper date={date} setDate={setDate} />
       {hasPlan(data) && <WeekStrip date={date} setDate={setDate} />}
 
@@ -461,7 +467,7 @@ export default function Today({ date, setDate, openWorkout, goTo, onRoutine }) {
         />
       </Card>
 
-      {hasPlan(data) && date === today() && <PeriodQuests />}
+      {hasPlan(data) && date === today() && !game?.notStarted && <PeriodQuests />}
 
       <div id="menu-oggi" className="scroll-mt-4"><TodayMenu date={date} goTo={goTo} /></div>
 

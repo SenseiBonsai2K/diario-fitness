@@ -46,6 +46,16 @@ export const TIER_LEVELS = [1, 5, 10, 20, 30, 40, 50];
 export const STYLES = ["fantasy", "system", "cyber"];
 export const DEFAULT_STYLE = "fantasy";
 
+/**
+ * The game always starts on a Monday, with a new week: the first Monday on or
+ * after `fromIso` (opened on Friday 6 Nov 2026 → Monday 9 Nov).
+ */
+export function startMonday(fromIso) {
+  const d = parseIso(fromIso);
+  const add = (8 - d.getDay()) % 7; // Monday = 1
+  return iso(addDays(d, add));
+}
+
 /** The routine a new game starts with; the user changes it in the routine editor. */
 export function defaultRoutine() {
   const day = () => [
@@ -326,7 +336,8 @@ function periodEvents(data, results, todayIso) {
  * Today is open (no penalties yet).
  */
 export function gameState(data, todayIso) {
-  const start = data.game?.startDate || todayIso;
+  const start = startMonday(data.game?.startDate || todayIso);
+  if (start > todayIso) return notStarted(data, start, todayIso);
   const results = [];
   for (let d = parseIso(start); iso(d) <= todayIso; d = addDays(d, 1)) {
     const date = iso(d);
@@ -394,6 +405,19 @@ export function gameState(data, todayIso) {
     perType: Object.fromEntries(Object.entries(perType).map(([k, v]) => [k, { ...v, ratio: ratio(v.done, v.total) }])),
     days,
     today: days[days.length - 1] || evaluateDay(data, todayIso, false),
+  };
+  state.stats = rpgStats(data, state);
+  state.badges = badges(data, state);
+  return state;
+}
+
+/** Before the first Monday: level 1, nothing counted yet; today's quests are a preview. */
+function notStarted(data, start, todayIso) {
+  const preview = evaluateDay(data, todayIso, false);
+  const state = {
+    startDate: start, notStarted: true, daysToStart: Math.round((parseIso(start) - parseIso(todayIso)) / 86400000),
+    xp: 0, ...levelFromXp(0), tier: 0, baseTier: 0, streak: 0, best: 0, jolly: 0,
+    constancy: { week: null, month: null, all: null }, perfectDays: 0, prs: [], events: [], perType: {}, days: [], today: preview,
   };
   state.stats = rpgStats(data, state);
   state.badges = badges(data, state);

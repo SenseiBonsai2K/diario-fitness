@@ -175,3 +175,22 @@ describe("records, stats and badges", () => {
     expect(rpgStats(d, s).endurance.steps).toBe(16000);
   });
 });
+
+describe("start", () => {
+  it("starts on the next Monday, or today when it is one", async () => {
+    const { startMonday } = await import("./game.js");
+    expect(startMonday("2026-11-06")).toBe("2026-11-09");
+    expect(startMonday("2026-11-08")).toBe("2026-11-09");
+    expect(startMonday("2026-11-09")).toBe("2026-11-09");
+  });
+
+  it("counts nothing before the start: today's quests are only a preview", () => {
+    const d = sample();
+    d.game.startDate = "2026-11-06";
+    d.days["2026-11-06"] = { passi: "10000" };
+    const s = gameState(d, "2026-11-06");
+    expect(s).toMatchObject({ notStarted: true, daysToStart: 3, xp: 0, level: 1, startDate: "2026-11-09" });
+    expect(s.today.xp).toBe(50);
+    expect(gameState(d, "2026-11-09").notStarted).toBeUndefined();
+  });
+});

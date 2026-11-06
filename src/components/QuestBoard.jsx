@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Icon } from "./ui.jsx";
 import { useStore } from "../lib/store.jsx";
@@ -51,10 +51,19 @@ function QuestRow({ r, date, closed, saved, actions }) {
   })();
   const tone = r.complete ? "text-good bg-good/15 border-good/40" : failed ? (saved ? "text-accent bg-accent-soft border-accent/40" : "text-bad bg-bad/10 border-bad/40") : "text-accent bg-accent-soft border-accent/30";
   const field = FIELD[q.type];
+  // The moment a quest turns complete: a flash, the check pops and "+XP" floats up.
+  const was = useRef(r.complete);
+  const [flash, setFlash] = useState(false);
+  useEffect(() => {
+    if (r.complete && !was.current) { setFlash(true); const id = setTimeout(() => setFlash(false), 1100); was.current = true; return () => clearTimeout(id); }
+    was.current = r.complete;
+    return undefined;
+  }, [r.complete]);
   return (
-    <li className={`rounded-field border p-3 flex flex-col gap-2 transition-colors ${r.complete ? "border-good/40 bg-good/5" : failed && !saved ? "border-bad/30" : "border-line/70 bg-bg/40"}`}>
+    <li className={`quest-row relative rounded-field border p-3 flex flex-col gap-2 transition-colors ${r.complete ? "quest-done border-good/40 bg-good/5" : failed && !saved ? "border-bad/30" : "border-line/70 bg-bg/40"} ${flash ? "quest-flash" : ""}`}>
+      {flash && r.xp > 0 && <span aria-hidden="true" className="xp-float font-display font-bold text-good">+{r.xp} XP</span>}
       <div className="flex items-center gap-3">
-        <span className={`w-10 h-10 shrink-0 rounded-full border grid place-items-center ${tone}`}>
+        <span className={`quest-icon w-10 h-10 shrink-0 rounded-full border grid place-items-center ${tone} ${flash ? "check-pop" : ""}`}>
           <Icon name={r.complete ? "check" : meta.icon} size={20} />
         </span>
         <span className="flex-1 min-w-0">
@@ -70,7 +79,7 @@ function QuestRow({ r, date, closed, saved, actions }) {
         </span>
       </div>
       {(q.type !== "weigh" && q.type !== "check" && q.type !== "backup") && (
-        <div className="bar !h-1.5" aria-hidden="true"><span className={r.complete ? "!bg-good" : ""} style={{ width: `${pct * 100}%` }} /></div>
+        <div className="bar quest-bar !h-1.5" aria-hidden="true"><span className={r.complete ? "!bg-good" : ""} style={{ width: `${pct * 100}%` }} /></div>
       )}
       {(field || actions) && (
         <div className="flex items-center justify-end gap-2 flex-wrap">
@@ -95,7 +104,7 @@ function QuestRow({ r, date, closed, saved, actions }) {
  * progress, XP and the input or button that completes it.
  */
 export default function QuestBoard({ date, openWorkout, goTo, onRoutine, onMove, onAdd, onDiet }) {
-  const { t } = useTranslation("game");
+  const { t, i18n } = useTranslation("game");
   const { data, setEntries } = useStore();
   const g = useGame();
   const style = useStyle();
@@ -138,6 +147,11 @@ export default function QuestBoard({ date, openWorkout, goTo, onRoutine, onMove,
           {closed && day.penalty > 0 && !saved && <span className="text-xs font-semibold text-bad num">−{day.penalty} XP</span>}
         </div>
       </div>
+      {g?.notStarted && (
+        <p className="rounded-field border border-accent/40 bg-accent-soft px-3 py-2 text-sm">
+          {t("hero.preview", { date: new Intl.DateTimeFormat(i18n.language, { weekday: "long", day: "numeric", month: "long" }).format(new Date(`${g.startDate}T12:00:00`)) })}
+        </p>
+      )}
       {day.perfect && (
         <p className="pop-in rounded-field bg-good/15 border border-good/40 text-good font-display uppercase tracking-wide text-center py-2 text-lg flex items-center justify-center gap-2">
           <Icon name="trophy" size={20} />{t(`words.${style}.perfect`)}

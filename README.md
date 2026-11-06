@@ -13,8 +13,16 @@ food or workouts.
   then the routine's (steps, diet, sleep, weigh-in, water, weekly check, backup) — each with its
   progress, XP and the field or button that completes it; then calories and macros, today's menu
   from the diet with a tick for every food (`days[date].cibi`), energy, hunger, notes.
-- **Game** (`src/lib/game.js`, tested): XP, level, rank, streak, jolly and constancy are never
-  stored; `gameState` replays every day from `game.startDate` over the logs, so a late correction
+- **Look** (v2.1): an opening scene once per session (`Splash`, per style, tap to skip), a living
+  background (`Backdrop`: embers, motes and scan line, digital rain; a half-resolution canvas at
+  ~30 fps, paused when hidden), a hero panel on the quest screen (emblem in an XP ring, rank in
+  animated gradient), emblems drawn per style that grow with the tier (`src/components/emblems.jsx`),
+  style frames for cards, a flash and floating "+XP" when a quest completes, a full-screen level-up
+  scene with rays and a burst. All CSS/SVG/canvas, no animation library; everything stops with
+  reduced motion.
+- **Game** (`src/lib/game.js`, tested): it starts on the first Monday on or after the first
+  opening (`startMonday`); before that today's quests are a preview and nothing counts. XP, level,
+  rank, streak, jolly and constancy are never stored; `gameState` replays every day from `game.startDate` over the logs, so a late correction
   counts at once. Base XP per quest in `QUEST_TYPES`; partial progress per quest: all or nothing,
   proportional, or half above a threshold; +5 XP per 1,000 steps over target (max +50); done after
   a deadline = half XP (completion times in `days[d].fatto`, written by the app on the day); a

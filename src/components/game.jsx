@@ -3,8 +3,10 @@ import { useTranslation } from "react-i18next";
 import { Icon } from "./ui.jsx";
 import { useStore } from "../lib/store.jsx";
 import { today } from "../lib/dates.js";
-import { DEFAULT_STYLE, STYLES, QUEST_TYPES, evaluateDay, gameState } from "../lib/game.js";
+import { DEFAULT_STYLE, STYLES, QUEST_TYPES, evaluateDay, gameState, startMonday } from "../lib/game.js";
 import { feedback } from "../lib/sfx.js";
+import { StyleEmblem } from "./emblems.jsx";
+import { Burst } from "./fx.jsx";
 import { activityLabel, exerciseNames } from "../lib/program.js";
 
 const GameContext = createContext(null);
@@ -38,7 +40,11 @@ export function GameProvider({ children }) {
     setTimeout(() => setToasts((list) => list.filter((y) => y.id !== id)), x.ms || 3200);
   }, []);
 
-  useEffect(() => { if (!data.game.startDate) setGame({ startDate: now }); }, [data.game.startDate, now, setGame]);
+  // The game starts on the next Monday (or today, if it is one), with a whole new week.
+  useEffect(() => {
+    const want = startMonday(data.game.startDate || now);
+    if (data.game.startDate !== want) setGame({ startDate: want });
+  }, [data.game.startDate, now, setGame]);
 
   // Today's quests as they get done: record the time (deadlines are checked
   // against it) and celebrate. The first look at a day only takes note of what
@@ -53,7 +59,7 @@ export function GameProvider({ children }) {
     const done = new Set(day.quests.filter((x) => x.complete).map((x) => x.key));
     const before = seen.current?.date === now ? seen.current : null;
     seen.current = { date: now, done, perfect: day.perfect };
-    if (!before) return;
+    if (!before || state.notStarted) return;
     const newly = day.quests.filter((x) => x.complete && !before.done.has(x.key));
     if (!newly.length) return;
     if (day.perfect && !before.perfect) {
@@ -69,7 +75,7 @@ export function GameProvider({ children }) {
       }
       feedback("quest", prefs.current);
     }
-  }, [data, now, patch, toast, t, style]);
+  }, [data, now, patch, toast, t, style, state.notStarted]);
 
   // Weekly / monthly / boss quests, records and trophies earned since the last look.
   const known = useRef(null);
@@ -147,26 +153,12 @@ export function useRankName() {
 
 const tierVar = (tier) => ({ "--tier-color": `var(--tier-${tier})`, color: `rgb(var(--tier-${tier}))` });
 
-/** The rank's emblem: a shield in the tier's colour, more ornate as tiers go up. */
+/** The rank emblem in the current style (see emblems.jsx). */
 export function Emblem({ tier, level, size = 56, className = "" }) {
-  const stars = Math.min(3, Math.floor(tier / 2));
+  const style = useStyle();
   return (
     <span className={`relative inline-grid place-items-center shrink-0 ${tier >= 5 ? "glow" : ""} ${className}`} style={{ ...tierVar(tier), width: size, height: size }} aria-hidden="true">
-      <svg viewBox="0 0 48 48" width={size} height={size} className="absolute inset-0">
-        <defs>
-          <linearGradient id={`em-${tier}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="currentColor" stopOpacity="0.95" />
-            <stop offset="1" stopColor="currentColor" stopOpacity="0.45" />
-          </linearGradient>
-        </defs>
-        {tier >= 3 && <path d="M4 14l6-6M44 14l-6-6M2 24h5M41 24h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.7" />}
-        <path d="M24 3l17 6v12c0 11-7.5 18-17 23C14.5 39 7 32 7 21V9z" fill={`url(#em-${tier})`} stroke="currentColor" strokeWidth="1.5" />
-        <path d="M24 8l12 4.3V21c0 8-5.3 13.4-12 17-6.7-3.6-12-9-12-17v-8.7z" fill="rgb(var(--surface))" opacity="0.88" />
-        {Array.from({ length: stars }, (_, i) => (
-          <circle key={i} cx={24 + (i - (stars - 1) / 2) * 6} cy={40.5} r="1.6" fill="rgb(var(--surface))" />
-        ))}
-      </svg>
-      <span className="relative font-display font-bold leading-none num text-ink" style={{ fontSize: size * 0.34 }}>{level}</span>
+      <StyleEmblem style={style} tier={tier} level={level} size={size} />
     </span>
   );
 }
@@ -239,21 +231,71 @@ export function LevelUp() {
   if (!shown) return null;
   const close = () => { setGame({ seen: { level: shown.level, tier: shown.tier } }); setShown(null); };
   return (
-    <div role="dialog" aria-modal="true" aria-labelledby="lvl-title" className="fixed inset-0 z-50 grid place-items-center bg-black/70 backdrop-blur-sm p-6" onClick={close}>
-      <div className="pop-in w-full max-w-xs rounded-card bg-surface border border-line p-6 flex flex-col items-center gap-3 text-center shadow-float" onClick={(e) => e.stopPropagation()}>
-        <span className="relative grid place-items-center">
-          {up && <span className="burst absolute inset-0 rounded-full" style={{ boxShadow: `0 0 0 3px rgb(var(--tier-${shown.tier}))` }} />}
-          <Emblem tier={shown.tier} level={shown.level} size={96} className={up ? "glow" : ""} />
+    <div role="dialog" aria-modal="true" aria-labelledby="lvl-title" className={`levelup fixed inset-0 z-50 grid place-items-center p-6 ${up ? "levelup-up" : "levelup-down"}`} onClick={close} style={tierVar(shown.tier)}>
+      <div className="levelup-rays" aria-hidden="true" />
+      <div className="relative w-full max-w-xs flex flex-col items-center gap-3 text-center" onClick={(e) => e.stopPropagation()}>
+        <span className="levelup-emblem relative grid place-items-center">
+          {up && <Burst count={28} color={`rgb(var(--tier-${shown.tier}))`} />}
+          <Emblem tier={shown.tier} level={shown.level} size={170} />
         </span>
-        <h2 id="lvl-title" className="h-display text-3xl">{up ? t(`words.${style}.levelUp`, { n: shown.level }) : t(`words.${style}.levelDown`, { n: shown.level })}</h2>
+        <h2 id="lvl-title" className="levelup-title h-display text-[2.6rem] leading-none text-gradient">{up ? t(`words.${style}.levelUp`, { n: shown.level }) : t(`words.${style}.levelDown`, { n: shown.level })}</h2>
         {shown.tier !== shown.from.tier && (
-          <p className="font-display uppercase tracking-wide text-lg" style={tierVar(shown.tier)}>
+          <p className="levelup-rank font-display uppercase tracking-[0.2em] text-xl" style={tierVar(shown.tier)}>
             {shown.tier > shown.from.tier ? t("levelUp.tierUp", { rank: rank(shown.tier) }) : t("levelUp.tierDown", { rank: rank(shown.tier) })}
           </p>
         )}
-        <p className="text-sm text-muted">{up ? t("levelUp.upLead") : t("levelUp.downLead")}</p>
-        <button ref={ref} type="button" className="btn w-full mt-1" onClick={close}>{t("levelUp.ok")}</button>
+        <p className="levelup-lead text-sm text-ink/80">{up ? t("levelUp.upLead") : t("levelUp.downLead")}</p>
+        <button ref={ref} type="button" className="levelup-btn btn w-full mt-3" onClick={close}>{t("levelUp.ok")}</button>
       </div>
     </div>
+  );
+}
+
+/**
+ * The big panel on top of the quest screen: emblem inside an XP ring, rank,
+ * level, streak, jolly and today's haul. Before the first Monday it counts down.
+ */
+export function QuestHero({ onProfile }) {
+  const { t, i18n } = useTranslation("game");
+  const g = useGame();
+  const rank = useRankName();
+  const style = useStyle();
+  if (!g) return null;
+  const pct = g.need ? g.into / g.need : 0;
+  const R = 74, C = 2 * Math.PI * R;
+  const day = g.today;
+  const start = new Intl.DateTimeFormat(i18n.language, { weekday: "long", day: "numeric", month: "long" }).format(new Date(`${g.startDate}T12:00:00`));
+  return (
+    <section className={`hero hero-${style}`} style={tierVar(g.tier)} aria-label={t("hud.open")}>
+      <div className="hero-glow" aria-hidden="true" />
+      <button type="button" onClick={onProfile} className="relative w-full flex flex-col items-center gap-2 pt-6 pb-5 px-4 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-card">
+        <span className="relative grid place-items-center" style={{ width: 176, height: 176 }}>
+          <svg viewBox="0 0 176 176" width="176" height="176" className="absolute inset-0 -rotate-90" aria-hidden="true">
+            <circle cx="88" cy="88" r={R} fill="none" stroke="rgb(var(--ink) / 0.08)" strokeWidth="6" />
+            <circle cx="88" cy="88" r={R} fill="none" stroke="url(#hero-xp)" strokeWidth="6" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={C * (1 - pct)} className="hero-ring" />
+            <defs>
+              <linearGradient id="hero-xp" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stopColor="rgb(var(--accent))" />
+                <stop offset="1" stopColor={`rgb(var(--tier-${g.tier}))`} />
+              </linearGradient>
+            </defs>
+          </svg>
+          <span className="hero-emblem"><Emblem tier={g.tier} level={g.level} size={128} /></span>
+        </span>
+        <span className={`hero-rank font-display text-[2.3rem] leading-none text-gradient ${style === "cyber" ? "glitch" : ""}`} data-text={rank(g.tier)}>{rank(g.tier)}</span>
+        <span className="text-sm text-muted num">{t("hud.level", { n: g.level })} · {t("hud.xp", { into: g.into, need: g.need })}</span>
+        {g.notStarted ? (
+          <span className="hero-countdown mt-1 rounded-full px-4 py-1.5 text-sm font-semibold">
+            {t("hero.startsOn", { date: start, count: g.daysToStart })}
+          </span>
+        ) : (
+          <span className="flex items-center gap-2 mt-1 flex-wrap justify-center">
+            <span className={`hero-chip ${g.streak ? "hero-chip-hot" : ""}`}><Icon name="flame" size={16} filled={g.streak > 0} /><span className="num">{g.streak}</span><span className="sr-only">{t("hud.streak", { n: g.streak })}</span></span>
+            <span className="hero-chip"><Icon name="star" size={15} filled={g.jolly > 0} /><span className="num">{g.jolly}</span><span className="sr-only">{t("hud.jolly", { n: g.jolly })}</span></span>
+            <span className="hero-chip hero-chip-xp"><Icon name="bolt" size={15} /><span className="num">+{day.xp}</span> XP</span>
+          </span>
+        )}
+      </button>
+    </section>
   );
 }

@@ -403,5 +403,17 @@
     "title": "Recent records",
     "line": "{{exercise}} · {{kg}} kg × {{reps}} · 1RM {{value}} kg (was {{previous}})",
     "empty": "Your first record comes when you beat an earlier session of the same exercise."
+  },
+  "hero": {
+    "startsOn_one": "The game starts tomorrow, {{date}}",
+    "startsOn_other": "The game starts {{date}} · in {{count}} days",
+    "preview": "Preview: until {{date}} quests earn no XP. Try the routine meanwhile.",
+    "notStartedProfile": "XP, levels and streaks start counting {{date}}."
+  },
+  "splash": {
+    "skip": "Tap to enter",
+    "quests_one": "{{count}} quest waits for you today",
+    "quests_other": "{{count}} quests wait for you today",
+    "starts": "It starts {{date}}"
   }
 }

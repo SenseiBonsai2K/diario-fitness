@@ -53,6 +53,7 @@ export default function Profile({ onRoutine }) {
         {data.game.title && g.badges.find((b) => b.id === data.game.title && b.unlocked) && (
           <span className="text-sm italic text-accent">«{t(`badges.${data.game.title}.title`)}»</span>
         )}
+        {g.notStarted && <p className="text-sm text-accent max-w-xs">{t("hero.notStartedProfile", { date: fmtDate(g.startDate, lang, { weekday: "long", day: "numeric", month: "long" }) })}</p>}
         <span className="text-[0.7rem] text-muted mt-1">{t("profile.since", { date: fmtDate(g.startDate, lang, { day: "numeric", month: "long", year: "numeric" }) })}</span>
       </section>
 

@@ -14,7 +14,8 @@ import Plan from "./screens/Plan.jsx";
 import Settings from "./screens/Settings.jsx";
 import Profile from "./screens/Profile.jsx";
 import Routine from "./screens/Routine.jsx";
-import { Hud, LevelUp } from "./components/game.jsx";
+import { Hud, LevelUp, useGame, useRankName, useStyle } from "./components/game.jsx";
+import { Backdrop, Splash } from "./components/fx.jsx";
 import { NotifySync } from "./components/Notifications.jsx";
 
 const TABS = [
@@ -47,6 +48,12 @@ export default function App() {
   useEffect(() => { weeklySnapshot(data, hasLogs(data) || hasPlan(data)); }, []); // once per opening, with the data loaded at start
 
   const [tab, setTab] = useState(readTab);
+  const g = useGame();
+  const gameStyle = useStyle();
+  const rank = useRankName();
+  const { t: tg, i18n } = useTranslation("game");
+  const startLabel = g ? new Intl.DateTimeFormat(i18n.language, { weekday: "long", day: "numeric", month: "long" }).format(new Date(`${g.startDate}T12:00:00`)) : "";
+  const splashLine = !g ? "" : g.notStarted ? tg("splash.starts", { date: startLabel }) : tg("splash.quests", { count: g.today.required });
   const [date, setDate] = useState(today);
   const [activity, setActivity] = useState(null);
   // The routine editor opens over any tab and goes back to it when closed.
@@ -62,14 +69,16 @@ export default function App() {
 
   return (
     <div className="min-h-full flex flex-col">
-      <main className="flex-1 w-full max-w-xl mx-auto px-4 pt-[max(16px,env(safe-area-inset-top))] pb-[calc(96px+env(safe-area-inset-bottom))] flex flex-col gap-4">
+      <Backdrop style={gameStyle} />
+      {g && <Splash style={gameStyle} tier={g.tier} level={g.level} rank={rank(g.tier)} line={splashLine} />}
+      <main className="relative z-10 flex-1 w-full max-w-xl mx-auto px-4 pt-[max(16px,env(safe-area-inset-top))] pb-[calc(96px+env(safe-area-inset-bottom))] flex flex-col gap-4">
         {saveError && (
           <div role="alert" className="rounded-card border border-bad text-bad px-4 py-3 text-sm">{t("errors.saveFailed")}</div>
         )}
-        <Hud onProfile={() => go("profile")} onSettings={() => go("settings")} />
+        {(routine || tab !== "today") && <Hud onProfile={() => go("profile")} onSettings={() => go("settings")} />}
         <div key={routine ? "routine" : tab} className="screen-enter flex flex-col gap-4">
         {routine && <Routine onClose={() => setRoutine(false)} />}
-        {!routine && tab === "today" && <Today date={date} setDate={setDate} openWorkout={openWorkout} goTo={go} onRoutine={() => setRoutine(true)} />}
+        {!routine && tab === "today" && <Today date={date} setDate={setDate} openWorkout={openWorkout} goTo={go} onRoutine={() => setRoutine(true)} onProfile={() => go("profile")} />}
         {!routine && tab === "workout" && <Workout date={date} setDate={setDate} activity={activity} setActivity={setActivity} />}
         {!routine && tab === "progress" && <Progress />}
         {!routine && tab === "plan" && <Plan />}
