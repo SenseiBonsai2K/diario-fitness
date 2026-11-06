@@ -92,7 +92,12 @@
     "stepsBonus": "con bonus passi",
     "open": "Aperta fino a mezzanotte",
     "worth": "{{xp}} XP",
-    "partial": "Parziale"
+    "partial": "Parziale",
+    "difficulty": "Difficoltà",
+    "status_done": "Completata",
+    "status_failed": "Fallita",
+    "status_active": "Attiva",
+    "reward": "Ricompensa"
   },
   "profile": {
     "title": "Profilo",
@@ -408,7 +413,11 @@
     "startsOn_one": "Il gioco inizia domani, {{date}}",
     "startsOn_other": "Il gioco inizia {{date}} · tra {{count}} giorni",
     "preview": "Anteprima: fino a {{date}} le quest non danno XP. Prova pure la routine.",
-    "notStartedProfile": "Il conteggio di XP, livelli e serie parte {{date}}."
+    "notStartedProfile": "Il conteggio di XP, livelli e serie parte {{date}}.",
+    "streak": "Serie",
+    "today": "Oggi",
+    "jolly": "Jolly",
+    "nextRank": "Prossimo rango: {{rank}} al livello {{n}}"
   },
   "splash": {
     "skip": "Tocca per entrare",

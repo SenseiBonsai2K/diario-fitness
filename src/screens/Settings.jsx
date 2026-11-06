@@ -101,7 +101,7 @@ function GameStyle() {
           const [bg, ac, font] = STYLE_SWATCH[id];
           const on = id === style;
           return (
-            <button key={id} type="button" role="radio" aria-checked={on} onClick={() => { setPrefs({ style: id }); if (sound) playSfx("quest", id); }}
+            <button key={id} type="button" role="radio" aria-checked={on} onClick={() => { setPrefs({ style: id, accent: null }); if (sound) playSfx("quest", id); }}
               className={`rounded-field border-2 overflow-hidden text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${on ? "border-accent" : "border-line/70"}`}>
               <span className="block h-14 px-2 pt-2" style={{ background: `radial-gradient(circle at 80% 20%, ${ac}55, transparent 60%), ${bg}` }}>
                 <span className="block text-[0.95rem] leading-none font-bold" style={{ fontFamily: font, color: ac }}>{t(`ranks.${id}.3`)}</span>

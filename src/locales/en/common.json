@@ -30,5 +30,12 @@
     "bulk": "Lean bulk",
     "minicut": "Mini-cut"
   },
-  "cancel": "Cancel"
+  "cancel": "Cancel",
+  "dock": {
+    "workout": "Gym",
+    "progress": "Progress",
+    "today": "Quests",
+    "plan": "Plan",
+    "profile": "Profile"
+  }
 }

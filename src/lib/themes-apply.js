@@ -8,6 +8,8 @@ import { APPEARANCE } from "./appearance.js";
 export const BG_IDS = ["auto", ...Object.keys(APPEARANCE.backgrounds)];
 export const ACCENT_IDS = Object.keys(APPEARANCE.accents);
 export const DEFAULT_ACCENT = "blue";
+/** The accent each game style looks best with, used while the user hasn't chosen one. */
+export const STYLE_ACCENT = { fantasy: "amber", system: "electric", cyber: "fuchsia" };
 const STORE_KEY = storeKey("appearance");
 
 // Accent picked by the short-lived colour pairs (prefs.theme), kept so nobody loses their choice.
@@ -20,8 +22,9 @@ export function prefersDark() {
 /** The background and accent actually in use for these preferences. */
 export function resolveAppearance(prefs = {}) {
   const bg = "dark";
-  const accent = APPEARANCE.accents[prefs.accent] ? prefs.accent : FROM_PAIR[prefs.theme] || DEFAULT_ACCENT;
   const style = STYLES.includes(prefs.style) ? prefs.style : DEFAULT_STYLE;
+  // Until a colour is picked, each style uses the one it was designed around.
+  const accent = APPEARANCE.accents[prefs.accent] ? prefs.accent : FROM_PAIR[prefs.theme] || STYLE_ACCENT[style] || DEFAULT_ACCENT;
   return { bgPref: bg, bg, accent, style, mode: APPEARANCE.backgrounds[bg].mode };
 }
 

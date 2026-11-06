@@ -55,8 +55,8 @@
 }
 :root[data-style="system"] .h-display { letter-spacing: 0.08em; font-weight: 700; }
 :root[data-style="system"] .eyebrow { color: rgb(var(--accent)); }
-:root[data-style="system"] .eyebrow::before { content: "[ "; }
-:root[data-style="system"] .eyebrow::after { content: " ]"; }
+:root[data-style="system"] :is(h2,h3).eyebrow::before { content: "[ "; }
+:root[data-style="system"] :is(h2,h3).eyebrow::after { content: " ]"; }
 
 /* ── Cyberpunk: neon on black, cut corners, scanlines ─────────────────── */
 :root[data-style="cyber"] {
@@ -86,7 +86,7 @@
 }
 :root[data-style="cyber"] .h-display { letter-spacing: 0.06em; font-weight: 700; font-size: 0.86em; }
 :root[data-style="cyber"] .eyebrow { color: rgb(var(--neon-2)); font-family: ui-monospace, "Roboto Mono", monospace; }
-:root[data-style="cyber"] .eyebrow::before { content: "// "; }
+:root[data-style="cyber"] :is(h2,h3).eyebrow::before { content: "// "; }
 
 /* Hero titles keep the size they were designed for in the narrow default font. */
 :root[data-style="cyber"] .text-3xl.h-display,
@@ -205,8 +205,7 @@
 @keyframes xp-float { 0% { opacity: 0; transform: translateY(6px) scale(.8); } 20% { opacity: 1; transform: translateY(0) scale(1.15); } 100% { opacity: 0; transform: translateY(-26px) scale(1); } }
 
 /* ── Bottom bar ───────────────────────────────────────────────────────── */
-nav[aria-label] { background: rgb(var(--surface) / .78) !important; border-top-color: rgb(var(--accent) / .25) !important; }
-nav[aria-label] [aria-current="page"] > span:first-child { box-shadow: 0 0 18px -4px rgb(var(--accent) / .9); }
+
 
 /* ── Splash ───────────────────────────────────────────────────────────── */
 .splash { background: radial-gradient(ellipse at 50% 40%, rgb(var(--surface)), rgb(var(--bg)) 70%); cursor: pointer; }

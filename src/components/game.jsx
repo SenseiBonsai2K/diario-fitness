@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Icon } from "./ui.jsx";
 import { useStore } from "../lib/store.jsx";
 import { today } from "../lib/dates.js";
-import { DEFAULT_STYLE, STYLES, QUEST_TYPES, evaluateDay, gameState, startMonday } from "../lib/game.js";
+import { DEFAULT_STYLE, STYLES, QUEST_TYPES, TIER_LEVELS, evaluateDay, gameState, startMonday } from "../lib/game.js";
 import { feedback } from "../lib/sfx.js";
 import { StyleEmblem } from "./emblems.jsx";
 import { Burst } from "./fx.jsx";
@@ -172,31 +172,62 @@ export function XpBar({ into, need, tier, label }) {
   );
 }
 
-/** Always-visible bar at the top: emblem, level, rank, XP and streak. */
+/** Counts up to a number when it changes (XP, totals). Plain text with reduced motion. */
+export function CountUp({ value, className = "" }) {
+  const [shown, setShown] = useState(value);
+  const from = useRef(value);
+  useEffect(() => {
+    let reduced = false;
+    try { reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch { /* ignore */ }
+    const start = from.current;
+    from.current = value;
+    if (reduced || start === value) { setShown(value); return undefined; }
+    const t0 = performance.now(), dur = 700;
+    let raf = 0;
+    const step = (t) => {
+      const p = Math.min(1, (t - t0) / dur);
+      setShown(Math.round(start + (value - start) * (1 - (1 - p) ** 3)));
+      if (p < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [value]);
+  return <span className={`num ${className}`}>{shown}</span>;
+}
+
+/** Game HUD on every screen but the quest one: emblem, rank, segmented XP bar, streak and jolly counters. */
 export function Hud({ onProfile, onSettings }) {
   const { t } = useTranslation("game");
   const g = useGame();
   const rank = useRankName();
   if (!g) return null;
   return (
-    <div className="flex items-center gap-3">
-      <button type="button" onClick={onProfile} aria-label={t("hud.open")} className="flex-1 min-w-0 flex items-center gap-3 rounded-card bg-surface border border-line/70 shadow-card px-3 py-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
-        <Emblem tier={g.tier} level={g.level} size={44} />
+    <div className="hud flex items-center gap-2" style={tierVar(g.tier)}>
+      <button type="button" onClick={onProfile} aria-label={t("hud.open")} className="hud-main flex-1 min-w-0 flex items-center gap-2.5 text-left">
+        <span className="hud-avatar"><Emblem tier={g.tier} level={g.level} size={46} /></span>
         <span className="flex-1 min-w-0 flex flex-col gap-1">
           <span className="flex items-baseline justify-between gap-2">
-            <span className="font-display font-semibold uppercase tracking-wide text-[1.05rem] leading-none truncate" style={tierVar(g.tier)}>{rank(g.tier)}</span>
-            <span className="text-[0.7rem] text-muted num shrink-0">{t("hud.level", { n: g.level })} · {t("hud.xp", { into: g.into, need: g.need })}</span>
+            <span className="font-display font-bold uppercase tracking-wider text-[0.95rem] leading-none truncate text-gradient">{rank(g.tier)}</span>
+            <span className="hud-lv font-display font-bold num">{t("hud.level", { n: g.level })}</span>
           </span>
-          <XpBar into={g.into} need={g.need} tier={g.tier} label={t("hud.level", { n: g.level })} />
-        </span>
-        <span className="flex flex-col items-end gap-0.5 shrink-0" title={t("hud.streak", { n: g.streak })}>
-          <span className={`inline-flex items-center gap-0.5 text-sm font-bold num ${g.streak ? "text-warn" : "text-muted"}`}><Icon name="flame" size={16} filled={g.streak > 0} />{g.streak}</span>
-          {g.jolly > 0 && <span className="inline-flex items-center gap-0.5 text-[0.7rem] font-semibold text-accent num"><Icon name="star" size={12} filled />{g.jolly}</span>}
-          <span className="sr-only">{t("hud.streak", { n: g.streak })}{g.jolly ? ` · ${t("hud.jolly", { n: g.jolly })}` : ""}</span>
+          <span className="seg-bar" role="progressbar" aria-label={t("hud.level", { n: g.level })} aria-valuemin={0} aria-valuemax={g.need} aria-valuenow={g.into}>
+            <span style={{ width: `${Math.min(100, (g.into / g.need) * 100)}%` }} />
+          </span>
+          <span className="text-[0.62rem] text-muted num tracking-wide">{t("hud.xp", { into: g.into, need: g.need })}</span>
         </span>
       </button>
-      <button type="button" onClick={onSettings} aria-label={t("hud.settings")} className="w-11 h-11 shrink-0 rounded-full border border-line bg-surface shadow-card grid place-items-center text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
-        <Icon name="gear" />
+      <span className="hud-pod" title={t("hud.streak", { n: g.streak })}>
+        <Icon name="flame" size={16} filled={g.streak > 0} className={g.streak ? "text-warn" : "text-muted"} />
+        <span className="num">{g.streak}</span>
+        <span className="sr-only">{t("hud.streak", { n: g.streak })}</span>
+      </span>
+      <span className="hud-pod" title={t("hud.jolly", { n: g.jolly })}>
+        <Icon name="star" size={15} filled={g.jolly > 0} className={g.jolly ? "text-accent" : "text-muted"} />
+        <span className="num">{g.jolly}</span>
+        <span className="sr-only">{t("hud.jolly", { n: g.jolly })}</span>
+      </span>
+      <button type="button" onClick={onSettings} aria-label={t("hud.settings")} className="hud-pod !px-2.5">
+        <Icon name="gear" size={18} />
       </button>
     </div>
   );
@@ -263,6 +294,7 @@ export function QuestHero({ onProfile }) {
   if (!g) return null;
   const pct = g.need ? g.into / g.need : 0;
   const R = 74, C = 2 * Math.PI * R;
+  const nextTier = g.baseTier < TIER_LEVELS.length - 1 ? g.baseTier + 1 : null;
   const day = g.today;
   const start = new Intl.DateTimeFormat(i18n.language, { weekday: "long", day: "numeric", month: "long" }).format(new Date(`${g.startDate}T12:00:00`));
   return (
@@ -283,16 +315,32 @@ export function QuestHero({ onProfile }) {
           <span className="hero-emblem"><Emblem tier={g.tier} level={g.level} size={128} /></span>
         </span>
         <span className={`hero-rank font-display text-[2.3rem] leading-none text-gradient ${style === "cyber" ? "glitch" : ""}`} data-text={rank(g.tier)}>{rank(g.tier)}</span>
-        <span className="text-sm text-muted num">{t("hud.level", { n: g.level })} · {t("hud.xp", { into: g.into, need: g.need })}</span>
+        <span className="flex items-center gap-2 text-sm num">
+          <span className="hud-lv font-display font-bold">{t("hud.level", { n: g.level })}</span>
+          <span className="text-muted">{t("hud.xp", { into: g.into, need: g.need })}</span>
+        </span>
+        {nextTier !== null && <span className="text-[0.72rem] text-muted">{t("hero.nextRank", { rank: rank(nextTier), n: TIER_LEVELS[nextTier] })}</span>}
         {g.notStarted ? (
           <span className="hero-countdown mt-1 rounded-full px-4 py-1.5 text-sm font-semibold">
             {t("hero.startsOn", { date: start, count: g.daysToStart })}
           </span>
         ) : (
-          <span className="flex items-center gap-2 mt-1 flex-wrap justify-center">
-            <span className={`hero-chip ${g.streak ? "hero-chip-hot" : ""}`}><Icon name="flame" size={16} filled={g.streak > 0} /><span className="num">{g.streak}</span><span className="sr-only">{t("hud.streak", { n: g.streak })}</span></span>
-            <span className="hero-chip"><Icon name="star" size={15} filled={g.jolly > 0} /><span className="num">{g.jolly}</span><span className="sr-only">{t("hud.jolly", { n: g.jolly })}</span></span>
-            <span className="hero-chip hero-chip-xp"><Icon name="bolt" size={15} /><span className="num">+{day.xp}</span> XP</span>
+          <span className="grid grid-cols-3 gap-2 mt-2 w-full max-w-sm">
+            <span className={`hero-pod ${g.streak ? "hero-pod-hot" : ""}`}>
+              <Icon name="flame" size={20} filled={g.streak > 0} />
+              <span className="font-display font-bold text-xl leading-none num">{g.streak}</span>
+              <span className="hero-pod-label">{t("hero.streak")}</span>
+            </span>
+            <span className="hero-pod hero-pod-xp">
+              <Icon name="bolt" size={20} />
+              <span className="font-display font-bold text-xl leading-none">+<CountUp value={day.xp} /></span>
+              <span className="hero-pod-label">{t("hero.today")}</span>
+            </span>
+            <span className="hero-pod">
+              <Icon name="star" size={19} filled={g.jolly > 0} />
+              <span className="font-display font-bold text-xl leading-none num">{g.jolly}</span>
+              <span className="hero-pod-label">{t("hero.jolly")}</span>
+            </span>
           </span>
         )}
       </button>

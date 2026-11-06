@@ -5,7 +5,7 @@ import { useStore } from "../lib/store.jsx";
 import { QUEST_TYPES, evaluateDay, periodProgress, questsChanged } from "../lib/game.js";
 import { activityLabel, findSession } from "../lib/program.js";
 import { today } from "../lib/dates.js";
-import { useGame, useStyle } from "./game.jsx";
+import { CountUp, useGame, useStyle } from "./game.jsx";
 
 const FIELD = { steps: "passi", water: "acqua", sleep: "sonno", weigh: "peso" };
 
@@ -39,6 +39,7 @@ function QuestRow({ r, date, closed, saved, actions }) {
   const meta = QUEST_TYPES[q.type];
   const base = meta.xp;
   const failed = closed && r.required && r.xp === 0;
+  const stars = base >= 100 ? 3 : base >= 30 ? 2 : 1;
   const pct = Math.min(1, r.prog.fraction || 0);
   const name = q.type === "workout" ? activityLabel(data, q.session, t) : t(`quest.${q.type}`);
   const hint = (() => {
@@ -60,26 +61,31 @@ function QuestRow({ r, date, closed, saved, actions }) {
     return undefined;
   }, [r.complete]);
   return (
-    <li className={`quest-row relative rounded-field border p-3 flex flex-col gap-2 transition-colors ${r.complete ? "quest-done border-good/40 bg-good/5" : failed && !saved ? "border-bad/30" : "border-line/70 bg-bg/40"} ${flash ? "quest-flash" : ""}`}>
+    <li className={`quest-card relative ${r.complete ? "quest-done" : failed && !saved ? "quest-failed" : ""} ${flash ? "quest-flash" : ""}`}>
       {flash && r.xp > 0 && <span aria-hidden="true" className="xp-float font-display font-bold text-good">+{r.xp} XP</span>}
-      <div className="flex items-center gap-3">
-        <span className={`quest-icon w-10 h-10 shrink-0 rounded-full border grid place-items-center ${tone} ${flash ? "check-pop" : ""}`}>
-          <Icon name={r.complete ? "check" : meta.icon} size={20} />
-        </span>
+      {r.complete && <span aria-hidden="true" className="quest-stamp font-display">{t("board.status_done")}</span>}
+      {failed && !saved && <span aria-hidden="true" className="quest-stamp quest-stamp-bad font-display">{t("board.status_failed")}</span>}
+      <div className="flex items-start gap-3">
+        <span className={`quest-icon ${flash ? "check-pop" : ""}`}><Icon name={r.complete ? "check" : meta.icon} size={22} /></span>
         <span className="flex-1 min-w-0">
           <span className="flex items-center gap-1.5 flex-wrap">
-            <span className="font-semibold text-[0.95rem] leading-tight">{name}</span>
-            {q.bonus && <span className="text-[0.6rem] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-warn/15 text-warn">{t("board.bonus")}</span>}
-            {q.deadline && <span className={`text-[0.65rem] font-semibold num ${r.late ? "text-warn" : "text-muted"}`}>· {r.late ? t("board.late") : t("board.deadline", { time: q.deadline })}</span>}
+            <span className="quest-title font-display">{name}</span>
+            {q.bonus && <span className="quest-tag quest-tag-bonus">{t("board.bonus")}</span>}
           </span>
-          <span className="block text-xs text-muted num truncate">{hint}</span>
+          <span className="flex items-center gap-2 mt-0.5">
+            <span className="quest-stars" aria-label={`${t("board.difficulty")} ${stars}/3`}>{"★".repeat(stars)}<span className="opacity-25">{"★".repeat(3 - stars)}</span></span>
+            {q.deadline && <span className={`text-[0.65rem] font-semibold num ${r.late ? "text-warn" : "text-muted"}`}>{r.late ? t("board.late") : t("board.deadline", { time: q.deadline })}</span>}
+          </span>
+          <span className="block text-xs text-muted num truncate mt-0.5">{hint}</span>
         </span>
-        <span className={`shrink-0 text-right font-display font-bold num leading-none ${r.xp > 0 ? "text-good text-lg" : failed && !saved ? "text-bad text-sm" : "text-muted text-sm"}`}>
-          {r.xp > 0 ? t("board.xp", { xp: r.xp }) : failed && !saved ? t("board.missed", { xp: r.penalty }) : t("board.worth", { xp: base })}
+        <span className={`quest-reward ${r.xp > 0 ? "quest-reward-earned" : failed && !saved ? "quest-reward-lost" : ""}`}>
+          <Icon name="bolt" size={13} />
+          <span className="num">{r.xp > 0 ? `+${r.xp}` : failed && !saved ? `−${r.penalty}` : base}</span>
+          <span className="text-[0.6rem] opacity-80">XP</span>
         </span>
       </div>
       {(q.type !== "weigh" && q.type !== "check" && q.type !== "backup") && (
-        <div className="bar quest-bar !h-1.5" aria-hidden="true"><span className={r.complete ? "!bg-good" : ""} style={{ width: `${pct * 100}%` }} /></div>
+        <div className={`seg-bar ${r.complete ? "seg-bar-done" : ""}`} aria-hidden="true"><span style={{ width: `${pct * 100}%` }} /></div>
       )}
       {(field || actions) && (
         <div className="flex items-center justify-end gap-2 flex-wrap">
@@ -143,7 +149,7 @@ export default function QuestBoard({ date, openWorkout, goTo, onRoutine, onMove,
           </div>
         </div>
         <div className="flex flex-col items-end gap-1 shrink-0">
-          <span className={`font-display text-2xl font-bold num leading-none ${day.xp > 0 ? "text-good" : "text-muted"}`}>{t("board.xp", { xp: day.xp })}</span>
+          <span className={`font-display text-2xl font-bold leading-none ${day.xp > 0 ? "text-good" : "text-muted"}`}>+<CountUp value={day.xp} /> XP</span>
           {closed && day.penalty > 0 && !saved && <span className="text-xs font-semibold text-bad num">−{day.penalty} XP</span>}
         </div>
       </div>
@@ -159,7 +165,7 @@ export default function QuestBoard({ date, openWorkout, goTo, onRoutine, onMove,
       )}
       {saved && <p className="text-sm text-accent">{t("board.saved")}</p>}
       {day.quests.length ? (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-2.5">
           {day.quests.map((r) => <QuestRow key={r.key} r={r} date={date} closed={closed} saved={saved} actions={actionsFor(r)} />)}
         </ul>
       ) : (

@@ -92,7 +92,12 @@
     "stepsBonus": "with steps bonus",
     "open": "Open until midnight",
     "worth": "{{xp}} XP",
-    "partial": "Partial"
+    "partial": "Partial",
+    "difficulty": "Difficulty",
+    "status_done": "Complete",
+    "status_failed": "Failed",
+    "status_active": "Active",
+    "reward": "Reward"
   },
   "profile": {
     "title": "Profile",
@@ -408,7 +413,11 @@
     "startsOn_one": "The game starts tomorrow, {{date}}",
     "startsOn_other": "The game starts {{date}} · in {{count}} days",
     "preview": "Preview: until {{date}} quests earn no XP. Try the routine meanwhile.",
-    "notStartedProfile": "XP, levels and streaks start counting {{date}}."
+    "notStartedProfile": "XP, levels and streaks start counting {{date}}.",
+    "streak": "Streak",
+    "today": "Today",
+    "jolly": "Jolly",
+    "nextRank": "Next rank: {{rank}} at level {{n}}"
   },
   "splash": {
     "skip": "Tap to enter",

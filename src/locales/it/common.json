@@ -30,5 +30,12 @@
     "bulk": "Lean bulk",
     "minicut": "Mini-cut"
   },
-  "cancel": "Annulla"
+  "cancel": "Annulla",
+  "dock": {
+    "workout": "Palestra",
+    "progress": "Progressi",
+    "today": "Quest",
+    "plan": "Piano",
+    "profile": "Profilo"
+  }
 }

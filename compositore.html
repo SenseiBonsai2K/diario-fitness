@@ -19,8 +19,9 @@
         var r = document.documentElement;
         r.setAttribute("data-bg", "dark");
         r.setAttribute("data-mode", "dark");
-        r.setAttribute("data-accent", a.accent || "blue");
-        r.setAttribute("data-style", a.style || "fantasy");
+        var st = a.style || "fantasy";
+        r.setAttribute("data-accent", a.accent || { fantasy: "amber", system: "electric", cyber: "fuchsia" }[st] || "blue");
+        r.setAttribute("data-style", st);
       } catch (e) {}
     </script>
   </head>

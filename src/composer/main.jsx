@@ -8,6 +8,7 @@ import "@fontsource/barlow-condensed/700.css";
 import "../index.css";
 import "../themes.css";
 import "../game-styles.css";
+import "../game-ui.css";
 import "@fontsource/cinzel/600.css";
 import "@fontsource/rajdhani/600.css";
 import "@fontsource/orbitron/600.css";

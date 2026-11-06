@@ -18,10 +18,11 @@ import { Hud, LevelUp, useGame, useRankName, useStyle } from "./components/game.
 import { Backdrop, Splash } from "./components/fx.jsx";
 import { NotifySync } from "./components/Notifications.jsx";
 
-const TABS = [
-  { id: "today", icon: "today" },
+// The dock: the quest screen is the big button in the middle.
+const DOCK = [
   { id: "workout", icon: "dumbbell" },
   { id: "progress", icon: "chart" },
+  { id: "today", icon: "shield" },
   { id: "plan", icon: "book" },
   { id: "profile", icon: "user" },
 ];
@@ -71,7 +72,7 @@ export default function App() {
     <div className="min-h-full flex flex-col">
       <Backdrop style={gameStyle} />
       {g && <Splash style={gameStyle} tier={g.tier} level={g.level} rank={rank(g.tier)} line={splashLine} />}
-      <main className="relative z-10 flex-1 w-full max-w-xl mx-auto px-4 pt-[max(16px,env(safe-area-inset-top))] pb-[calc(96px+env(safe-area-inset-bottom))] flex flex-col gap-4">
+      <main className="relative z-10 flex-1 w-full max-w-xl mx-auto px-4 pt-[max(16px,env(safe-area-inset-top))] pb-[calc(118px+env(safe-area-inset-bottom))] flex flex-col gap-4">
         {saveError && (
           <div role="alert" className="rounded-card border border-bad text-bad px-4 py-3 text-sm">{t("errors.saveFailed")}</div>
         )}
@@ -86,25 +87,21 @@ export default function App() {
         {!routine && tab === "settings" && <Settings />}
         </div>
       </main>
-      <nav
-        aria-label={t("nav.label")}
-        className="fixed bottom-0 inset-x-0 z-20 bg-surface/90 backdrop-blur-md border-t border-line/70 pb-[env(safe-area-inset-bottom)]"
-      >
-        <div className="max-w-xl mx-auto grid grid-cols-5 px-1">
-          {TABS.map((x) => {
+      <nav aria-label={t("nav.label")} className="dock fixed inset-x-0 bottom-0 z-20 px-3 pb-[max(10px,env(safe-area-inset-bottom))]">
+        <div className="dock-bar max-w-xl mx-auto grid grid-cols-5 items-end">
+          {DOCK.map((x) => {
             const active = !routine && tab === x.id;
+            const main = x.id === "today";
             return (
               <button
                 key={x.id}
                 type="button"
                 onClick={() => go(x.id)}
                 aria-current={active ? "page" : undefined}
-                className={`group flex flex-col items-center gap-1 pt-2 pb-2.5 text-[0.7rem] focus-visible:outline-none ${active ? "text-ink font-semibold" : "text-muted font-medium"}`}
+                className={`dock-item group ${main ? "dock-main" : ""} ${active ? "dock-active" : ""}`}
               >
-                <span className={`grid place-items-center h-8 w-14 rounded-full transition-colors group-focus-visible:ring-2 group-focus-visible:ring-accent ${active ? "bg-accent-soft text-accent" : ""}`}>
-                  <Icon name={x.icon} size={22} />
-                </span>
-                {t(`nav.${x.id}`)}
+                <span className="dock-icon"><Icon name={x.icon} size={main ? 28 : 22} /></span>
+                <span className="dock-label">{t(`dock.${x.id}`)}</span>
               </button>
             );
           })}
