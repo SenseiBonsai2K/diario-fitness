@@ -1,3 +1,4 @@
+import { playSfx, vibrate } from "../lib/sfx.js";
 import { DEFAULT_STYLE, STYLES } from "../lib/game.js";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -82,14 +83,35 @@ function TimerSettings() {
 }
 
 /** Neutral background and accent colour, picked separately; every combination keeps AA contrast. */
+const STYLE_SWATCH = { fantasy: ["#14110E", "#C9A25C", "Cinzel"], system: ["#060A16", "#5B8CFF", "Rajdhani"], cyber: ["#09070E", "#FF2BD6", "Orbitron"] };
+
+/** Game style (look, fonts, sounds, rank names and wording), plus sound and vibration switches. */
 function GameStyle() {
   const { t } = useTranslation("game");
   const { data, setPrefs } = useStore();
   const style = STYLES.includes(data.prefs.style) ? data.prefs.style : DEFAULT_STYLE;
+  const sound = data.prefs.gameSound !== false;
+  const buzz = data.prefs.vibration !== false;
   return (
     <Card title={t("styles.label")}>
-      <Segmented clearable={false} value={style} onChange={(v) => setPrefs({ style: v })} options={STYLES.map((id) => ({ value: id, label: t(`styles.${id}`) }))} />
+      <div role="radiogroup" aria-label={t("styles.label")} className="grid grid-cols-3 gap-2">
+        {STYLES.map((id) => {
+          const [bg, ac, font] = STYLE_SWATCH[id];
+          const on = id === style;
+          return (
+            <button key={id} type="button" role="radio" aria-checked={on} onClick={() => { setPrefs({ style: id }); if (sound) playSfx("quest", id); }}
+              className={`rounded-field border-2 overflow-hidden text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${on ? "border-accent" : "border-line/70"}`}>
+              <span className="block h-14 px-2 pt-2" style={{ background: `radial-gradient(circle at 80% 20%, ${ac}55, transparent 60%), ${bg}` }}>
+                <span className="block text-[0.95rem] leading-none font-bold" style={{ fontFamily: font, color: ac }}>{t(`ranks.${id}.3`)}</span>
+              </span>
+              <span className={`block px-2 py-1.5 text-xs ${on ? "font-semibold" : "text-muted"}`}>{t(`styles.${id}`)}</span>
+            </button>
+          );
+        })}
+      </div>
       <p className="text-xs text-muted">{t("styles.hint")}</p>
+      <Segmented label={t("styles.sound")} clearable={false} value={sound ? "on" : "off"} onChange={(v) => setPrefs({ gameSound: v === "on" })} options={[{ value: "on", label: t("styles.on") }, { value: "off", label: t("styles.off") }]} />
+      <Segmented label={t("styles.vibration")} clearable={false} value={buzz ? "on" : "off"} onChange={(v) => { setPrefs({ vibration: v === "on" }); if (v === "on") vibrate("quest"); }} options={[{ value: "on", label: t("styles.on") }, { value: "off", label: t("styles.off") }]} />
     </Card>
   );
 }
@@ -98,28 +120,8 @@ function Appearance() {
   const { t } = useTranslation("settings");
   const { data, setPrefs } = useStore();
   const cur = resolveAppearance(data.prefs);
-  const bgs = APPEARANCE.backgrounds;
-  const half = (l, d) => `linear-gradient(135deg, ${l} 50%, ${d} 50%)`;
   return (
     <Card title={t("appearance.title")}>
-      <div className="flex flex-col gap-2">
-        <span id="bg-label" className="label">{t("appearance.background")}</span>
-        <div role="radiogroup" aria-labelledby="bg-label" className="grid grid-cols-5 gap-2">
-          {BG_IDS.map((id) => {
-            const on = id === cur.bgPref;
-            const fill = id === "auto" ? half(bgs.light.bg, bgs.dark.bg) : bgs[id].bg;
-            return (
-              <button key={id} type="button" role="radio" aria-checked={on} onClick={() => setPrefs({ bg: id })}
-                className="flex flex-col items-center gap-1.5 rounded-field py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
-                <span className={`w-12 h-12 rounded-full border-2 grid place-items-center ${on ? "border-accent ring-2 ring-accent/30" : "border-line"}`} style={{ background: fill }}>
-                  {on && <span className="w-5 h-5 rounded-full bg-accent text-accent-ink grid place-items-center"><Icon name="check" size={12} /></span>}
-                </span>
-                <span className={`text-[0.7rem] ${on ? "font-semibold" : "text-muted"}`}>{t(`appearance.bgs.${id}`)}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
       {[["soft", ACCENT_IDS.filter((id) => !APPEARANCE.accents[id].vivid)], ["vivid", ACCENT_IDS.filter((id) => APPEARANCE.accents[id].vivid)]].map(([group, ids]) => (
         <div key={group} className="flex flex-col gap-2">
           <span id={`accent-${group}`} className="label">{t(`appearance.accent_${group}`)}</span>

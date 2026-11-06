@@ -38,10 +38,14 @@
   },
   "styles": {
     "label": "Game style",
-    "hint": "Changes the rank names (and, in the next version, graphics, sounds and wording).",
+    "hint": "Changes look, fonts, sounds, rank names and some wording. The app is always dark; pick the main colour below.",
     "fantasy": "Fantasy",
     "system": "System",
-    "cyber": "Cyberpunk"
+    "cyber": "Cyberpunk",
+    "sound": "Game sounds",
+    "vibration": "Vibration",
+    "on": "On",
+    "off": "Off"
   },
   "quest": {
     "workout": "Workout",
@@ -167,5 +171,39 @@
     "steps": "steps",
     "h": "h",
     "L": "L"
+  },
+  "words": {
+    "fantasy": {
+      "quests": "Today's deeds",
+      "perfect": "A legendary day!",
+      "questDone": "Deed done",
+      "levelUp": "Level {{n}}!",
+      "levelDown": "You dropped to level {{n}}",
+      "pr": "New record",
+      "badge": "Trophy unlocked"
+    },
+    "system": {
+      "quests": "Daily missions",
+      "perfect": "All missions complete",
+      "questDone": "Mission complete",
+      "levelUp": "LEVEL UP · {{n}}",
+      "levelDown": "Level reduced · {{n}}",
+      "pr": "Limit surpassed",
+      "badge": "Title earned"
+    },
+    "cyber": {
+      "quests": "Active contracts",
+      "perfect": "Perfect run",
+      "questDone": "Contract closed",
+      "levelUp": "Upgrade · level {{n}}",
+      "levelDown": "Downgrade · level {{n}}",
+      "pr": "New system record",
+      "badge": "Achievement unlocked"
+    }
+  },
+  "toast": {
+    "xp": "+{{xp}} XP",
+    "many": "{{count}} quests done",
+    "close": "Close"
   }
 }

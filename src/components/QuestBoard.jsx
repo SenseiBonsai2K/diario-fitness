@@ -5,7 +5,7 @@ import { useStore } from "../lib/store.jsx";
 import { QUEST_TYPES, evaluateDay, questsChanged } from "../lib/game.js";
 import { activityLabel, findSession } from "../lib/program.js";
 import { today } from "../lib/dates.js";
-import { useGame } from "./game.jsx";
+import { useGame, useStyle } from "./game.jsx";
 
 const FIELD = { steps: "passi", water: "acqua", sleep: "sonno", weigh: "peso" };
 
@@ -98,6 +98,7 @@ export default function QuestBoard({ date, openWorkout, goTo, onRoutine, onMove,
   const { t } = useTranslation("game");
   const { data, setEntries } = useStore();
   const g = useGame();
+  const style = useStyle();
   const now = today();
   const closed = date < now;
   const fromState = g?.days.find((x) => x.date === date);
@@ -126,7 +127,7 @@ export default function QuestBoard({ date, openWorkout, goTo, onRoutine, onMove,
     <section aria-labelledby="quest-title" className="card !gap-3 relative overflow-hidden">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <h2 id="quest-title" className="h-display text-2xl">{date === now ? t("board.title") : t("board.titleDay")}</h2>
+          <h2 id="quest-title" className="h-display text-[1.35rem] leading-tight">{date === now ? t(`words.${style}.quests`) : t("board.titleDay")}</h2>
           <div className="text-xs text-muted num mt-1">
             {t("board.count", { done: day.completed, total: day.required })}
             {date === now && !day.perfect && day.required > 0 && <> · {t("board.open")}</>}
@@ -139,7 +140,7 @@ export default function QuestBoard({ date, openWorkout, goTo, onRoutine, onMove,
       </div>
       {day.perfect && (
         <p className="pop-in rounded-field bg-good/15 border border-good/40 text-good font-display uppercase tracking-wide text-center py-2 text-lg flex items-center justify-center gap-2">
-          <Icon name="trophy" size={20} />{t("board.perfect")}
+          <Icon name="trophy" size={20} />{t(`words.${style}.perfect`)}
         </p>
       )}
       {saved && <p className="text-sm text-accent">{t("board.saved")}</p>}

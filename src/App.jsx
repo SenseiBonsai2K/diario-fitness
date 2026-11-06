@@ -31,9 +31,9 @@ function readTab() {
 export default function App() {
   const { t } = useTranslation();
   const { saveError, data } = useStore();
-  const { bg, accent, theme } = data.prefs;
+  const { bg, accent, theme, style } = data.prefs;
   useLayoutEffect(() => {
-    const prefs = { bg, accent, theme };
+    const prefs = { bg, accent, theme, style };
     applyAppearance(prefs);
     // "Automatic" follows the phone switching between light and dark.
     let q = null;
@@ -41,7 +41,7 @@ export default function App() {
     const on = () => applyAppearance(prefs);
     q?.addEventListener?.("change", on);
     return () => q?.removeEventListener?.("change", on);
-  }, [bg, accent, theme]);
+  }, [bg, accent, theme, style]);
   // One automatic copy a week, taken when the app is opened (see Settings → Automatic copies).
   useEffect(() => { weeklySnapshot(data, hasLogs(data) || hasPlan(data)); }, []); // once per opening, with the data loaded at start
 

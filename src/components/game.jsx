@@ -1,11 +1,19 @@
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Icon } from "./ui.jsx";
 import { useStore } from "../lib/store.jsx";
 import { today } from "../lib/dates.js";
-import { DEFAULT_STYLE, STYLES, evaluateDay, gameState } from "../lib/game.js";
+import { DEFAULT_STYLE, STYLES, QUEST_TYPES, evaluateDay, gameState } from "../lib/game.js";
+import { feedback } from "../lib/sfx.js";
+import { activityLabel } from "../lib/program.js";
 
 const GameContext = createContext(null);
+const ToastContext = createContext(() => {});
+
+/** Pops a short message at the top: { kind, title, sub, xp }. */
+export function useToast() {
+  return useContext(ToastContext);
+}
 
 const hhmm = () => { const d = new Date(); return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
 
@@ -16,19 +24,82 @@ const hhmm = () => { const d = new Date(); return `${String(d.getHours()).padSta
  */
 export function GameProvider({ children }) {
   const { data, patch, setGame } = useStore();
+  const { t } = useTranslation("game");
   const now = today();
   const state = useMemo(() => gameState(data, now), [data, now]);
+  const [toasts, setToasts] = useState([]);
+  const prefs = useRef(data.prefs);
+  prefs.current = data.prefs;
+  const style = STYLES.includes(data.prefs.style) ? data.prefs.style : DEFAULT_STYLE;
+
+  const toast = useCallback((x) => {
+    const id = Math.random().toString(36).slice(2);
+    setToasts((list) => [...list.slice(-2), { ...x, id }]);
+    setTimeout(() => setToasts((list) => list.filter((y) => y.id !== id)), x.ms || 3200);
+  }, []);
 
   useEffect(() => { if (!data.game.startDate) setGame({ startDate: now }); }, [data.game.startDate, now, setGame]);
 
+  // Today's quests as they get done: record the time (deadlines are checked
+  // against it) and celebrate. The first look at a day only takes note of what
+  // is already done, so opening the app or importing a backup stays quiet.
+  const seen = useRef(null);
   useEffect(() => {
     const day = evaluateDay(data, now, false);
     const times = data.days[now]?.fatto || {};
     const fresh = day.quests.filter((x) => x.complete && !times[x.key]);
     if (fresh.length) patch("days", now, { fatto: { ...times, ...Object.fromEntries(fresh.map((x) => [x.key, hhmm()])) } });
-  }, [data, now, patch]);
 
-  return <GameContext.Provider value={state}>{children}</GameContext.Provider>;
+    const done = new Set(day.quests.filter((x) => x.complete).map((x) => x.key));
+    const before = seen.current?.date === now ? seen.current : null;
+    seen.current = { date: now, done, perfect: day.perfect };
+    if (!before) return;
+    const newly = day.quests.filter((x) => x.complete && !before.done.has(x.key));
+    if (!newly.length) return;
+    if (day.perfect && !before.perfect) {
+      toast({ kind: "perfect", title: t(`words.${style}.perfect`), xp: day.xp, ms: 4200 });
+      feedback("perfect", prefs.current);
+    } else if (newly.length > 2) {
+      toast({ kind: "quest", title: t("toast.many", { count: newly.length }) });
+      feedback("quest", prefs.current);
+    } else {
+      for (const x of newly) {
+        const name = x.quest.type === "workout" ? activityLabel(data, x.quest.session, t) : t(`quest.${x.quest.type}`);
+        toast({ kind: "quest", icon: QUEST_TYPES[x.quest.type].icon, title: t(`words.${style}.questDone`), sub: name, xp: x.xp });
+      }
+      feedback("quest", prefs.current);
+    }
+  }, [data, now, patch, toast, t, style]);
+
+  return (
+    <GameContext.Provider value={state}>
+      <ToastContext.Provider value={toast}>
+        {children}
+        <Toasts list={toasts} onClose={(id) => setToasts((l) => l.filter((y) => y.id !== id))} />
+      </ToastContext.Provider>
+    </GameContext.Provider>
+  );
+}
+
+function Toasts({ list, onClose }) {
+  const { t } = useTranslation("game");
+  return (
+    <div aria-live="polite" className="fixed left-1/2 -translate-x-1/2 top-[max(10px,env(safe-area-inset-top))] z-40 w-[min(92vw,26rem)] flex flex-col gap-2 pointer-events-none">
+      {list.map((x) => (
+        <div key={x.id} className="toast-in pointer-events-auto rounded-card border border-accent/50 bg-surface/95 backdrop-blur shadow-float px-4 py-3 flex items-center gap-3">
+          <span className={`w-9 h-9 shrink-0 rounded-full grid place-items-center ${x.kind === "pr" ? "bg-warn/20 text-warn" : x.kind === "badge" ? "bg-accent-soft text-accent" : "bg-good/20 text-good"}`}>
+            <Icon name={x.kind === "pr" ? "bolt" : x.kind === "badge" ? "trophy" : x.kind === "perfect" ? "trophy" : x.icon || "check"} size={18} />
+          </span>
+          <span className="flex-1 min-w-0">
+            <span className="block font-display uppercase tracking-wide leading-tight">{x.title}</span>
+            {x.sub && <span className="block text-xs text-muted truncate">{x.sub}</span>}
+          </span>
+          {x.xp > 0 && <span className="font-display font-bold text-good num shrink-0">{t("toast.xp", { xp: x.xp })}</span>}
+          <button type="button" onClick={() => onClose(x.id)} aria-label={t("toast.close")} className="w-7 h-7 -mr-1 grid place-items-center text-muted shrink-0"><Icon name="close" size={14} /></button>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export function useGame() {
@@ -130,15 +201,23 @@ export function LevelUp() {
     if (seen.level !== g.level || seen.tier !== g.tier) setShown({ from: seen, level: g.level, tier: g.tier });
   }, [g?.level, g?.tier, seen, data.game.startDate]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => { if (shown) ref.current?.focus(); }, [shown]);
+  const style = useStyle();
+  const up = shown ? shown.level > shown.from.level || (shown.level === shown.from.level && shown.tier > shown.from.tier) : false;
+  useEffect(() => {
+    if (!shown) return;
+    ref.current?.focus();
+    feedback(up ? "levelUp" : "levelDown", data.prefs);
+  }, [shown]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!shown) return null;
-  const up = shown.level > shown.from.level || (shown.level === shown.from.level && shown.tier > shown.from.tier);
   const close = () => { setGame({ seen: { level: shown.level, tier: shown.tier } }); setShown(null); };
   return (
     <div role="dialog" aria-modal="true" aria-labelledby="lvl-title" className="fixed inset-0 z-50 grid place-items-center bg-black/70 backdrop-blur-sm p-6" onClick={close}>
       <div className="pop-in w-full max-w-xs rounded-card bg-surface border border-line p-6 flex flex-col items-center gap-3 text-center shadow-float" onClick={(e) => e.stopPropagation()}>
-        <Emblem tier={shown.tier} level={shown.level} size={96} className={up ? "glow" : ""} />
-        <h2 id="lvl-title" className="h-display text-3xl">{up ? t("levelUp.up", { n: shown.level }) : t("levelUp.down", { n: shown.level })}</h2>
+        <span className="relative grid place-items-center">
+          {up && <span className="burst absolute inset-0 rounded-full" style={{ boxShadow: `0 0 0 3px rgb(var(--tier-${shown.tier}))` }} />}
+          <Emblem tier={shown.tier} level={shown.level} size={96} className={up ? "glow" : ""} />
+        </span>
+        <h2 id="lvl-title" className="h-display text-3xl">{up ? t(`words.${style}.levelUp`, { n: shown.level }) : t(`words.${style}.levelDown`, { n: shown.level })}</h2>
         {shown.tier !== shown.from.tier && (
           <p className="font-display uppercase tracking-wide text-lg" style={tierVar(shown.tier)}>
             {shown.tier > shown.from.tier ? t("levelUp.tierUp", { rank: rank(shown.tier) }) : t("levelUp.tierDown", { rank: rank(shown.tier) })}

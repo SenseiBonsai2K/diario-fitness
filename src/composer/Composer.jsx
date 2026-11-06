@@ -58,8 +58,8 @@ export default function Composer() {
   const lang = i18n.resolvedLanguage || "it";
   const dayNames = useMemo(() => weekdayNames(lang, "long"), [lang]);
 
-  const { bg, accent, theme } = data.prefs;
-  useLayoutEffect(() => { applyAppearance({ bg, accent, theme }); }, [bg, accent, theme]);
+  const { bg, accent, theme, style } = data.prefs;
+  useLayoutEffect(() => { applyAppearance({ bg, accent, theme, style }); }, [bg, accent, theme, style]);
   useEffect(() => { document.title = t("pageTitle"); }, [t]);
 
   const [source, setSource] = useState(() => readJson(SOURCE_KEY)); // { name, data } from a loaded backup

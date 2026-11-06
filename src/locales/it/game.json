@@ -38,10 +38,14 @@
   },
   "styles": {
     "label": "Stile di gioco",
-    "hint": "Cambia i nomi dei ranghi (e, nella prossima versione, grafica, suoni e parole).",
+    "hint": "Cambia grafica, caratteri, suoni, nomi dei ranghi e alcune parole. L'app è sempre scura; il colore principale si sceglie sotto.",
     "fantasy": "Fantasy",
     "system": "System",
-    "cyber": "Cyberpunk"
+    "cyber": "Cyberpunk",
+    "sound": "Suoni del gioco",
+    "vibration": "Vibrazione",
+    "on": "Sì",
+    "off": "No"
   },
   "quest": {
     "workout": "Allenamento",
@@ -167,5 +171,39 @@
     "steps": "passi",
     "h": "h",
     "L": "L"
+  },
+  "words": {
+    "fantasy": {
+      "quests": "Imprese di oggi",
+      "perfect": "Giornata leggendaria!",
+      "questDone": "Impresa compiuta",
+      "levelUp": "Livello {{n}}!",
+      "levelDown": "Sei sceso al livello {{n}}",
+      "pr": "Nuovo record",
+      "badge": "Trofeo sbloccato"
+    },
+    "system": {
+      "quests": "Missioni giornaliere",
+      "perfect": "Tutte le missioni completate",
+      "questDone": "Missione completata",
+      "levelUp": "LEVEL UP · {{n}}",
+      "levelDown": "Livello ridotto · {{n}}",
+      "pr": "Limite superato",
+      "badge": "Titolo ottenuto"
+    },
+    "cyber": {
+      "quests": "Contratti attivi",
+      "perfect": "Run perfetta",
+      "questDone": "Contratto chiuso",
+      "levelUp": "Upgrade · livello {{n}}",
+      "levelDown": "Downgrade · livello {{n}}",
+      "pr": "Nuovo record di sistema",
+      "badge": "Achievement sbloccato"
+    }
+  },
+  "toast": {
+    "xp": "+{{xp}} XP",
+    "many": "{{count}} quest completate",
+    "close": "Chiudi"
   }
 }

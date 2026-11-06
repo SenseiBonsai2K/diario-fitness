@@ -1,8 +1,10 @@
+import { DEFAULT_STYLE, STYLES } from "./game.js";
 import { storeKey } from "./ns.js";
 import { APPEARANCE } from "./appearance.js";
 
-// Appearance = a neutral background and an accent colour, chosen separately.
-// "auto" follows the phone's light/dark setting.
+// Appearance = the game style (fantasy, system, cyber: it repaints the dark
+// neutrals, see src/game-styles.css) and an accent colour. The app is always
+// dark since v2; the old background choice is ignored.
 export const BG_IDS = ["auto", ...Object.keys(APPEARANCE.backgrounds)];
 export const ACCENT_IDS = Object.keys(APPEARANCE.accents);
 export const DEFAULT_ACCENT = "blue";
@@ -17,11 +19,14 @@ export function prefersDark() {
 
 /** The background and accent actually in use for these preferences. */
 export function resolveAppearance(prefs = {}) {
-  const bgPref = BG_IDS.includes(prefs.bg) ? prefs.bg : "auto";
-  const bg = bgPref === "auto" ? (prefersDark() ? "dark" : "light") : bgPref;
+  const bg = "dark";
   const accent = APPEARANCE.accents[prefs.accent] ? prefs.accent : FROM_PAIR[prefs.theme] || DEFAULT_ACCENT;
-  return { bgPref, bg, accent, mode: APPEARANCE.backgrounds[bg].mode };
+  const style = STYLES.includes(prefs.style) ? prefs.style : DEFAULT_STYLE;
+  return { bgPref: bg, bg, accent, style, mode: APPEARANCE.backgrounds[bg].mode };
 }
+
+/** Background colour of each style, for the browser bar. */
+const STYLE_BG = { fantasy: "#14110E", system: "#060A16", cyber: "#09070E" };
 
 /** Put the appearance on <html>, remember it for the next launch, tint the browser bar. */
 export function applyAppearance(prefs) {
@@ -30,7 +35,8 @@ export function applyAppearance(prefs) {
   root.setAttribute("data-bg", a.bg);
   root.setAttribute("data-mode", a.mode);
   root.setAttribute("data-accent", a.accent);
-  try { localStorage.setItem(STORE_KEY, JSON.stringify({ bg: a.bgPref, accent: a.accent })); } catch { /* storage blocked */ }
-  for (const m of document.querySelectorAll('meta[name="theme-color"]')) m.setAttribute("content", APPEARANCE.backgrounds[a.bg].bg);
+  root.setAttribute("data-style", a.style);
+  try { localStorage.setItem(STORE_KEY, JSON.stringify({ accent: a.accent, style: a.style })); } catch { /* storage blocked */ }
+  for (const m of document.querySelectorAll('meta[name="theme-color"]')) m.setAttribute("content", STYLE_BG[a.style]);
   return a;
 }
