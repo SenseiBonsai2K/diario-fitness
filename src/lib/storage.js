@@ -39,7 +39,7 @@ export function emptyData() {
      * program's week), the day the game started (XP counts from there) and the
      * level/tier last shown, to announce level-ups.
      */
-    game: { startDate: null, routine: null, seen: null },
+    game: { startDate: null, routine: null, seen: null, title: null },
     history: [],
     /** Every version replaced by a plan import: { at, kind, id?, data }. Never pruned. */
     archive: [],

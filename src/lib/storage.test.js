@@ -64,7 +64,7 @@ describe("full backup coverage", () => {
     d.diets = { d1: sampleDiet() };
     d.activeDiet = "d1";
     d.plan = { sections: [{ id: "s", title: "Corsa" }], yoga: null, updatedAt: "2026-10-10", extra: 1 };
-    d.game = { startDate: "2026-11-09", routine: { 1: [{ type: "steps", target: 9000, mode: "prop" }] }, seen: { level: 3, tier: 0 } };
+    d.game = { startDate: "2026-11-09", routine: { 1: [{ type: "steps", target: 9000, mode: "prop" }] }, seen: { level: 3, tier: 0 }, title: null };
     d.history = [{ date: "2026-10-10", title: "x" }];
     d.archive = [{ at: "2026-10-01", kind: "plan", data: { sections: [] } }];
     d.prefs = { lang: "it", bg: "dark", accent: "teal", style: "cyber" };
@@ -187,7 +187,7 @@ describe("v5: running and yoga removed", () => {
     expect(out.moves).toEqual({ "2026-10-16": { activities: ["rest"] }, "2026-10-17": { activities: ["lowerB"] } });
     expect(out.archive[0].data.yoga).toBeNull();
     expect(out.archive[1].data).toEqual({ kcal: 2300 });
-    expect(out.game).toEqual({ startDate: null, routine: null, seen: null });
+    expect(out.game).toEqual({ startDate: null, routine: null, seen: null, title: null });
   });
 
   it("takes the quest routine from a plan file and archives the one it replaces", () => {

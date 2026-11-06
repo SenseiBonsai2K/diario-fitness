@@ -2,7 +2,7 @@ import { storeKey } from "../lib/ns.js";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, Grid, Icon, Meter, NumField, Segmented, Stat, Stepper, TextField } from "../components/ui.jsx";
-import QuestBoard from "../components/QuestBoard.jsx";
+import QuestBoard, { PeriodQuests } from "../components/QuestBoard.jsx";
 import { evaluateDay, routineQuestsOn } from "../lib/game.js";
 import { activeProgram, activityLabel, addEntry, findSession, moveEntries, plannedListOn, removeEntry, sessionsOf, undoEntries } from "../lib/program.js";
 import { hasPlan } from "../lib/storage.js";
@@ -460,6 +460,8 @@ export default function Today({ date, setDate, openWorkout, goTo, onRoutine }) {
           ]}
         />
       </Card>
+
+      {hasPlan(data) && date === today() && <PeriodQuests />}
 
       <div id="menu-oggi" className="scroll-mt-4"><TodayMenu date={date} goTo={goTo} /></div>
 

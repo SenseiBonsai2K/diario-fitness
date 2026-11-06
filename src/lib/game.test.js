@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { emptyData } from "./storage.js";
 import {
+  personalRecords, rpgStats,
   cleanQuests, evaluateDay, gameState, levelFromXp, questDayEntry, questXp, questsOn, tierFor, xpAtLevel, xpToNext,
 } from "./game.js";
 
@@ -111,8 +112,9 @@ describe("game state", () => {
     d.workouts["2026-11-09"] = lift({ bench: done(2), row: done(1) });
     // Tue 10: nothing → −25.
     const s = gameState(d, "2026-11-11");
-    expect(s.days.map((x) => [x.xp, x.penalty])).toEqual([[150, 0], [0, 25], [0, 0]]);
-    expect(s.xp).toBe(125);
+    expect(s.days.map((x) => [x.xp, x.penalty, x.extra])).toEqual([[150, 0, 150], [0, 25, 0], [0, 0, 0]]);
+    // + 150 for every planned session of the week done (weekly quest).
+    expect(s.xp).toBe(275);
     const empty = sample();
     expect(gameState(empty, "2026-11-12").xp).toBe(0);
   });
@@ -131,7 +133,9 @@ describe("game state", () => {
     expect(s.days[14]).toMatchObject({ perfect: false, saved: true, penalty: 25 });
     expect(s.streak).toBe(15);
     expect(s.jolly).toBe(0);
-    expect(s.xp).toBe(15 * 50);
+    // 15 days × 50, streak 7 and 14 (2 × 250), two weeks of steps (2 × 100), two perfect weeks (2 × 200).
+    expect(s.xp).toBe(15 * 50 + 500 + 200 + 400);
+    expect(s.events.map((e) => e.kind).sort()).toEqual(["perfectWeek", "perfectWeek", "streak7", "streak7", "weekSteps", "weekSteps"]);
   });
 
   it("measures constancy on finished days only, plus what is already done today", () => {
@@ -143,5 +147,31 @@ describe("game state", () => {
     // Tue 10: steps missed.
     expect(gameState(d, "2026-11-11").constancy.week).toBeCloseTo(2 / 3);
     expect(gameState(d, "2026-11-11").perType.workout).toEqual({ done: 1, total: 1, ratio: 1 });
+  });
+});
+
+describe("records, stats and badges", () => {
+  it("finds personal records after a first baseline session, from the start date only", () => {
+    const d = sample();
+    const set = (kg, reps) => [{ kg: String(kg), reps: String(reps), done: true }];
+    d.workouts["2026-11-02"] = lift({ bench: set(80, 6) });
+    d.workouts["2026-11-09"] = lift({ bench: set(82.5, 6) });
+    d.workouts["2026-11-16"] = lift({ bench: set(80, 8), row: set(60, 8) });
+    const prs = personalRecords(d, "2026-11-09");
+    expect(prs.map((p) => [p.date, p.exercise])).toEqual([["2026-11-09", "bench"], ["2026-11-16", "bench"]]);
+    const s = gameState(d, "2026-11-17");
+    expect(s.events.filter((e) => e.kind === "pr")).toHaveLength(2);
+    expect(s.stats.strength.prs).toBe(2);
+  });
+
+  it("unlocks badges from what was done", () => {
+    const d = sample();
+    d.days["2026-11-09"] = { passi: "16000" };
+    d.workouts["2026-11-09"] = lift({ bench: done(2), row: done(1) });
+    const s = gameState(d, "2026-11-10");
+    const on = s.badges.filter((b) => b.unlocked).map((b) => b.id);
+    expect(on).toEqual(expect.arrayContaining(["firstWorkout", "steps15k"]));
+    expect(on).not.toContain("steps20k");
+    expect(rpgStats(d, s).endurance.steps).toBe(16000);
   });
 });

@@ -1,4 +1,6 @@
 import { useTranslation } from "react-i18next";
+import { useStore } from "../lib/store.jsx";
+import { exerciseNames } from "../lib/program.js";
 import { Card, Grid, Icon, Stat } from "../components/ui.jsx";
 import { Emblem, XpBar, useGame, useRankName } from "../components/game.jsx";
 import { JOLLY_EVERY, MAX_JOLLY, QUEST_TYPES, TIER_LEVELS } from "../lib/game.js";
@@ -8,8 +10,25 @@ const pct = (v) => (v === null || v === undefined ? "—" : `${Math.round(v * 10
 const tone = (v) => (v === null || v === undefined ? undefined : v >= 0.85 ? "good" : v >= 0.7 ? undefined : v >= 0.5 ? "warn" : "bad");
 
 /** Level, rank, XP, streak, jolly and constancy: the player's sheet. */
+function StatBar({ label, value, hint, icon }) {
+  return (
+    <li className="flex items-center gap-3">
+      <Icon name={icon} size={20} className="text-accent shrink-0" />
+      <span className="flex-1 min-w-0 flex flex-col gap-1">
+        <span className="flex items-baseline justify-between gap-2">
+          <span className="font-display uppercase tracking-wide leading-none">{label}</span>
+          <span className="font-display font-bold text-xl num leading-none">{value}</span>
+        </span>
+        <span className="xp-bar !h-1.5" aria-hidden="true"><span style={{ width: `${value}%` }} /></span>
+        <span className="text-[0.7rem] text-muted num">{hint}</span>
+      </span>
+    </li>
+  );
+}
+
 export default function Profile({ onRoutine }) {
   const { t, i18n } = useTranslation("game");
+  const { data, setGame } = useStore();
   const g = useGame();
   const rank = useRankName();
   const lang = i18n.language;
@@ -17,6 +36,8 @@ export default function Profile({ onRoutine }) {
   const last7 = g.days.slice(-7);
   const maxXp = Math.max(1, ...last7.map((d) => Math.max(d.xp, d.penalty)));
   const types = Object.keys(QUEST_TYPES).filter((k) => g.perType[k]);
+  const unlocked = g.badges.filter((b) => b.unlocked);
+  const names = exerciseNames(data);
 
   return (
     <>
@@ -29,8 +50,19 @@ export default function Profile({ onRoutine }) {
           <XpBar into={g.into} need={g.need} tier={g.tier} label={t("hud.level", { n: g.level })} />
           <span className="text-xs text-muted num">{t("profile.toNext", { xp: g.need - g.into, n: g.level + 1 })}</span>
         </div>
+        {data.game.title && g.badges.find((b) => b.id === data.game.title && b.unlocked) && (
+          <span className="text-sm italic text-accent">«{t(`badges.${data.game.title}.title`)}»</span>
+        )}
         <span className="text-[0.7rem] text-muted mt-1">{t("profile.since", { date: fmtDate(g.startDate, lang, { day: "numeric", month: "long", year: "numeric" }) })}</span>
       </section>
+
+      <Card title={t("stats.title")}>
+        <ul className="flex flex-col gap-3">
+          <StatBar icon="dumbbell" label={t("stats.strength")} value={g.stats.strength.value} hint={t("stats.strengthHint", { lifts: g.stats.strength.lifts, prs: g.stats.strength.prs })} />
+          <StatBar icon="steps" label={t("stats.endurance")} value={g.stats.endurance.value} hint={t("stats.enduranceHint", { steps: g.stats.endurance.steps.toLocaleString(lang) })} />
+          <StatBar icon="star" label={t("stats.discipline")} value={g.stats.discipline.value} hint={t("stats.disciplineHint", { perfect: g.stats.discipline.perfect, diet: g.stats.discipline.diet })} />
+        </ul>
+      </Card>
 
       <Card title={t("profile.streak")}>
         <Grid cols={3}>
@@ -82,6 +114,47 @@ export default function Profile({ onRoutine }) {
         </div>
       </Card>
 
+      <Card title={t("achievements.title")} aside={<span className="text-xs text-muted num">{t("achievements.count", { done: unlocked.length, total: g.badges.length })}</span>}>
+        <div className="flex flex-col gap-1.5">
+          <span id="title-label" className="label">{t("achievements.titleLabel")}</span>
+          <div role="radiogroup" aria-labelledby="title-label" className="flex flex-wrap gap-1.5">
+            <button type="button" role="radio" aria-checked={!data.game.title} className="chip !min-h-[34px] !text-xs" onClick={() => setGame({ title: null })}>{t("achievements.noTitle")}</button>
+            {unlocked.map((b) => (
+              <button key={b.id} type="button" role="radio" aria-checked={data.game.title === b.id} className="chip !min-h-[34px] !text-xs" onClick={() => setGame({ title: b.id })}>{t(`badges.${b.id}.title`)}</button>
+            ))}
+          </div>
+          <p className="text-xs text-muted">{t("achievements.titleHint")}</p>
+        </div>
+        <ul className="grid grid-cols-2 gap-2">
+          {g.badges.map((b) => (
+            <li key={b.id} className={`rounded-field border p-2.5 flex items-start gap-2 ${b.unlocked ? "border-accent/50 bg-accent-soft" : "border-line/60 opacity-55"}`}>
+              <span className={`w-8 h-8 rounded-full grid place-items-center shrink-0 ${b.unlocked ? "bg-accent text-accent-ink" : "bg-raised text-muted"}`}><Icon name={b.unlocked ? b.icon : "shield"} size={16} /></span>
+              <span className="min-w-0">
+                <span className="block text-[0.8rem] font-semibold leading-tight">{t(`badges.${b.id}.name`)}</span>
+                <span className="block text-[0.68rem] text-muted leading-snug">{t(`badges.${b.id}.desc`)}</span>
+              </span>
+              <span className="sr-only">{b.unlocked ? "" : t("achievements.locked")}</span>
+            </li>
+          ))}
+        </ul>
+      </Card>
+
+      <Card title={t("records.title")}>
+        {g.prs.length ? (
+          <ul className="flex flex-col gap-1.5 text-sm">
+            {g.prs.slice(-6).reverse().map((p) => (
+              <li key={`${p.date}-${p.exercise}`} className="flex items-start gap-2">
+                <Icon name="bolt" size={16} className="text-warn mt-0.5 shrink-0" />
+                <span className="min-w-0">
+                  <span className="text-xs text-muted num">{fmtDate(p.date, lang)} · </span>
+                  {t("records.line", { exercise: names[p.exercise] || p.exercise, kg: p.kg, reps: p.reps, value: p.value, previous: p.previous })}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : <p className="text-sm text-muted">{t("records.empty")}</p>}
+      </Card>
+
       <button type="button" className="btn w-full" onClick={onRoutine}><Icon name="edit" size={18} />{t("profile.editRoutine")}</button>
 
       <Card title={t("profile.ranks")}>
@@ -98,7 +171,7 @@ export default function Profile({ onRoutine }) {
 
       <Card title={t("profile.rules")}>
         <ul className="flex flex-col gap-1.5 text-sm list-disc pl-5">
-          {["rule1", "rule2", "rule3", "rule4"].map((k) => <li key={k}>{t(`profile.${k}`)}</li>)}
+          {["rule1", "rule2", "rule3", "rule4", "rule5"].map((k) => <li key={k}>{t(`profile.${k}`)}</li>)}
         </ul>
       </Card>
     </>

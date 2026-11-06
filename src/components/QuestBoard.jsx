@@ -2,7 +2,7 @@ import { useId } from "react";
 import { useTranslation } from "react-i18next";
 import { Icon } from "./ui.jsx";
 import { useStore } from "../lib/store.jsx";
-import { QUEST_TYPES, evaluateDay, questsChanged } from "../lib/game.js";
+import { QUEST_TYPES, evaluateDay, periodProgress, questsChanged } from "../lib/game.js";
 import { activityLabel, findSession } from "../lib/program.js";
 import { today } from "../lib/dates.js";
 import { useGame, useStyle } from "./game.jsx";
@@ -161,6 +161,55 @@ export default function QuestBoard({ date, openWorkout, goTo, onRoutine, onMove,
         <button type="button" className="text-sm font-semibold text-accent py-1.5 inline-flex items-center gap-1.5" onClick={onRoutine}><Icon name="edit" size={16} />{t("board.routine")}</button>
         <button type="button" className="text-sm font-semibold text-accent py-1.5 inline-flex items-center gap-1.5" onClick={onAdd}><Icon name="plus" size={16} />{t("today:add.open")}</button>
       </div>
+    </section>
+  );
+}
+
+function PeriodRow({ icon, name, hint, xp, done, failed, pct }) {
+  const { t } = useTranslation("game");
+  return (
+    <li className={`flex flex-col gap-1.5 rounded-field border px-3 py-2.5 ${done ? "border-good/40 bg-good/5" : failed ? "border-line/50 opacity-60" : "border-line/70"}`}>
+      <div className="flex items-center gap-3">
+        <Icon name={done ? "check" : icon} size={18} className={done ? "text-good shrink-0" : "text-muted shrink-0"} />
+        <span className="flex-1 min-w-0">
+          <span className="block text-sm font-semibold leading-tight">{name}</span>
+          <span className="block text-xs text-muted num">{hint}</span>
+        </span>
+        <span className={`font-display font-bold num shrink-0 ${done ? "text-good" : "text-muted text-sm"}`}>{done ? t("board.xp", { xp }) : t("board.worth", { xp })}</span>
+      </div>
+      {pct !== undefined && !done && <div className="bar !h-1" aria-hidden="true"><span style={{ width: `${Math.min(1, pct) * 100}%` }} /></div>}
+    </li>
+  );
+}
+
+/** This week's and month's quests and the bosses: they only earn XP, missing them costs nothing. */
+export function PeriodQuests() {
+  const { t, i18n } = useTranslation("game");
+  const { data } = useStore();
+  const g = useGame();
+  if (!g) return null;
+  const p = periodProgress(data, g, today());
+  const n = (v) => (v ?? 0).toLocaleString(i18n.language, { maximumFractionDigits: 0 });
+  const [lifts, steps, perfect] = p.week;
+  const [check, constancy] = p.month;
+  return (
+    <section className="card !gap-2.5" aria-labelledby="period-title">
+      <h2 id="period-title" className="eyebrow">{t("extra.week")}</h2>
+      <ul className="flex flex-col gap-2">
+        <PeriodRow icon="dumbbell" name={t("extra.allLifts")} hint={lifts.target ? t("extra.allLiftsHint", { value: lifts.value, target: lifts.target }) : t("extra.noLifts")} xp={lifts.xp} done={lifts.done} pct={lifts.target ? lifts.value / lifts.target : 0} />
+        <PeriodRow icon="steps" name={t("extra.weekSteps")} hint={steps.target ? t("extra.weekStepsHint", { value: n(steps.value), target: n(steps.target) }) : t("extra.noSteps")} xp={steps.xp} done={steps.done} pct={steps.target ? steps.value / steps.target : 0} />
+        <PeriodRow icon="trophy" name={t("extra.perfectWeek")} hint={perfect.failed ? t("extra.perfectWeekLost") : t("extra.perfectWeekHint", { value: perfect.value })} xp={perfect.xp} done={perfect.done} failed={perfect.failed} pct={perfect.value / 7} />
+      </ul>
+      <h2 className="eyebrow mt-1">{t("extra.month")}</h2>
+      <ul className="flex flex-col gap-2">
+        <PeriodRow icon="scale" name={t("extra.monthCheck")} hint={t("extra.monthCheckHint")} xp={check.xp} done={check.done} />
+        <PeriodRow icon="star" name={t("extra.monthConstancy")} hint={t("extra.monthConstancyHint", { value: constancy.value === null ? "—" : `${Math.round(constancy.value * 100)}%` })} xp={constancy.xp} done={constancy.done} pct={constancy.value === null ? 0 : constancy.value / constancy.target} />
+      </ul>
+      <h2 className="eyebrow mt-1">{t("extra.boss")}</h2>
+      <ul className="flex flex-col gap-2">
+        <PeriodRow icon="flame" name={t("extra.streakBoss", { n: p.boss.nextStreak })} hint={t("extra.streakBossHint", { streak: p.boss.streak, left: p.boss.nextStreak - p.boss.streak })} xp={p.boss.xp} pct={p.boss.streak / p.boss.nextStreak} />
+        <PeriodRow icon="bolt" name={t("extra.prBoss")} hint={t("extra.prBossHint", { xp: p.boss.prXp, count: p.boss.prs })} xp={p.boss.prXp} />
+      </ul>
     </section>
   );
 }

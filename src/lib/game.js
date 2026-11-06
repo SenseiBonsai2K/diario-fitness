@@ -7,10 +7,10 @@
 // A day is "open" until midnight: its quests earn XP as they are done, and the
 // penalty for a missed required quest is only charged once the day is over.
 
-import { addDays, iso, isoWeek, parseIso } from "./dates.js";
+import { addDays, iso, isoWeek, mondayOf, monthKey, parseIso } from "./dates.js";
 import { menuKeys } from "./diet.js";
 import { findSession, plannedListOn } from "./program.js";
-import { num, sessionLog } from "./stats.js";
+import { doneSets, e1rm, num, sessionLog } from "./stats.js";
 
 /** Quest types: base XP, the default target and how partial progress counts by default. */
 export const QUEST_TYPES = {
@@ -235,36 +235,137 @@ export function tierFor(level, constancy30) {
 
 const ratio = (done, total) => (total ? done / total : null);
 
+/** XP of the weekly, monthly and boss quests (they never cost XP when missed). */
+export const EXTRA_XP = { allLifts: 150, weekSteps: 100, perfectWeek: 200, monthCheck: 150, monthConstancy: 300, pr: 75, streak7: 250, streak30: 1000 };
+/** At most this many personal records pay XP on one day. */
+export const PR_PER_DAY = 3;
+/** A month counts as constant from this share of required quests done. */
+export const MONTH_CONSTANCY = 0.85;
+
+/**
+ * Personal records: a day whose best estimated 1RM on an exercise beats every
+ * earlier day (the first session of an exercise is only the baseline).
+ * Earlier history counts as baseline, only records from `fromIso` are returned.
+ */
+export function personalRecords(data, fromIso) {
+  const best = {};
+  const out = [];
+  for (const date of Object.keys(data.workouts || {}).sort()) {
+    const ids = new Set();
+    for (const w of [data.workouts[date]]) {
+      for (const l of [w, ...Object.values(w?.more || {})]) for (const id of Object.keys(l?.sets || {})) ids.add(id);
+    }
+    for (const id of ids) {
+      const sets = doneSets(data.workouts[date], id);
+      if (!sets.length) continue;
+      const top = sets.reduce((m, x) => (e1rm(num(x.kg), num(x.reps)) > e1rm(num(m.kg), num(m.reps)) ? x : m), sets[0]);
+      const value = Math.round(e1rm(num(top.kg), num(top.reps)) * 10) / 10;
+      if (best[id] !== undefined && value > best[id] && (!fromIso || date >= fromIso)) {
+        out.push({ date, exercise: id, value, previous: best[id], kg: num(top.kg), reps: num(top.reps) });
+      }
+      if (best[id] === undefined || value > best[id]) best[id] = value;
+    }
+  }
+  return out;
+}
+
+const stepsTarget = (r) => r.quests.filter((x) => x.quest.type === "steps" && x.required).reduce((a, x) => a + (x.quest.target || 0), 0);
+const stepsDone = (data, date) => num(data.days?.[date]?.passi) || 0;
+
+/**
+ * Weekly and monthly quests, each with the date it was earned on (the first
+ * day the condition held, or the week's / month's last day).
+ */
+function periodEvents(data, results, todayIso) {
+  const events = [];
+  const byWeek = {};
+  for (const r of results) (byWeek[iso(mondayOf(parseIso(r.date)))] ||= []).push(r);
+  for (const [monday, list] of Object.entries(byWeek)) {
+    const days = Array.from({ length: 7 }, (_, i) => iso(addDays(parseIso(monday), i)));
+    const all = days.map((d) => list.find((r) => r.date === d) || evaluateDay(data, d, d < todayIso));
+    const lifts = all.flatMap((r) => r.quests.filter((x) => x.quest.type === "workout"));
+    const target = all.reduce((a, r) => a + stepsTarget(r), 0);
+    let steps = 0, liftsDone = false, stepsDoneFlag = false;
+    for (const r of list) {
+      if (r.date > todayIso) break;
+      steps += stepsDone(data, r.date);
+      if (!liftsDone && lifts.length && lifts.every((x) => x.complete && all.find((y) => y.date <= r.date && y.quests.includes(x)))) {
+        liftsDone = true; events.push({ date: r.date, kind: "allLifts", xp: EXTRA_XP.allLifts, period: monday });
+      }
+      if (!stepsDoneFlag && target > 0 && steps >= target) {
+        stepsDoneFlag = true; events.push({ date: r.date, kind: "weekSteps", xp: EXTRA_XP.weekSteps, period: monday });
+      }
+    }
+    const sunday = days[6];
+    if (sunday < todayIso && all.every((r) => r.required === 0 || r.perfect) && all.some((r) => r.required > 0) && list.length === 7) {
+      events.push({ date: sunday, kind: "perfectWeek", xp: EXTRA_XP.perfectWeek, period: monday });
+    }
+  }
+  const byMonth = {};
+  for (const r of results) (byMonth[r.date.slice(0, 7)] ||= []).push(r);
+  for (const [m, list] of Object.entries(byMonth)) {
+    const last = list[list.length - 1].date;
+    const monthOver = monthKey(parseIso(todayIso)) !== m;
+    const c = data.months?.[m] || {};
+    if (["peso", "bf", "foto", "vita"].some((k) => c[k] !== undefined && c[k] !== null && c[k] !== "")) {
+      events.push({ date: monthOver ? last : todayIso, kind: "monthCheck", xp: EXTRA_XP.monthCheck, period: m });
+    }
+    if (monthOver && list.length >= 20) {
+      let done = 0, total = 0;
+      for (const r of list) { done += r.completed; total += r.required; }
+      if (total && done / total >= MONTH_CONSTANCY) events.push({ date: last, kind: "monthConstancy", xp: EXTRA_XP.monthConstancy, period: m });
+    }
+  }
+  return events;
+}
+
 /**
  * The whole game state on `todayIso`, replaying every day from the start date:
- * XP (penalties included, never below 0), level, tier, streak, jolly,
- * constancy and per-day results. Today is open (no penalties yet).
+ * XP (daily, weekly, monthly and boss quests, penalties included, never below
+ * 0), level, tier, streak, jolly, constancy, records and per-day results.
+ * Today is open (no penalties yet).
  */
 export function gameState(data, todayIso) {
   const start = data.game?.startDate || todayIso;
-  const days = [];
-  let xp = 0, streak = 0, best = 0, jolly = 0, run = 0;
-  const perType = {};
+  const results = [];
   for (let d = parseIso(start); iso(d) <= todayIso; d = addDays(d, 1)) {
     const date = iso(d);
+    results.push(evaluateDay(data, date, date < todayIso));
+  }
+  const prs = personalRecords(data, start).filter((p) => p.date <= todayIso);
+  const prDays = {};
+  for (const p of prs) (prDays[p.date] ||= []).push(p);
+  const events = [...periodEvents(data, results, todayIso)];
+  for (const [date, list] of Object.entries(prDays)) {
+    list.slice(0, PR_PER_DAY).forEach((p) => events.push({ date, kind: "pr", xp: EXTRA_XP.pr, exercise: p.exercise, value: p.value }));
+  }
+
+  const days = [];
+  let xp = 0, streak = 0, best = 0, jolly = 0, run = 0, perfectDays = 0;
+  const perType = {};
+  for (const r of results) {
+    const { date } = r;
     const closed = date < todayIso;
-    const r = evaluateDay(data, date, closed);
     let saved = false;
     if (closed && r.required > 0 && !r.perfect && jolly > 0) { jolly--; saved = true; }
-    xp = Math.max(0, xp + r.xp - (saved ? 0 : r.penalty));
+    const today = events.filter((e) => e.date === date);
     if (r.required > 0) {
       if (r.perfect) {
-        streak++; run++;
+        streak++; run++; perfectDays++;
         if (run % JOLLY_EVERY === 0) jolly = Math.min(MAX_JOLLY, jolly + 1);
+        if (streak % 30 === 0) { const e = { date, kind: "streak30", xp: EXTRA_XP.streak30, n: streak }; events.push(e); today.push(e); }
+        else if (streak % 7 === 0) { const e = { date, kind: "streak7", xp: EXTRA_XP.streak7, n: streak }; events.push(e); today.push(e); }
       } else if (closed && !saved) { streak = 0; run = 0; }
     }
+    const extra = today.reduce((a, e) => a + e.xp, 0);
+    xp = Math.max(0, xp + r.xp + extra - (saved ? 0 : r.penalty));
     best = Math.max(best, streak);
     for (const x of r.quests) {
       if (!x.required || (!closed && !x.complete)) continue; // today's open quests don't count against constancy
       const p = (perType[x.quest.type] ||= { done: 0, total: 0 });
       p.total++; if (x.complete) p.done++;
     }
-    days.push({ ...r, saved, closed, total: xp });
+    days.push({ ...r, saved, closed, extra, events: today, total: xp });
   }
   const window = (n) => {
     const from = iso(addDays(parseIso(todayIso), -(n - 1)));
@@ -277,7 +378,7 @@ export function gameState(data, todayIso) {
   };
   const lvl = levelFromXp(xp);
   const constancy = { week: window(7), month: window(30), all: window(days.length || 1) };
-  return {
+  const state = {
     startDate: start,
     xp,
     ...lvl,
@@ -287,8 +388,118 @@ export function gameState(data, todayIso) {
     best,
     jolly,
     constancy,
+    perfectDays,
+    prs,
+    events: events.sort((a, b) => a.date.localeCompare(b.date)),
     perType: Object.fromEntries(Object.entries(perType).map(([k, v]) => [k, { ...v, ratio: ratio(v.done, v.total) }])),
     days,
     today: days[days.length - 1] || evaluateDay(data, todayIso, false),
+  };
+  state.stats = rpgStats(data, state);
+  state.badges = badges(data, state);
+  return state;
+}
+
+/** Strength, endurance and discipline, 1–99, from what was actually done. */
+export function rpgStats(data, s) {
+  const lifts = s.days.reduce((a, r) => a + r.quests.filter((x) => x.quest.type === "workout" && x.complete).length, 0);
+  const steps = s.days.reduce((a, r) => a + stepsDone(data, r.date), 0);
+  const diet = s.days.filter((r) => r.quests.some((x) => x.quest.type === "diet" && x.complete)).length;
+  const cap = (v) => Math.max(1, Math.min(99, Math.floor(v)));
+  return {
+    strength: { value: cap(1 + lifts + 3 * s.prs.length), lifts, prs: s.prs.length },
+    endurance: { value: cap(1 + steps / 50000), steps },
+    discipline: { value: cap(1 + s.perfectDays + diet / 2), perfect: s.perfectDays, diet },
+  };
+}
+
+/**
+ * Achievements: [id, icon, test]. Each unlocks a title the player can show
+ * under the rank (game.title). Names and titles live in the locale (game.badges.*).
+ */
+export const BADGES = [
+  ["firstWorkout", "dumbbell", (c) => c.lifts >= 1],
+  ["workouts10", "dumbbell", (c) => c.lifts >= 10],
+  ["workouts50", "dumbbell", (c) => c.lifts >= 50],
+  ["workouts100", "dumbbell", (c) => c.lifts >= 100],
+  ["streak7", "flame", (c) => c.best >= 7],
+  ["streak14", "flame", (c) => c.best >= 14],
+  ["streak30", "flame", (c) => c.best >= 30],
+  ["streak60", "flame", (c) => c.best >= 60],
+  ["streak100", "flame", (c) => c.best >= 100],
+  ["level5", "shield", (c) => c.level >= 5],
+  ["level10", "shield", (c) => c.level >= 10],
+  ["level20", "shield", (c) => c.level >= 20],
+  ["level30", "shield", (c) => c.level >= 30],
+  ["level40", "shield", (c) => c.level >= 40],
+  ["level50", "shield", (c) => c.level >= 50],
+  ["steps15k", "steps", (c) => c.maxSteps >= 15000],
+  ["steps20k", "steps", (c) => c.maxSteps >= 20000],
+  ["weekSteps100k", "steps", (c) => c.maxWeekSteps >= 100000],
+  ["pr1", "bolt", (c) => c.prs >= 1],
+  ["pr10", "bolt", (c) => c.prs >= 10],
+  ["pr25", "bolt", (c) => c.prs >= 25],
+  ["perfectWeek", "trophy", (c) => c.perfectWeeks >= 1],
+  ["perfectWeek4", "trophy", (c) => c.perfectWeeks >= 4],
+  ["constancy90", "star", (c) => c.days >= 30 && c.month !== null && c.month >= 0.9],
+  ["lost2", "scale", (c) => c.lost !== null && c.lost >= 2],
+  ["lost5", "scale", (c) => c.lost !== null && c.lost >= 5],
+  ["backups4", "download", (c) => c.backups >= 4],
+  ["checks4", "list", (c) => c.checks >= 4],
+];
+
+function badges(data, s) {
+  const range = s.days.map((r) => r.date);
+  const steps = range.map((d) => stepsDone(data, d));
+  const weekSteps = {};
+  range.forEach((d, i) => { const m = iso(mondayOf(parseIso(d))); weekSteps[m] = (weekSteps[m] || 0) + steps[i]; });
+  const weights = range.map((d) => num(data.days?.[d]?.peso)).filter((v) => v !== null);
+  const recent = weights.slice(-7);
+  const avg7 = recent.length ? recent.reduce((a, v) => a + v, 0) / recent.length : null;
+  const startW = num(data.profile?.startWeight);
+  const c = {
+    lifts: s.stats.strength.lifts,
+    best: s.best,
+    level: s.level,
+    maxSteps: Math.max(0, ...steps),
+    maxWeekSteps: Math.max(0, ...Object.values(weekSteps)),
+    prs: s.prs.length,
+    perfectWeeks: s.events.filter((e) => e.kind === "perfectWeek").length,
+    days: s.days.length,
+    month: s.constancy.month,
+    lost: avg7 !== null && startW ? Math.round((startW - avg7) * 10) / 10 : null,
+    backups: range.filter((d) => data.days?.[d]?.backup).length,
+    checks: Object.keys(data.weeks || {}).filter((w) => { const x = data.weeks[w]; return ["vita", "aderenza", "note", "decisione"].some((k) => x?.[k] !== undefined && x[k] !== ""); }).length,
+  };
+  return BADGES.map(([id, icon, test]) => ({ id, icon, unlocked: !!test(c) }));
+}
+
+/** The current week's and month's quests, for the quest screen: progress and whether earned. */
+export function periodProgress(data, s, todayIso) {
+  const monday = iso(mondayOf(parseIso(todayIso)));
+  const days = Array.from({ length: 7 }, (_, i) => iso(addDays(parseIso(monday), i)));
+  const res = days.map((d) => s.days.find((r) => r.date === d) || evaluateDay(data, d, d < todayIso));
+  const lifts = res.flatMap((r) => r.quests.filter((x) => x.quest.type === "workout"));
+  const target = res.reduce((a, r) => a + stepsTarget(r), 0);
+  const steps = days.filter((d) => d <= todayIso).reduce((a, d) => a + stepsDone(data, d), 0);
+  const earned = (kind, period) => s.events.some((e) => e.kind === kind && e.period === period);
+  const closedPast = res.filter((r) => r.date < todayIso && r.required > 0);
+  const m = todayIso.slice(0, 7);
+  const monthDays = s.days.filter((r) => r.date.startsWith(m) && r.closed);
+  const mDone = monthDays.reduce((a, r) => a + r.completed, 0), mTotal = monthDays.reduce((a, r) => a + r.required, 0);
+  const c = data.months?.[m] || {};
+  const nextStreak = s.streak < 30 ? Math.ceil((s.streak + 1) / 7) * 7 : Math.ceil((s.streak + 1) / 30) * 30;
+  return {
+    week: [
+      { kind: "allLifts", value: lifts.filter((x) => x.complete).length, target: lifts.length, done: earned("allLifts", monday), xp: EXTRA_XP.allLifts },
+      { kind: "weekSteps", value: steps, target, done: earned("weekSteps", monday), xp: EXTRA_XP.weekSteps },
+      { kind: "perfectWeek", value: res.filter((r) => r.perfect).length, target: 7, done: earned("perfectWeek", monday), failed: closedPast.some((r) => !r.perfect && !s.days.find((x) => x.date === r.date)?.saved), xp: EXTRA_XP.perfectWeek },
+    ],
+    month: [
+      { kind: "monthCheck", value: null, target: null, done: earned("monthCheck", m), xp: EXTRA_XP.monthCheck },
+      { kind: "monthConstancy", value: mTotal ? mDone / mTotal : null, target: MONTH_CONSTANCY, done: earned("monthConstancy", m), xp: EXTRA_XP.monthConstancy },
+    ],
+    boss: { nextStreak, streak: s.streak, xp: nextStreak % 30 === 0 ? EXTRA_XP.streak30 : EXTRA_XP.streak7, prs: s.prs.length, prXp: EXTRA_XP.pr },
+    monthLogged: ["peso", "bf", "foto", "vita"].some((k) => c[k] !== undefined && c[k] !== ""),
   };
 }

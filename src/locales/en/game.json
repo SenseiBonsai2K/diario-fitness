@@ -121,7 +121,8 @@
     "rule2": "Bonus quest: earns XP, skipping it costs nothing.",
     "rule3": "After the deadline: half XP.",
     "rule4": "Below 70% constancy over 30 days the rank drops one step, below 50% two.",
-    "editRoutine": "Edit the routine"
+    "editRoutine": "Edit the routine",
+    "rule5": "Weekly, monthly and boss quests earn XP and cost nothing when missed."
   },
   "routine": {
     "title": "Weekly routine",
@@ -205,5 +206,202 @@
     "xp": "+{{xp}} XP",
     "many": "{{count}} quests done",
     "close": "Close"
+  },
+  "badges": {
+    "firstWorkout": {
+      "name": "First workout",
+      "desc": "Finish your first workout",
+      "title": "Recruit"
+    },
+    "workouts10": {
+      "name": "10 workouts",
+      "desc": "Finish 10 workouts",
+      "title": "Gym regular"
+    },
+    "workouts50": {
+      "name": "50 workouts",
+      "desc": "Finish 50 workouts",
+      "title": "Veteran"
+    },
+    "workouts100": {
+      "name": "100 workouts",
+      "desc": "Finish 100 workouts",
+      "title": "Centurion"
+    },
+    "streak7": {
+      "name": "Week on fire",
+      "desc": "7 perfect days in a row",
+      "title": "Ignited"
+    },
+    "streak14": {
+      "name": "Two weeks",
+      "desc": "14 perfect days in a row",
+      "title": "The Steady"
+    },
+    "streak30": {
+      "name": "A whole month",
+      "desc": "30 perfect days in a row",
+      "title": "The Unstoppable"
+    },
+    "streak60": {
+      "name": "Two months",
+      "desc": "60 perfect days in a row",
+      "title": "Iron discipline"
+    },
+    "streak100": {
+      "name": "A hundred days",
+      "desc": "100 perfect days in a row",
+      "title": "Living legend"
+    },
+    "level5": {
+      "name": "Level 5",
+      "desc": "Reach level 5",
+      "title": "Apprentice"
+    },
+    "level10": {
+      "name": "Level 10",
+      "desc": "Reach level 10",
+      "title": "Fighter"
+    },
+    "level20": {
+      "name": "Level 20",
+      "desc": "Reach level 20",
+      "title": "Champion"
+    },
+    "level30": {
+      "name": "Level 30",
+      "desc": "Reach level 30",
+      "title": "Master"
+    },
+    "level40": {
+      "name": "Level 40",
+      "desc": "Reach level 40",
+      "title": "Grandmaster"
+    },
+    "level50": {
+      "name": "Level 50",
+      "desc": "Reach level 50",
+      "title": "Immortal"
+    },
+    "steps15k": {
+      "name": "Long walk",
+      "desc": "15,000 steps in a day",
+      "title": "Walker"
+    },
+    "steps20k": {
+      "name": "Walking marathon",
+      "desc": "20,000 steps in a day",
+      "title": "Wanderer"
+    },
+    "weekSteps100k": {
+      "name": "100k in a week",
+      "desc": "100,000 steps in one week",
+      "title": "Explorer"
+    },
+    "pr1": {
+      "name": "First record",
+      "desc": "Beat one of your strength records",
+      "title": "Record breaker"
+    },
+    "pr10": {
+      "name": "10 records",
+      "desc": "Beat 10 strength records",
+      "title": "Force of nature"
+    },
+    "pr25": {
+      "name": "25 records",
+      "desc": "Beat 25 strength records",
+      "title": "Titan"
+    },
+    "perfectWeek": {
+      "name": "Perfect week",
+      "desc": "7 perfect days, Monday to Sunday",
+      "title": "Flawless"
+    },
+    "perfectWeek4": {
+      "name": "Four perfect weeks",
+      "desc": "4 perfect weeks",
+      "title": "Perfectionist"
+    },
+    "constancy90": {
+      "name": "90% constancy",
+      "desc": "90% constancy over 30 days",
+      "title": "Methodical"
+    },
+    "lost2": {
+      "name": "−2 kg",
+      "desc": "Average weight 2 kg below the start",
+      "title": "In shape"
+    },
+    "lost5": {
+      "name": "−5 kg",
+      "desc": "Average weight 5 kg below the start",
+      "title": "Sculptor"
+    },
+    "backups4": {
+      "name": "Archivist",
+      "desc": "4 backups made",
+      "title": "Data keeper"
+    },
+    "checks4": {
+      "name": "Analyst",
+      "desc": "4 weekly checks filled in",
+      "title": "Strategist"
+    }
+  },
+  "extra": {
+    "week": "Weekly quests",
+    "month": "Monthly quests",
+    "boss": "Bosses and challenges",
+    "allLifts": "Every workout",
+    "allLiftsHint": "{{value}}/{{target}} sessions this week",
+    "weekSteps": "Steps this week",
+    "weekStepsHint": "{{value}} / {{target}} steps",
+    "perfectWeek": "Perfect week",
+    "perfectWeekHint": "{{value}}/7 perfect days",
+    "perfectWeekLost": "Lost: a day wasn't perfect",
+    "monthCheck": "Monthly check",
+    "monthCheckHint": "Weight, BF, measurements or photo in Progress → Month",
+    "monthConstancy": "Constant month",
+    "monthConstancyHint": "Month constancy {{value}} (85% needed, closes at month end)",
+    "streakBoss": "{{n}}-day streak",
+    "streakBossHint": "You're at {{streak}}: {{left}} more perfect days",
+    "prBoss": "New strength record",
+    "prBossHint": "{{xp}} XP per record (at most 3 a day) · {{count}} so far",
+    "earned": "Earned",
+    "noLifts": "No sessions planned",
+    "noSteps": "No steps quest this week"
+  },
+  "stats": {
+    "title": "Stats",
+    "strength": "Strength",
+    "endurance": "Endurance",
+    "discipline": "Discipline",
+    "strengthHint": "{{lifts}} workouts · {{prs}} records",
+    "enduranceHint": "{{steps}} steps in total",
+    "disciplineHint": "{{perfect}} perfect days · {{diet}} diet days"
+  },
+  "achievements": {
+    "title": "Trophies",
+    "count": "{{done}}/{{total}} unlocked",
+    "locked": "Locked",
+    "titleLabel": "Title",
+    "noTitle": "No title",
+    "titleHint": "Every trophy unlocks a title to show under your rank."
+  },
+  "events": {
+    "allLifts": "Every workout of the week",
+    "weekSteps": "Steps of the week",
+    "perfectWeek": "Perfect week",
+    "monthCheck": "Monthly check",
+    "monthConstancy": "Constant month",
+    "streak7": "{{n}}-day streak",
+    "streak30": "{{n}}-day streak",
+    "pr": "{{exercise}}: estimated 1RM {{value}} kg"
+  },
+  "records": {
+    "title": "Recent records",
+    "line": "{{exercise}} · {{kg}} kg × {{reps}} · 1RM {{value}} kg (was {{previous}})",
+    "empty": "Your first record comes when you beat an earlier session of the same exercise."
   }
 }

@@ -5,7 +5,7 @@ import { useStore } from "../lib/store.jsx";
 import { today } from "../lib/dates.js";
 import { DEFAULT_STYLE, STYLES, QUEST_TYPES, evaluateDay, gameState } from "../lib/game.js";
 import { feedback } from "../lib/sfx.js";
-import { activityLabel } from "../lib/program.js";
+import { activityLabel, exerciseNames } from "../lib/program.js";
 
 const GameContext = createContext(null);
 const ToastContext = createContext(() => {});
@@ -70,6 +70,34 @@ export function GameProvider({ children }) {
       feedback("quest", prefs.current);
     }
   }, [data, now, patch, toast, t, style]);
+
+  // Weekly / monthly / boss quests, records and trophies earned since the last look.
+  const known = useRef(null);
+  useEffect(() => {
+    const evKeys = new Set(state.events.map((e) => `${e.kind}|${e.date}|${e.period || e.exercise || e.n || ""}`));
+    const badgeKeys = new Set(state.badges.filter((b) => b.unlocked).map((b) => b.id));
+    const before = known.current;
+    known.current = { evKeys, badgeKeys };
+    if (!before) return;
+    const names = exerciseNames(data);
+    const fresh = state.events.filter((e) => e.date === now && !before.evKeys.has(`${e.kind}|${e.date}|${e.period || e.exercise || e.n || ""}`));
+    // Many at once means a backup was just loaded: stay quiet.
+    const freshBadges = state.badges.filter((b) => b.unlocked && !before.badgeKeys.has(b.id));
+    if (fresh.length + freshBadges.length > 3) return;
+    for (const e of fresh) {
+      if (e.kind === "pr") {
+        toast({ kind: "pr", title: t(`words.${style}.pr`), sub: t("events.pr", { exercise: names[e.exercise] || e.exercise, value: e.value }), xp: e.xp, ms: 4500 });
+        feedback("pr", prefs.current);
+      } else {
+        toast({ kind: "perfect", title: t(`events.${e.kind}`, { n: e.n }), xp: e.xp, ms: 4000 });
+        feedback("perfect", prefs.current);
+      }
+    }
+    for (const b of freshBadges) {
+      toast({ kind: "badge", title: t(`words.${style}.badge`), sub: t(`badges.${b.id}.name`), ms: 4500 });
+      feedback("pr", prefs.current);
+    }
+  }, [state]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <GameContext.Provider value={state}>
@@ -165,7 +193,7 @@ export function Hud({ onProfile, onSettings }) {
         <span className="flex-1 min-w-0 flex flex-col gap-1">
           <span className="flex items-baseline justify-between gap-2">
             <span className="font-display font-semibold uppercase tracking-wide text-[1.05rem] leading-none truncate" style={tierVar(g.tier)}>{rank(g.tier)}</span>
-            <span className="text-[0.7rem] text-muted num shrink-0">{t("hud.xp", { into: g.into, need: g.need })}</span>
+            <span className="text-[0.7rem] text-muted num shrink-0">{t("hud.level", { n: g.level })} · {t("hud.xp", { into: g.into, need: g.need })}</span>
           </span>
           <XpBar into={g.into} need={g.need} tier={g.tier} label={t("hud.level", { n: g.level })} />
         </span>
