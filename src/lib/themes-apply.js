@@ -1,3 +1,4 @@
+import { storeKey } from "./ns.js";
 import { APPEARANCE } from "./appearance.js";
 
 // Appearance = a neutral background and an accent colour, chosen separately.
@@ -5,7 +6,7 @@ import { APPEARANCE } from "./appearance.js";
 export const BG_IDS = ["auto", ...Object.keys(APPEARANCE.backgrounds)];
 export const ACCENT_IDS = Object.keys(APPEARANCE.accents);
 export const DEFAULT_ACCENT = "blue";
-const STORE_KEY = "diario-fitness:appearance";
+const STORE_KEY = storeKey("appearance");
 
 // Accent picked by the short-lived colour pairs (prefs.theme), kept so nobody loses their choice.
 const FROM_PAIR = { classic: "blue", sand: "orange", sage: "teal", lavender: "violet", blush: "raspberry", graphite: "orange", forest: "lime", ocean: "blue" };

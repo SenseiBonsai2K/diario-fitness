@@ -1,3 +1,4 @@
+import { storeKey } from "../lib/ns.js";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, Grid, Icon, Meter, NumField, Ring, Segmented, Stepper, TextField } from "../components/ui.jsx";
@@ -121,7 +122,7 @@ function TodayMenu({ date, goTo }) {
   const canChange = diet.days.length > 1;
   const n = (v) => (typeof v === "number" ? v.toLocaleString(i18n.language, { maximumFractionDigits: 1 }) : v);
   const qty = (it) => [it.qty !== undefined && it.qty !== null ? n(it.qty) : null, it.unit].filter(Boolean).join(" ");
-  const openDiet = () => { try { sessionStorage.setItem("diario-fitness:planTab", "diet"); } catch { /* ignore */ } goTo("plan"); };
+  const openDiet = () => { try { sessionStorage.setItem(storeKey("planTab"), "diet"); } catch { /* ignore */ } goTo("plan"); };
 
   const log = data.days[date] || {};
   const ticked = new Set(Array.isArray(log.cibi) ? log.cibi : []);

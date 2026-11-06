@@ -1,3 +1,4 @@
+import { storeKey } from "../lib/ns.js";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { activityLabel, fmtRest } from "../lib/program.js";
@@ -94,7 +95,7 @@ function ArchivedItem({ a, data, t, lang, n }) {
   return <pre className="text-xs overflow-x-auto">{JSON.stringify(d, null, 2)}</pre>;
 }
 
-const TAB_KEY = "diario-fitness:planTab";
+const TAB_KEY = storeKey("planTab");
 const readTab = () => { try { return sessionStorage.getItem(TAB_KEY) || "program"; } catch { return "program"; } };
 
 function Tabs({ tabs, value, onChange, label }) {

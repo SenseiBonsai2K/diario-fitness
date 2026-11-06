@@ -1,8 +1,9 @@
+import { storeKey } from "./ns.js";
 // All data lives in this device's localStorage under one key, as one JSON
 // document. Nothing is ever sent anywhere and nothing personal is in the
 // source code: profile, programs, diets and plan arrive only by importing a backup.
 
-export const STORAGE_KEY = "diario-fitness:data";
+export const STORAGE_KEY = storeKey("data");
 export const SCHEMA_VERSION = 4;
 export const BACKUP_APP = "diario-fitness";
 

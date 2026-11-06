@@ -1,3 +1,4 @@
+import { storeKey } from "../lib/ns.js";
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, Icon, NumField, Segmented, TextField } from "../components/ui.jsx";
@@ -9,9 +10,9 @@ import { takeSnapshot } from "../lib/snapshots.js";
 import { BACKUP_ACCEPT, shareableFile } from "../lib/share.js";
 import * as C from "../lib/compose.js";
 
-const DRAFT_KEY = "diario-fitness:composer-draft";
-const SOURCE_KEY = "diario-fitness:composer-source";
-const TAB_KEY = "diario-fitness:composer-tab";
+const DRAFT_KEY = storeKey("composer-draft");
+const SOURCE_KEY = storeKey("composer-source");
+const TAB_KEY = storeKey("composer-tab");
 const TABS = ["start", "profile", "program", "diet", "plan", "history", "review"];
 const SECTIONS = ["profile", "program", "diet", "plan", "history"];
 

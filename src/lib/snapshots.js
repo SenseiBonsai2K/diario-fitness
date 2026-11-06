@@ -1,10 +1,11 @@
+import { KEY_PREFIX } from "./ns.js";
 // Automatic local copies of the whole document, kept in IndexedDB on this
 // device: one a week, plus one before every change that replaces data
 // (plan edits, imports, restoring a copy). They protect against mistakes and
 // bad imports; they do NOT protect against losing the phone or deleting the
 // app, so the weekly file backup (Settings → Backup) is still needed.
 
-const DB_NAME = "diario-fitness";
+const DB_NAME = KEY_PREFIX;
 const STORE = "snapshots";
 export const WEEK_MS = 7 * 86400000;
 /** How many copies of each kind are kept. */

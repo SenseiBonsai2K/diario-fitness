@@ -1,3 +1,4 @@
+import { storeKey } from "./lib/ns.js";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { applyAppearance } from "./lib/themes-apply.js";
 import { useTranslation } from "react-i18next";
@@ -21,7 +22,7 @@ const TABS = [
 ];
 
 function readTab() {
-  try { return sessionStorage.getItem("diario-fitness:tab") || "today"; } catch { return "today"; }
+  try { return sessionStorage.getItem(storeKey("tab")) || "today"; } catch { return "today"; }
 }
 
 export default function App() {
@@ -46,7 +47,7 @@ export default function App() {
   const [activity, setActivity] = useState(null);
 
   useEffect(() => {
-    try { sessionStorage.setItem("diario-fitness:tab", tab); } catch { /* ignore */ }
+    try { sessionStorage.setItem(storeKey("tab"), tab); } catch { /* ignore */ }
     window.scrollTo(0, 0);
   }, [tab]);
 
