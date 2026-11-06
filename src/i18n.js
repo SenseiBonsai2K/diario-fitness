@@ -1,3 +1,4 @@
+import { storeKey } from "./lib/ns.js";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
@@ -16,7 +17,7 @@ i18n
     fallbackLng: "en",
     defaultNS: "common",
     interpolation: { escapeValue: false },
-    detection: { order: ["localStorage", "navigator"], caches: ["localStorage"], lookupLocalStorage: "diario-fitness:lang" },
+    detection: { order: ["localStorage", "navigator"], caches: ["localStorage"], lookupLocalStorage: storeKey("lang") },
   });
 
 i18n.on("languageChanged", (lng) => { document.documentElement.lang = lng; });

@@ -76,7 +76,6 @@
     "title": "Archivio",
     "sub_one": "{{count}} versione sostituita",
     "sub_other": "{{count}} versioni sostituite",
-    "yoga": "Conteneva anche la routine \"{{title}}\".",
     "kind": {
       "plan": "Piano e note",
       "profile": "Obiettivi e macro",

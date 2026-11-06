@@ -1,9 +1,10 @@
+import { storeKey } from "./ns.js";
 // All data lives in this device's localStorage under one key, as one JSON
 // document. Nothing is ever sent anywhere and nothing personal is in the
 // source code: profile, programs, diets and plan arrive only by importing a backup.
 
-export const STORAGE_KEY = "diario-fitness:data";
-export const SCHEMA_VERSION = 4;
+export const STORAGE_KEY = storeKey("data");
+export const SCHEMA_VERSION = 5;
 export const BACKUP_APP = "diario-fitness";
 
 export const DEFAULT_PROFILE = {
@@ -21,8 +22,6 @@ export const DEFAULT_PROFILE = {
   goalBf: null,
   /** Weekly change thresholds (kg) and kcal step used by the weekly advice. */
   rules: null,
-  /** Heart-rate band for easy runs, e.g. { min: 120, max: 140 }. */
-  zone2: null,
 };
 
 export function emptyData() {
@@ -34,24 +33,35 @@ export function emptyData() {
     diets: {},
     activeDiet: null,
     plan: { sections: [], yoga: null },
+    /**
+     * The quest game (see src/lib/game.js): the default weekly routine of
+     * quests ("0".."6" = Sunday..Saturday → quest list; workouts come from the
+     * program's week), the day the game started (XP counts from there) and the
+     * level/tier last shown, to announce level-ups.
+     */
+    game: { startDate: null, routine: null, seen: null, title: null },
     history: [],
     /** Every version replaced by a plan import: { at, kind, id?, data }. Never pruned. */
     archive: [],
     /** Device preferences carried in the backup: language, background and accent colour. */
-    prefs: { lang: null, bg: null, accent: null },
+    prefs: { lang: null, bg: null, accent: null, style: null },
     days: {},
     workouts: {},
-    runs: {},
-    yoga: {},
     weeks: {},
     months: {},
-    /** Day-by-day changes to the weekly plan: { "YYYY-MM-DD": { activity, pair } }. A log: imports never touch it. */
+    /** Day-by-day changes to the weekly plan: { "YYYY-MM-DD": { activities: [...] } }. A log: imports never touch it. */
     moves: {},
+    /** Day-by-day changes to the quest routine: { "YYYY-MM-DD": { quests: [...] } }. A log. */
+    questDays: {},
     meta: { createdAt: new Date().toISOString(), lastBackup: null },
   };
 }
 
-export const LOG_COLLECTIONS = ["days", "workouts", "runs", "yoga", "weeks", "months", "moves"];
+export const LOG_COLLECTIONS = ["days", "workouts", "weeks", "months", "moves", "questDays"];
+
+/** Logs and fields of activities the app no longer has (running, yoga): removed from v5 on. */
+const DROPPED_LOGS = ["runs", "yoga"];
+const DROPPED_ACTIVITIES = new Set(["run", "yoga"]);
 
 const isObj = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
 
@@ -66,10 +76,12 @@ export function normalise(raw) {
   if (!isObj(doc) || typeof doc.version !== "number") throw new Error("notBackup");
   if (doc.version > SCHEMA_VERSION) throw new Error("newerVersion");
   // v3 → v4 only adds the "moves" log, which starts empty: nothing to migrate.
+  // v4 → v5 removes running and yoga everywhere (logs, plan, program week,
+  // moves, archive) and adds the quest game; see stripRunYoga.
   const out = emptyData();
   // Keys this version doesn't know are carried through untouched, so nothing
-  // in a backup is ever dropped silently.
-  for (const k of Object.keys(doc)) if (!(k in out)) out[k] = doc[k];
+  // in a backup is ever dropped silently (except the logs removed on purpose).
+  for (const k of Object.keys(doc)) if (!(k in out) && !DROPPED_LOGS.includes(k)) out[k] = doc[k];
   out.profile = { ...DEFAULT_PROFILE, ...(isObj(doc.profile) ? doc.profile : {}) };
   for (const c of LOG_COLLECTIONS) {
     if (doc[c] !== undefined && !isObj(doc[c])) throw new Error("corrupt");
@@ -94,8 +106,53 @@ export function normalise(raw) {
   out.archive = Array.isArray(doc.archive) ? doc.archive.filter(isObj) : [];
   out.prefs = { ...out.prefs, ...(isObj(doc.prefs) ? doc.prefs : {}) };
   out.meta = { ...out.meta, ...(isObj(doc.meta) ? doc.meta : {}) };
+  out.game = { ...out.game, ...(isObj(doc.game) ? doc.game : {}) };
+  if (out.game.routine !== null && !isObj(out.game.routine)) out.game.routine = null;
   out.version = SCHEMA_VERSION;
-  return out;
+  return stripRunYoga(out);
+}
+
+const dropActivity = (a) => (DROPPED_ACTIVITIES.has(a) ? "rest" : a);
+
+function cleanProgram(p) {
+  if (!isObj(p)) return p;
+  const next = { ...p };
+  if (isObj(p.week)) next.week = Object.fromEntries(Object.entries(p.week).map(([k, v]) => [k, dropActivity(v)]));
+  if (isObj(p.activityNotes)) {
+    const notes = { ...p.activityNotes };
+    for (const a of DROPPED_ACTIVITIES) delete notes[a];
+    if (Object.keys(notes).length) next.activityNotes = notes; else delete next.activityNotes;
+  }
+  return next;
+}
+
+function cleanProfile(p) {
+  if (!isObj(p) || !("zone2" in p)) return p;
+  const { zone2: _z, ...rest } = p;
+  return rest;
+}
+
+/** Running and yoga are gone from the app (Nov 2026): remove them wherever they were stored. */
+function stripRunYoga(d) {
+  d.profile = cleanProfile(d.profile);
+  d.plan = { ...d.plan, yoga: null };
+  d.programs = Object.fromEntries(Object.entries(d.programs).map(([k, p]) => [k, cleanProgram(p)]));
+  const moves = {};
+  for (const [date, m] of Object.entries(d.moves)) {
+    if (!isObj(m)) continue;
+    const list = Array.isArray(m.activities) ? m.activities : m.activity ? [m.activity] : [];
+    const kept = list.filter((a) => !DROPPED_ACTIVITIES.has(a));
+    if (list.length && !kept.length && list.some((a) => DROPPED_ACTIVITIES.has(a))) continue; // only a run/yoga was planned there
+    moves[date] = { activities: kept.length ? kept : ["rest"] };
+  }
+  d.moves = moves;
+  d.archive = d.archive.map((a) => {
+    if (a.kind === "plan" && isObj(a.data) && a.data.yoga) return { ...a, data: { ...a.data, yoga: null } };
+    if (a.kind === "profile") return { ...a, data: cleanProfile(a.data) };
+    if (a.kind === "program") return { ...a, data: cleanProgram(a.data) };
+    return a;
+  });
+  return d;
 }
 
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
@@ -136,8 +193,12 @@ export function mergePlan(current, incoming, at = new Date().toISOString()) {
     if (!history.some((x) => x.date === h.date && x.title === h.title)) history.push(h);
   }
   history.sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  // The quest routine travels with the plan: a file that carries one replaces it.
+  const routine = incoming.game?.routine || null;
+  if (routine && current.game?.routine && !same(routine, current.game.routine)) keep("routine", current.game.routine);
   return {
     ...current,
+    game: routine ? { ...current.game, routine } : current.game,
     profile: nextProfile,
     programs: { ...current.programs, ...incoming.programs },
     activeProgram: incoming.activeProgram || current.activeProgram,
@@ -183,7 +244,7 @@ export function countEntries(data) {
   };
 }
 
-/** True when the document holds at least one log entry (days, workouts, runs, yoga, checks). */
+/** True when the document holds at least one log entry (days, workouts, checks, moves). */
 export function hasLogs(data) {
   return LOG_COLLECTIONS.some((c) => Object.keys(data[c] || {}).length > 0);
 }

@@ -2,7 +2,7 @@
   "pageTitle": "Modifica piano · Diario Fitness",
   "back": "Diario",
   "title": "Modifica piano",
-  "lead": "Cambia profilo, scheda, dieta, piano e yoga, controlla il riepilogo e applica. I registri (peso, allenamenti, corse, spunte) non vengono mai toccati.",
+  "lead": "Cambia profilo, scheda, dieta e piano, controlla il riepilogo e applica. I registri (peso, allenamenti, spunte) non vengono mai toccati.",
   "tabsLabel": "Sezioni del piano",
   "included": "inclusa",
   "tabs": {
@@ -64,8 +64,8 @@
       "history": "Dieta aggiornata"
     },
     "plan": {
-      "title": "Piano e yoga",
-      "text": "Sezioni di testo del piano (fasi, corsa, regole) e la routine di yoga.",
+      "title": "Piano",
+      "text": "Sezioni di testo del piano (fasi, regole).",
       "history": "Piano aggiornato"
     }
   },
@@ -82,8 +82,7 @@
     "rules": "Regole di aggiustamento",
     "perWeek": "kg/sett.",
     "rulesHint": "Guidano il consiglio del check settimanale.",
-    "start": "Dati di partenza",
-    "zone2": "Zona 2 (corsa)"
+    "start": "Dati di partenza"
   },
   "fields": {
     "phase": "Fase",
@@ -118,9 +117,7 @@
     "title": "Titolo",
     "heightCm": "Altezza",
     "startWeight": "Peso di partenza",
-    "startBf": "Massa grassa di partenza",
-    "zone2Min": "FC minima",
-    "zone2Max": "FC massima"
+    "startBf": "Massa grassa di partenza"
   },
   "mode": {
     "label": "Punto di partenza",
@@ -137,8 +134,6 @@
     "active": "Rendi attiva questa scheda",
     "closePrev": "Chiudi «{{name}}» il giorno prima dell'inizio",
     "week": "Settimana",
-    "runNote": "Nota corsa",
-    "yogaNote": "Nota yoga",
     "addSession": "Aggiungi seduta",
     "session": "Seduta {{n}}",
     "removeSession": "Elimina seduta",
@@ -246,19 +241,13 @@
     "historyNoTitle": "Manca il titolo della voce nello storico.",
     "historySuggested": "Nessuna voce nello storico: aggiungila per ritrovare il cambio nel percorso.",
     "nothingIncluded": "Scegli almeno una sezione da includere.",
-    "zone2": "Zona 2: servono FC minima e massima, con la minima più bassa.",
     "volumeRow": "Volume: «{{name}}» ha bisogno di nome e numero di serie.",
     "optionNoName": "l'opzione {{n}} non ha nome.",
     "optionEmpty": "l'opzione «{{name}}» è vuota.",
     "substitutionNoFood": "Una sostituzione non ha l'alimento.",
     "substitutionNoAlt": "La sostituzione «{{food}}» non ha alternative.",
     "sectionNoTitle": "La sezione {{n}} non ha titolo.",
-    "yogaBlockNoName": "Il blocco di yoga {{n}} non ha nome.",
-    "poseNoId": "La posizione «{{name}}» non ha id.",
-    "poseIdTwice": "L'id «{{id}}» è usato da due posizioni.",
-    "poseNoName": "La posizione «{{id}}» non ha nome.",
-    "poseRemoved": "La posizione «{{id}}» non c'è più: le spunte passate restano, ma non compare più nella routine.",
-    "planEmpty": "Piano senza sezioni né yoga: l'app tiene quello attuale."
+    "planEmpty": "Piano senza sezioni: l'app tiene quello attuale."
   },
   "review": {
     "title": "Riepilogo",
@@ -309,21 +298,8 @@
   },
   "plan": {
     "title": "Piano",
-    "lead": "Le sezioni di testo che vedi in Piano → Piano e la routine di yoga. Le versioni sostituite vanno nell'Archivio.",
+    "lead": "Le sezioni di testo che vedi in Piano → Piano. Le versioni sostituite vanno nell'Archivio.",
     "sections": "Sezioni",
-    "yoga": "Routine di yoga",
-    "addYoga": "Aggiungi la routine di yoga",
-    "yogaIntro": "Introduzione",
-    "poseIdsHint": "L'id di una posizione lega le spunte già fatte nei giorni di yoga: non cambiarlo per una posizione che esiste già.",
-    "block": "Blocco",
-    "removeBlock": "Elimina blocco",
-    "poseId": "Id",
-    "hold": "Durata",
-    "removePose": "Elimina posizione",
-    "pose": "Posizione",
-    "addPose": "Aggiungi posizione",
-    "addBlock": "Aggiungi blocco",
-    "yogaWhy": "Perché",
-    "removeYoga": "Togli la routine di yoga"
+    "block": "Blocco"
   }
 }

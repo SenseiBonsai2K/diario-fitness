@@ -47,3 +47,27 @@ self.addEventListener("fetch", (event) => {
     })
   );
 });
+
+// Reminders from the push server (see server/): show them, and open the app when tapped.
+self.addEventListener("push", (event) => {
+  let d = {};
+  try { d = event.data ? event.data.json() : {}; } catch { d = { body: event.data?.text() || "" }; }
+  event.waitUntil(self.registration.showNotification(d.title || "Diario Fitness", {
+    body: d.body || "",
+    tag: d.tag || undefined,
+    icon: "./icon-192.png",
+    badge: "./icon-192.png",
+    data: { url: d.url || "./" },
+  }));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = new URL(event.notification.data?.url || "./", self.registration.scope).href;
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+      const open = list.find((c) => c.url.startsWith(self.registration.scope));
+      return open ? open.focus() : self.clients.openWindow(url);
+    })
+  );
+});

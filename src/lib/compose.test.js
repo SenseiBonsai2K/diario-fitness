@@ -12,7 +12,7 @@ function base() {
   d.programs = {
     "ul-2026-10": {
       id: "ul-2026-10", name: "Upper Lower", startDate: "2026-10-12", endDate: null, volume: [{ name: "Quad", sets: 16 }],
-      week: { 0: "yoga", 1: "upperA", 2: "rest", 3: "run", 4: "rest", 5: "rest", 6: "run" },
+      week: { 0: "rest", 1: "upperA", 2: "rest", 3: "rest", 4: "rest", 5: "rest", 6: "rest" },
       sessions: [{ id: "upperA", name: "Upper A", exercises: [{ id: "bench", name: "Panca piana", sets: 3, reps: [5, 7], rest: 180 }] }],
     },
   };
@@ -143,24 +143,21 @@ describe("buildPlanFile", () => {
     expect(next.history.at(-1).title).toBe("Recupero panca");
   });
 
-  it("round-trips the plan text and yoga, and warns when a pose id disappears", () => {
+  it("round-trips the plan text", () => {
     const b = base();
-    b.plan = { updatedAt: "2026-10-10", sections: [{ id: "corsa", title: "Corsa", bullets: ["Z2"], table: { head: ["Fase", "Kcal"], rows: [["Cut", "2200"]] } }],
-      yoga: { title: "Yoga", blocks: [{ name: "Apertura", poses: [{ id: "diaphragm", name: "Respiro", hold: "3'" }, { id: "cat", name: "Gatto", hold: "1'" }] }] } };
+    b.plan = { updatedAt: "2026-10-10", sections: [{ id: "corsa", title: "Corsa", bullets: ["Z2"], table: { head: ["Fase", "Kcal"], rows: [["Cut", "2200"]] } }] };
     const draft = emptyDraft(TODAY, NAMES, b);
     expect(draft.plan.sections[0].table).toBe("Fase | Kcal\nCut | 2200");
     draft.include.plan = true;
     draft.include.history = true;
     draft.history.title = "Piano";
     draft.plan.sections[0].bullets.push("Una lunga a settimana");
-    draft.plan.yoga.blocks[0].poses.pop();
     const r = buildPlanFile(draft, b, NOW);
     expect(r.errors).toBe(0);
-    expect(r.issues.map((i) => i.key)).toContain("poseRemoved");
     expect(r.file.data.plan.sections[0]).toEqual({ id: "corsa", title: "Corsa", bullets: ["Z2", "Una lunga a settimana"], table: { head: ["Fase", "Kcal"], rows: [["Cut", "2200"]] } });
     const next = mergePlan(b, normalise(r.file));
     expect(next.archive.at(-1).kind).toBe("plan");
-    expect(next.plan.yoga.blocks[0].poses).toEqual([{ id: "diaphragm", name: "Respiro", hold: "3'" }]);
+    expect(next.plan.yoga).toBeNull();
   });
 
   it("keeps food alternatives, meal options, swaps and day targets", () => {

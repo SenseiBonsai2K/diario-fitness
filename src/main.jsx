@@ -4,9 +4,17 @@ import "@fontsource/barlow-condensed/600.css";
 import "@fontsource/barlow-condensed/700.css";
 import "./index.css";
 import "./themes.css";
+import "./game-styles.css";
+import "@fontsource/cinzel/600.css";
+import "@fontsource/cinzel/700.css";
+import "@fontsource/rajdhani/600.css";
+import "@fontsource/rajdhani/700.css";
+import "@fontsource/orbitron/600.css";
+import "@fontsource/orbitron/700.css";
 import "./i18n.js";
 import App from "./App.jsx";
 import { StoreProvider } from "./lib/store.jsx";
+import { GameProvider } from "./components/game.jsx";
 import { TimerProvider } from "./components/RestTimer.jsx";
 import { requestPersistence } from "./lib/storage.js";
 
@@ -32,9 +40,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <Boundary>
     <StoreProvider>
-      <TimerProvider>
-        <App />
-      </TimerProvider>
+      <GameProvider>
+        <TimerProvider>
+          <App />
+        </TimerProvider>
+      </GameProvider>
     </StoreProvider>
     </Boundary>
   </React.StrictMode>

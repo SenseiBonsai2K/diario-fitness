@@ -8,7 +8,7 @@
   },
   "editor": {
     "title": "Edit plan",
-    "lead": "Change calories and macros, phase, program, diet (with options, alternatives and swaps), plan sections and yoga right here, with a summary before applying. Logs are not touched and every replaced version stays in the Archive.",
+    "lead": "Change calories and macros, phase, program, diet (with options, alternatives and swaps), plan sections right here, with a summary before applying. Logs are not touched and every replaced version stays in the Archive.",
     "open": "Open Edit plan"
   },
   "profile": {
@@ -86,7 +86,7 @@
   "appearance": {
     "title": "Appearance",
     "background": "Background",
-    "note": "Every background works with every colour: details adapt to stay readable. \"Auto\" follows your phone's light or dark theme. The choice is saved in the backup too.",
+    "note": "The detail colour adapts to the style to stay readable. The choice is saved in the backup too.",
     "bgs": {
       "auto": "Auto",
       "light": "Light",

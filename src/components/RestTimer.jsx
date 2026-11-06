@@ -1,3 +1,4 @@
+import { storeKey } from "../lib/ns.js";
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Icon } from "./ui.jsx";
@@ -7,7 +8,7 @@ import { useStore } from "../lib/store.jsx";
 // running when you switch tab, and its end time is saved, so it survives the
 // app being closed or the phone locking: on return it shows the right time.
 
-const KEY = "diario-fitness:timer";
+const KEY = storeKey("timer");
 const TimerContext = createContext({ start: () => {}, timer: null });
 
 function readSaved() {

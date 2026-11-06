@@ -3,8 +3,6 @@
 
 import { parseIso } from "./dates.js";
 
-/** Activities that exist without a program session. */
-export const EXTRA_ACTIVITIES = ["run", "yoga"];
 
 export function activeProgram(data) {
   return data.programs[data.activeProgram] || null;
@@ -14,7 +12,7 @@ export function sessionsOf(program) {
   return program?.sessions || [];
 }
 
-/** The session (or "run" / "yoga" / "rest" / null) planned for a weekday 0–6. */
+/** The session (or "rest" / null) planned for a weekday 0–6. */
 export function plannedFor(data, weekday) {
   const p = activeProgram(data);
   return p?.week?.[String(weekday)] ?? null;
@@ -45,8 +43,8 @@ export function plannedListOn(data, date) {
 }
 
 const real = (list) => list.filter((a) => a && a !== "rest");
-// On a shared day: weights first, then the run, then yoga (stretching last); sessions keep their order.
-const liftsFirst = (list) => [...list.filter((a) => !EXTRA_ACTIVITIES.includes(a)), ...["run", "yoga"].filter((a) => list.includes(a))];
+// Sessions on a shared day keep the order they were added in.
+const liftsFirst = (list) => [...list];
 
 // A day whose list matches the weekly scheme again needs no entry: it goes back to "not changed".
 function entryFor(data, date, list) {
@@ -75,7 +73,7 @@ export function moveEntries(data, from, to, activity, mode = "both") {
   return { [from]: entryFor(data, from, nextFrom), [to]: entryFor(data, to, nextTo) };
 }
 
-/** The entry that adds one more activity to a date (a second session, a run on a lifting day). */
+/** The entry that adds one more session to a date. */
 export function addEntry(data, date, activity) {
   const list = real(plannedListOn(data, date));
   return { [date]: entryFor(data, date, list.includes(activity) ? list : liftsFirst([...list, activity])) };
@@ -113,22 +111,17 @@ export function exerciseNames(data) {
   return names;
 }
 
-/** Planned lifting sessions, runs and yoga per week, from the active program. */
+/** Planned lifting sessions per week, from the active program. */
 export function weeklyTargets(data) {
   const week = activeProgram(data)?.week || {};
-  const vals = Object.values(week);
   const sessions = new Set(sessionsOf(activeProgram(data)).map((s) => s.id));
-  return {
-    lifts: vals.filter((v) => sessions.has(v)).length,
-    runs: vals.filter((v) => v === "run").length,
-    yoga: vals.filter((v) => v === "yoga").length,
-  };
+  return { lifts: Object.values(week).filter((v) => sessions.has(v)).length };
 }
 
-/** Label for an activity id: a session name, or a translated run/yoga/rest. */
+/** Label for an activity id: a session name, or a translated rest. */
 export function activityLabel(data, id, t) {
   if (!id) return t("common:activity.none");
-  if (["run", "yoga", "rest"].includes(id)) return t(`common:activity.${id}`);
+  if (id === "rest") return t("common:activity.rest");
   return findSession(data, id)?.session.name || id;
 }
 

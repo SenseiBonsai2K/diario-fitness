@@ -1,37 +1,73 @@
 # Diario Fitness
 
-Personal training and nutrition diary, installable on Android (Chrome) and iPhone (Safari →
+Personal training and nutrition diary run as a quest game (levels, ranks, streaks), installable on Android (Chrome) and iPhone (Safari →
 Add to Home Screen) as a web app (PWA). On iPhone there is no vibration and the rest alarm may not
 sound with the screen locked.
-It works offline and keeps every piece of data on the phone: nothing is sent to a server.
+It works offline and keeps every piece of data on the phone. The only exception is optional: the
+push server in `server/` (FastAPI on Render + Supabase) gets reminder rules, quiet hours and which
+quests are due/done for the next days, so reminders arrive with the app closed — never weights,
+food or workouts.
 
-- **Today**: week strip (planned and done per day), the day's session with progress ring and
-  estimated length, weight, calories and macros with progress bars, today's menu from the diet
-  with a tick for every food (stored as `days[date].cibi`; ticking everything marks the diet as followed),
-  sleep, energy, hunger, notes.
+- **Quest** (the first tab): an always-visible bar on top (rank emblem, level, XP, streak, jolly),
+  the week strip (a dot on perfect days), **today's quests** — one per planned lifting session,
+  then the routine's (steps, diet, sleep, weigh-in, water, weekly check, backup) — each with its
+  progress, XP and the field or button that completes it; then calories and macros, today's menu
+  from the diet with a tick for every food (`days[date].cibi`), energy, hunger, notes.
+- **Game** (`src/lib/game.js`, tested): XP, level, rank, streak, jolly and constancy are never
+  stored; `gameState` replays every day from `game.startDate` over the logs, so a late correction
+  counts at once. Base XP per quest in `QUEST_TYPES`; partial progress per quest: all or nothing,
+  proportional, or half above a threshold; +5 XP per 1,000 steps over target (max +50); done after
+  a deadline = half XP (completion times in `days[d].fatto`, written by the app on the day); a
+  required quest at 0 XP when the day closes costs half its base XP, and XP (hence levels) can go
+  down, never below 0. Level n→n+1 needs 300 + 48·(n−1) XP. Seven rank tiers by level
+  (1, 5, 10, 20, 30, 40, 50), one tier lower under 70% constancy over 30 days, two under 50%.
+  A jolly every 14 perfect days in a row (max 3) is spent automatically on the first missed day:
+  it keeps the streak and cancels the penalty. Rank names depend on the game style
+  (`prefs.style`: fantasy, system, cyber) in `src/locales/*/game.json`. A dialog announces level
+  and rank changes, up or down (`game.seen`).
+- **Routine** (from Quest or Profile): the default weekly scheme — per weekday, the workout
+  (the active program's `week`) and which quests are due with their target, partial rule,
+  deadline and bonus flag (`game.routine`) — or one week at a time, where each date changes on
+  its own (`moves` for sessions, `questDays[d] = { quests }` for quests) and can be restored.
+- **Weekly, monthly and boss quests** (they earn XP and never cost any): every planned session of
+  the week (150), the week's steps (100), a perfect week (200), the monthly check (150), a month at
+  85% constancy (300), each personal record (75, at most 3 a day; a day's best estimated 1RM beating
+  every earlier day of that exercise), streaks of 7 (250) and 30 (1000) days. Shown under today's
+  quests. Achievements (28 trophies, each unlocking a title shown on the profile, `game.title`) and
+  RPG stats (strength, endurance, discipline, 1–99) are derived the same way.
+- **Styles** (`prefs.style`, `src/game-styles.css`): fantasy (Cinzel), system (Rajdhani) and
+  cyberpunk (Orbitron) repaint the dark neutrals and decoration; the app is always dark and keeps
+  the chosen accent. Each style has its own synthesised sounds (`src/lib/sfx.js`, over the music
+  like the timer), vibration patterns and wording; both switchable (`prefs.gameSound`,
+  `prefs.vibration`). Toasts announce done quests, records, trophies and earned period quests.
+- **Notifications** (Settings): turn on push for this phone (server address + the server's
+  registration key), choose reminders (workout, steps, weigh-in, water, diet, sleep, weekly check,
+  backup, streak at risk, weekly summary) with time and weekdays, and quiet hours
+  (`prefs.notifications`). `NotifySync` sends the server the rules and the next 8 days a few seconds
+  after any change and when the app goes to the background (`src/lib/notify.js`). The device id and
+  token stay in this phone's storage only. Server: see `server/README.md`.
+- **Profile**: emblem, rank, level and XP, title, stats, trophies, recent records, streak and best streak, jolly, constancy (week, 30 days,
+  all time, per quest), the last 7 days' XP, the rank ladder and the rules.
 - **Workout**: the day's session from the plan (sticky progress header, superset pairs grouped,
   finished exercises collapse to a summary), with kg × reps for every set, last time's numbers,
   a "add weight" hint (double progression) and a rest timer that starts on every ticked set with
   the planned rest, keeps running across screens and app restarts (end time saved), keeps the
   screen on while resting, and beeps and vibrates at the end. The beeps are Web Audio scheduled in advance on
   the audio clock, so they mix over the user's music instead of pausing it; sound can be turned off
-  in Settings (`prefs.timerSound`), with eight short synthesised ringtones to pick from (`prefs.timerTone`). Run and yoga logs on their days.
+  in Settings (`prefs.timerSound`), with eight short synthesised ringtones to pick from (`prefs.timerTone`).
 - **Progress**: weekly summary with the calorie rule, weekly and monthly checks, charts for weight
-  (7-day average), waist and estimated 1RM per exercise. Running: the week's runs (km, time, pace,
-  average HR against zone 2, compared with the week before) and a chart of pace, average HR or km per
-  week. Run times can be typed as `52,30` as well as `52:30` (phone number pads often lack a colon);
-  `runs[d].durata` stays the text the user typed and is parsed by `parseDuration` in `src/lib/stats.js`.
+  (7-day average), waist and estimated 1RM per exercise.
 - **Plan**: four tabs — Program (week, one session at a time, volume bars, notes), Diet (one
-  weekday at a time, today first), Plan (goals, plan sections, yoga), Archive (only when there is
+  weekday at a time, today first), Plan (goals, plan sections), Archive (only when there is
   something archived) — the active training program and diet, previous programs and diets,
-  plan sections, yoga routine, history and an archive of every replaced version, all read from the
+  plan sections, history and an archive of every replaced version, all read from the
   user's data. Each diet has a "Print or save as PDF" button (browser print, A4, one page per day type).
 - **Edit plan** (`compositore.html`, opened from Settings → Edit plan): a second page of the app that
-  edits everything that isn't a log: profile (targets, starting point, zone 2, rules), phase,
+  edits everything that isn't a log: profile (targets, starting point, rules), phase,
   programs (sessions, exercises, week, weekly volume), diets (seven days, meals, foods with
   alternatives, whole-meal options, per-day targets, swaps, text sections), the plan's text sections
-  (paragraphs, lists, tables) and the yoga routine, plus a history entry, starting from the active
-  program and diet. Yoga pose ids, like exercise ids, tie past logs to the routine. A summary lists errors and
+  (paragraphs, lists, tables), plus a history entry, starting from the active
+  program and diet. Exercise ids tie past logs to the program. A summary lists errors and
   warnings (existing ids, renamed exercise ids, more than 3 sets, macros that don't add up to the
   kcal…), then **Apply** runs the same `mergePlan` as "Load plan only": logs untouched, replaced
   versions archived, the previous program/diet closed the day before the new one starts. The result
@@ -48,8 +84,9 @@ It works offline and keeps every piece of data on the phone: nothing is sent to 
 - Sharing a backup (`src/lib/share.js`): Chrome on Android refuses `.json` files in the share
   sheet (it can even pass `canShare` and fail in `share`), so outside iPhone the backup is shared as
   `.txt` (same content); restore accepts `.json` and `.txt`.
-- **Settings**: appearance (neutral background: auto, light, grey, dark, black; and one of sixteen
-  accent colours — eight soft, eight vivid — chosen separately; saved in `prefs.bg` / `prefs.accent` and in the backup), phase and targets, backup export (file or Android share sheet → Google Drive),
+- **Settings** (gear in the top bar): game style with sounds and vibration, accent colour (one of
+  sixteen, saved in `prefs.accent` and in the backup; the old background choice is ignored since v2),
+  notifications, phase and targets, backup export (file or Android share sheet → Google Drive),
   restore from a backup, language (Italian / English).
 
 ## Stack
@@ -59,8 +96,9 @@ React 18 + Vite + Tailwind CSS, react-i18next (English + Italian). No backend: d
 (`public/sw.js`) caches the app so it opens without a connection: the page is network-first (a new
 deploy is picked up right away when online), hashed assets are cache-first.
 
-Deliberately not included: Supabase, Sentry or any other service from the usual stack. The app
-has no server and no network calls, so there is nothing for them to do; errors stay on the device.
+The app itself has no server and stays usable fully offline; errors stay on the device (no Sentry in
+the app on purpose). The optional push server (`server/`, FastAPI + Supabase + Render, Sentry when
+`SENTRY_DSN` is set) only handles reminders.
 
 ## Appearance
 
@@ -78,12 +116,19 @@ npm run check:locales  # every key exists in both en and it
 npm run build          # static site in dist/
 ```
 
-No environment variables are needed.
+Build variables, committed in `.env` (not secrets; `.env.example` lists them too):
+`VITE_KEY_PREFIX`, the prefix of every key stored on the phone (`diario-fitness`; the preview build
+uses `diario-fitness-prova`), and `VITE_PUSH_SERVER`, the push server's address to prefill in
+Settings (empty = typed in the app). The push server's own variables are in `server/.env.example`.
 
 ## Deploy
 
 Every push to `main` runs `.github/workflows/deploy.yml`: locale check, tests, `npm audit`, build,
-then publishes `dist/` to GitHub Pages. One-time setup in the repository:
+then publishes `dist/` to GitHub Pages. When the `prova` branch exists, the same run also builds
+it into `dist/prova/` with `VITE_KEY_PREFIX=diario-fitness-prova`: a preview at
+`…/diario-fitness/prova/` with its own data, service worker and cache, so trying it never touches
+the real diary (the main service worker ignores `/prova/`). A push to `prova` runs
+`.github/workflows/preview.yml`, which re-runs the deploy on `main`. One-time setup in the repository:
 **Settings → Pages → Source: GitHub Actions**.
 
 The site is public but contains no personal data and no training content. Profile, training
@@ -93,11 +138,14 @@ app opens empty and is filled by importing a backup file. Backup files are git-i
 ## Data and backups
 
 - Backup file: `{ app: "diario-fitness", exportedAt, data }`, where `data` is the whole document:
-  `version` (4), `profile` (targets, weekly-advice `rules`, `zone2` heart-rate band), `programs`
+  `version` (5), `profile` (targets, weekly-advice `rules`), `programs`
   (each with `sessions[].exercises[]`, `week`, `notes`, `volume`), `activeProgram`, `diets` and
-  `activeDiet` (shape below), `plan` (`sections[]`, `yoga`), `history[]`, `archive[]`
-  (`{ at, kind: "plan" | "profile" | "program" | "diet", id?, data }`), `prefs` (`lang`), `meta`,
-  and the logs `days`, `workouts`, `runs`, `yoga`, `weeks`, `months`, `moves`.
+  `activeDiet` (shape below), `plan` (`sections[]`), `game` (`startDate`, `routine`, `seen`), `history[]`, `archive[]`
+  (`{ at, kind: "plan" | "profile" | "program" | "diet" | "routine", id?, data }`), `prefs` (`lang`, `bg`, `accent`, `style`), `meta`,
+  and the logs `days`, `workouts`, `weeks`, `months`, `moves`, `questDays`.
+  v5 (Nov 2026) removed running and yoga: `normalise` drops the `runs` and `yoga` logs, the yoga
+  routine, `zone2`, run/yoga days in program weeks, moves and archived versions. A plan file with
+  `game.routine` replaces the routine on "load plan only" (the old one is archived).
   `moves[d] = { activities: [...] }` overrides the weekly scheme on one date only. Each activity is
   moved on its own (add to the target day, swap, or replace) and any day can be changed again; a day
   whose list matches the scheme again loses its entry. Older entries may carry `activity` and `pair`

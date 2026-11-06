@@ -30,7 +30,7 @@ export default {
         float: "0 10px 30px -8px rgb(var(--shadow) / 0.35)",
       },
       fontFamily: {
-        display: ['"Barlow Condensed"', '"Arial Narrow"', "sans-serif"],
+        display: ["var(--font-display)"],
         body: ["system-ui", "-apple-system", '"Segoe UI"', "Roboto", "sans-serif"],
         mono: ["ui-monospace", '"Roboto Mono"', "Menlo", "monospace"],
       },

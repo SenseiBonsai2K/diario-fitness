@@ -1,0 +1,407 @@
+{
+  "hud": {
+    "level": "Liv. {{n}}",
+    "xp": "{{into}} / {{need}} XP",
+    "streak": "Serie di {{n}} giorni perfetti",
+    "jolly": "{{n}} jolly",
+    "open": "Apri il profilo",
+    "settings": "Impostazioni"
+  },
+  "ranks": {
+    "fantasy": {
+      "0": "Ferro",
+      "1": "Bronzo",
+      "2": "Argento",
+      "3": "Oro",
+      "4": "Platino",
+      "5": "Diamante",
+      "6": "Adamantio"
+    },
+    "system": {
+      "0": "Rango E",
+      "1": "Rango D",
+      "2": "Rango C",
+      "3": "Rango B",
+      "4": "Rango A",
+      "5": "Rango S",
+      "6": "Rango SS"
+    },
+    "cyber": {
+      "0": "Civile",
+      "1": "Runner",
+      "2": "Operativo",
+      "3": "Ghost",
+      "4": "Élite",
+      "5": "Overclock",
+      "6": "Singolarità"
+    }
+  },
+  "styles": {
+    "label": "Stile di gioco",
+    "hint": "Cambia grafica, caratteri, suoni, nomi dei ranghi e alcune parole. L'app è sempre scura; il colore principale si sceglie sotto.",
+    "fantasy": "Fantasy",
+    "system": "System",
+    "cyber": "Cyberpunk",
+    "sound": "Suoni del gioco",
+    "vibration": "Vibrazione",
+    "on": "Sì",
+    "off": "No"
+  },
+  "quest": {
+    "workout": "Allenamento",
+    "steps": "Passi",
+    "diet": "Dieta rispettata",
+    "sleep": "Sonno",
+    "weigh": "Pesata",
+    "water": "Acqua",
+    "check": "Check settimanale",
+    "backup": "Backup"
+  },
+  "hint": {
+    "workout": "{{done}}/{{total}} serie · servono tutte",
+    "steps": "{{value}} / {{target}} passi",
+    "water": "{{value}} / {{target}} L",
+    "sleep": "{{value}} / {{target}} h",
+    "weigh": "Al mattino, a digiuno",
+    "diet": "{{done}}/{{total}} alimenti spuntati",
+    "check": "Vita, aderenza e decisione della settimana",
+    "backup": "Salva il file di backup dei dati"
+  },
+  "board": {
+    "title": "Quest di oggi",
+    "titleDay": "Quest del giorno",
+    "count": "{{done}}/{{total}} obbligatorie",
+    "xp": "+{{xp}} XP",
+    "empty": "Nessuna quest in programma. Aggiungine dalla routine.",
+    "routine": "Routine",
+    "changed": "Quest cambiate solo per questo giorno.",
+    "restore": "Ripristina",
+    "bonus": "Bonus",
+    "late": "In ritardo: metà XP",
+    "deadline": "Entro le {{time}}",
+    "missed": "Mancata −{{xp}} XP",
+    "saved": "Giornata salvata da un jolly: niente penalità.",
+    "start": "Inizia",
+    "resume": "Riprendi",
+    "openLog": "Apri",
+    "goMenu": "Vai al menu",
+    "goCheck": "Apri il check",
+    "goBackup": "Fai il backup",
+    "complete": "Completata",
+    "perfect": "Giornata perfetta!",
+    "stepsBonus": "con bonus passi",
+    "open": "Aperta fino a mezzanotte",
+    "worth": "{{xp}} XP",
+    "partial": "Parziale"
+  },
+  "profile": {
+    "title": "Profilo",
+    "total": "XP totali",
+    "toNext": "{{xp}} XP al livello {{n}}",
+    "rank": "Rango",
+    "rankDown": "Abbassato dalla costanza dei 30 giorni (senza calo sarebbe {{rank}})",
+    "streak": "Serie attuale",
+    "best": "Record",
+    "days_one": "{{count}} giorno",
+    "days_other": "{{count}} giorni",
+    "jolly": "Jolly",
+    "jollyHint": "1 ogni {{every}} giorni perfetti di fila, massimo {{max}}. Si usa da solo nel primo giorno mancato: salva la serie e annulla la penalità.",
+    "constancy": "Costanza",
+    "week": "Settimana",
+    "month": "30 giorni",
+    "all": "Da sempre",
+    "perQuest": "Per quest",
+    "none": "—",
+    "last7": "Ultimi 7 giorni",
+    "since": "In gioco dal {{date}}",
+    "ranks": "Ranghi",
+    "fromLevel": "dal livello {{n}}",
+    "rules": "Regole",
+    "rule1": "Quest obbligatoria mancata: perdi metà dei suoi XP (puoi scendere di livello).",
+    "rule2": "Quest bonus: dà XP, saltarla non costa niente.",
+    "rule3": "Dopo la scadenza oraria: metà XP.",
+    "rule4": "Sotto il 70% di costanza in 30 giorni il rango scende di uno, sotto il 50% di due.",
+    "editRoutine": "Modifica la routine",
+    "rule5": "Quest settimanali, mensili e boss danno XP e non costano niente se mancate."
+  },
+  "routine": {
+    "title": "Routine settimanale",
+    "close": "Chiudi",
+    "default": "Schema di default",
+    "week": "Settimana",
+    "defaultLead": "Lo schema che vale ogni settimana. Gli allenamenti modificano la settimana della scheda attiva.",
+    "weekLead": "Cambia solo i giorni di questa settimana: lo schema di default resta com'è.",
+    "workout": "Allenamento",
+    "rest": "Riposo",
+    "quests": "Quest",
+    "copyAll": "Copia queste quest su tutti i giorni",
+    "copied": "Copiate su tutti i giorni.",
+    "changed": "cambiato",
+    "restoreDay": "Ripristina giorno",
+    "restoreWeek": "Ripristina settimana",
+    "noProgram": "Nessuna scheda attiva: carica il piano per scegliere gli allenamenti.",
+    "target": "Obiettivo",
+    "mode": "Se non arrivi all'obiettivo",
+    "threshold": "Soglia",
+    "deadline": "Scadenza",
+    "noDeadline": "Nessuna",
+    "bonus": "Quest bonus (saltarla non costa XP)",
+    "settings": "Impostazioni di {{quest}}",
+    "prevWeek": "Settimana precedente",
+    "nextWeek": "Settimana successiva",
+    "thisWeek": "Questa settimana",
+    "xp": "{{xp}} XP",
+    "questCount_one": "{{count}} quest",
+    "questCount_other": "{{count}} quest"
+  },
+  "modes": {
+    "all": "Tutto o niente",
+    "prop": "XP in proporzione",
+    "threshold": "Metà XP sopra la soglia"
+  },
+  "levelUp": {
+    "up": "Livello {{n}}!",
+    "down": "Sei sceso al livello {{n}}",
+    "tierUp": "Nuovo rango: {{rank}}",
+    "tierDown": "Rango sceso: {{rank}}",
+    "upLead": "Continua così.",
+    "downLead": "Le quest mancate costano XP. Riparti da oggi.",
+    "ok": "Continua"
+  },
+  "unit": {
+    "steps": "passi",
+    "h": "h",
+    "L": "L"
+  },
+  "words": {
+    "fantasy": {
+      "quests": "Imprese di oggi",
+      "perfect": "Giornata leggendaria!",
+      "questDone": "Impresa compiuta",
+      "levelUp": "Livello {{n}}!",
+      "levelDown": "Sei sceso al livello {{n}}",
+      "pr": "Nuovo record",
+      "badge": "Trofeo sbloccato"
+    },
+    "system": {
+      "quests": "Missioni giornaliere",
+      "perfect": "Tutte le missioni completate",
+      "questDone": "Missione completata",
+      "levelUp": "LEVEL UP · {{n}}",
+      "levelDown": "Livello ridotto · {{n}}",
+      "pr": "Limite superato",
+      "badge": "Titolo ottenuto"
+    },
+    "cyber": {
+      "quests": "Contratti attivi",
+      "perfect": "Run perfetta",
+      "questDone": "Contratto chiuso",
+      "levelUp": "Upgrade · livello {{n}}",
+      "levelDown": "Downgrade · livello {{n}}",
+      "pr": "Nuovo record di sistema",
+      "badge": "Achievement sbloccato"
+    }
+  },
+  "toast": {
+    "xp": "+{{xp}} XP",
+    "many": "{{count}} quest completate",
+    "close": "Chiudi"
+  },
+  "badges": {
+    "firstWorkout": {
+      "name": "Primo allenamento",
+      "desc": "Completa il primo allenamento",
+      "title": "Recluta"
+    },
+    "workouts10": {
+      "name": "10 allenamenti",
+      "desc": "Completa 10 allenamenti",
+      "title": "Habitué della sala"
+    },
+    "workouts50": {
+      "name": "50 allenamenti",
+      "desc": "Completa 50 allenamenti",
+      "title": "Veterano"
+    },
+    "workouts100": {
+      "name": "100 allenamenti",
+      "desc": "Completa 100 allenamenti",
+      "title": "Centurione"
+    },
+    "streak7": {
+      "name": "Settimana di fuoco",
+      "desc": "7 giorni perfetti di fila",
+      "title": "Acceso"
+    },
+    "streak14": {
+      "name": "Due settimane",
+      "desc": "14 giorni perfetti di fila",
+      "title": "Il Costante"
+    },
+    "streak30": {
+      "name": "Un mese intero",
+      "desc": "30 giorni perfetti di fila",
+      "title": "L'Inarrestabile"
+    },
+    "streak60": {
+      "name": "Due mesi",
+      "desc": "60 giorni perfetti di fila",
+      "title": "Disciplina di ferro"
+    },
+    "streak100": {
+      "name": "Cento giorni",
+      "desc": "100 giorni perfetti di fila",
+      "title": "Leggenda vivente"
+    },
+    "level5": {
+      "name": "Livello 5",
+      "desc": "Raggiungi il livello 5",
+      "title": "Apprendista"
+    },
+    "level10": {
+      "name": "Livello 10",
+      "desc": "Raggiungi il livello 10",
+      "title": "Combattente"
+    },
+    "level20": {
+      "name": "Livello 20",
+      "desc": "Raggiungi il livello 20",
+      "title": "Campione"
+    },
+    "level30": {
+      "name": "Livello 30",
+      "desc": "Raggiungi il livello 30",
+      "title": "Maestro"
+    },
+    "level40": {
+      "name": "Livello 40",
+      "desc": "Raggiungi il livello 40",
+      "title": "Gran Maestro"
+    },
+    "level50": {
+      "name": "Livello 50",
+      "desc": "Raggiungi il livello 50",
+      "title": "Immortale"
+    },
+    "steps15k": {
+      "name": "Gran camminata",
+      "desc": "15.000 passi in un giorno",
+      "title": "Camminatore"
+    },
+    "steps20k": {
+      "name": "Maratona a piedi",
+      "desc": "20.000 passi in un giorno",
+      "title": "Viandante"
+    },
+    "weekSteps100k": {
+      "name": "100k in una settimana",
+      "desc": "100.000 passi in una settimana",
+      "title": "Esploratore"
+    },
+    "pr1": {
+      "name": "Primo record",
+      "desc": "Batti un tuo record di forza",
+      "title": "Spaccarecord"
+    },
+    "pr10": {
+      "name": "10 record",
+      "desc": "Batti 10 record di forza",
+      "title": "Forza della natura"
+    },
+    "pr25": {
+      "name": "25 record",
+      "desc": "Batti 25 record di forza",
+      "title": "Titano"
+    },
+    "perfectWeek": {
+      "name": "Settimana perfetta",
+      "desc": "7 giorni perfetti da lunedì a domenica",
+      "title": "Impeccabile"
+    },
+    "perfectWeek4": {
+      "name": "Quattro settimane perfette",
+      "desc": "4 settimane perfette",
+      "title": "Perfezionista"
+    },
+    "constancy90": {
+      "name": "Costanza 90%",
+      "desc": "90% di costanza su 30 giorni",
+      "title": "Metodico"
+    },
+    "lost2": {
+      "name": "−2 kg",
+      "desc": "Media del peso 2 kg sotto la partenza",
+      "title": "In forma"
+    },
+    "lost5": {
+      "name": "−5 kg",
+      "desc": "Media del peso 5 kg sotto la partenza",
+      "title": "Scultore"
+    },
+    "backups4": {
+      "name": "Archivista",
+      "desc": "4 backup fatti",
+      "title": "Custode dei dati"
+    },
+    "checks4": {
+      "name": "Analista",
+      "desc": "4 check settimanali compilati",
+      "title": "Stratega"
+    }
+  },
+  "extra": {
+    "week": "Quest della settimana",
+    "month": "Quest del mese",
+    "boss": "Boss e sfide",
+    "allLifts": "Tutti gli allenamenti",
+    "allLiftsHint": "{{value}}/{{target}} sedute della settimana",
+    "weekSteps": "Passi della settimana",
+    "weekStepsHint": "{{value}} / {{target}} passi",
+    "perfectWeek": "Settimana perfetta",
+    "perfectWeekHint": "{{value}}/7 giorni perfetti",
+    "perfectWeekLost": "Persa: un giorno non è stato perfetto",
+    "monthCheck": "Check mensile",
+    "monthCheckHint": "Peso, BF, misure o foto del mese in Progressi → Mese",
+    "monthConstancy": "Mese costante",
+    "monthConstancyHint": "Costanza del mese {{value}} (serve l'85%, si chiude a fine mese)",
+    "streakBoss": "Serie di {{n}} giorni",
+    "streakBossHint": "Sei a {{streak}}: altri {{left}} giorni perfetti",
+    "prBoss": "Nuovo record di forza",
+    "prBossHint": "{{xp}} XP per ogni record (massimo 3 al giorno) · {{count}} finora",
+    "earned": "Ottenuta",
+    "noLifts": "Nessuna seduta in programma",
+    "noSteps": "Nessuna quest passi questa settimana"
+  },
+  "stats": {
+    "title": "Statistiche",
+    "strength": "Forza",
+    "endurance": "Resistenza",
+    "discipline": "Disciplina",
+    "strengthHint": "{{lifts}} allenamenti · {{prs}} record",
+    "enduranceHint": "{{steps}} passi in totale",
+    "disciplineHint": "{{perfect}} giorni perfetti · {{diet}} giorni di dieta"
+  },
+  "achievements": {
+    "title": "Trofei",
+    "count": "{{done}}/{{total}} sbloccati",
+    "locked": "Da sbloccare",
+    "titleLabel": "Titolo",
+    "noTitle": "Nessun titolo",
+    "titleHint": "Ogni trofeo sblocca un titolo da mostrare sotto il rango."
+  },
+  "events": {
+    "allLifts": "Tutti gli allenamenti della settimana",
+    "weekSteps": "Passi della settimana",
+    "perfectWeek": "Settimana perfetta",
+    "monthCheck": "Check mensile",
+    "monthConstancy": "Mese costante",
+    "streak7": "Serie di {{n}} giorni",
+    "streak30": "Serie di {{n}} giorni",
+    "pr": "{{exercise}}: 1RM stimato {{value}} kg"
+  },
+  "records": {
+    "title": "Record recenti",
+    "line": "{{exercise}} · {{kg}} kg × {{reps}} · 1RM {{value}} kg (prima {{previous}})",
+    "empty": "Il primo record arriva quando superi una sessione precedente dello stesso esercizio."
+  }
+}

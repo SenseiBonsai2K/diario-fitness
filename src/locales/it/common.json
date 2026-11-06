@@ -1,11 +1,12 @@
 {
   "nav": {
     "label": "Sezioni principali",
-    "today": "Oggi",
+    "today": "Quest",
     "workout": "Allenamento",
     "progress": "Progressi",
     "plan": "Piano",
-    "settings": "Impostazioni"
+    "settings": "Impostazioni",
+    "profile": "Profilo"
   },
   "errors": {
     "saveFailed": "Le ultime modifiche non sono state salvate sul telefono. Libera un po' di spazio, poi fai un backup da Impostazioni."
@@ -17,8 +18,6 @@
     "backToToday": "Torna a oggi"
   },
   "activity": {
-    "run": "Corsa",
-    "yoga": "Yoga",
     "rest": "Riposo",
     "none": "Niente in programma"
   },

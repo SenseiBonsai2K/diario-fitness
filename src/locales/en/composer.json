@@ -2,7 +2,7 @@
   "pageTitle": "Edit plan · Diario Fitness",
   "back": "Diary",
   "title": "Edit plan",
-  "lead": "Change profile, program, diet, plan and yoga, check the summary and apply. Logs (weight, workouts, runs, ticks) are never touched.",
+  "lead": "Change profile, program, diet and plan, check the summary and apply. Logs (weight, workouts, ticks) are never touched.",
   "tabsLabel": "Plan sections",
   "included": "included",
   "tabs": {
@@ -64,8 +64,8 @@
       "history": "Diet updated"
     },
     "plan": {
-      "title": "Plan and yoga",
-      "text": "The plan's text sections (phases, running, rules) and the yoga routine.",
+      "title": "Plan",
+      "text": "The plan's text sections (phases, rules).",
       "history": "Plan updated"
     }
   },
@@ -82,8 +82,7 @@
     "rules": "Adjustment rules",
     "perWeek": "kg/wk",
     "rulesHint": "They drive the advice in the weekly check.",
-    "start": "Starting point",
-    "zone2": "Zone 2 (running)"
+    "start": "Starting point"
   },
   "fields": {
     "phase": "Phase",
@@ -118,9 +117,7 @@
     "title": "Title",
     "heightCm": "Height",
     "startWeight": "Starting weight",
-    "startBf": "Starting body fat",
-    "zone2Min": "Min heart rate",
-    "zone2Max": "Max heart rate"
+    "startBf": "Starting body fat"
   },
   "mode": {
     "label": "Starting point",
@@ -137,8 +134,6 @@
     "active": "Make this the active program",
     "closePrev": "End “{{name}}” the day before the start",
     "week": "Week",
-    "runNote": "Run note",
-    "yogaNote": "Yoga note",
     "addSession": "Add session",
     "session": "Session {{n}}",
     "removeSession": "Delete session",
@@ -246,19 +241,13 @@
     "historyNoTitle": "The history entry has no title.",
     "historySuggested": "No history entry: add one to find this change in the timeline.",
     "nothingIncluded": "Pick at least one section to include.",
-    "zone2": "Zone 2: both min and max heart rate are needed, with min below max.",
     "volumeRow": "Volume: “{{name}}” needs a name and a number of sets.",
     "optionNoName": "option {{n}} has no name.",
     "optionEmpty": "option “{{name}}” is empty.",
     "substitutionNoFood": "A swap has no food.",
     "substitutionNoAlt": "The swap “{{food}}” has no alternatives.",
     "sectionNoTitle": "Section {{n}} has no title.",
-    "yogaBlockNoName": "Yoga block {{n}} has no name.",
-    "poseNoId": "The pose “{{name}}” has no id.",
-    "poseIdTwice": "The id “{{id}}” is used by two poses.",
-    "poseNoName": "The pose “{{id}}” has no name.",
-    "poseRemoved": "The pose “{{id}}” is gone: past ticks stay, but it no longer shows in the routine.",
-    "planEmpty": "Plan with no sections and no yoga: the app keeps the current one."
+    "planEmpty": "Plan with no sections: the app keeps the current one."
   },
   "review": {
     "title": "Summary",
@@ -309,21 +298,8 @@
   },
   "plan": {
     "title": "Plan",
-    "lead": "The text sections you see in Plan → Plan and the yoga routine. Replaced versions go to the Archive.",
+    "lead": "The text sections you see in Plan → Plan. Replaced versions go to the Archive.",
     "sections": "Sections",
-    "yoga": "Yoga routine",
-    "addYoga": "Add the yoga routine",
-    "yogaIntro": "Introduction",
-    "poseIdsHint": "A pose's id ties it to the ticks already made on yoga days: don't change it for a pose that already exists.",
-    "block": "Block",
-    "removeBlock": "Delete block",
-    "poseId": "Id",
-    "hold": "Hold",
-    "removePose": "Delete pose",
-    "pose": "Pose",
-    "addPose": "Add pose",
-    "addBlock": "Add block",
-    "yogaWhy": "Why",
-    "removeYoga": "Remove the yoga routine"
+    "block": "Block"
   }
 }
