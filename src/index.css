@@ -49,6 +49,17 @@
   }
 }
 
+/* Rank tiers, lowest to highest (iron → adamantine in the fantasy names). */
+:root {
+  --tier-0: 150 156 166;
+  --tier-1: 196 136 82;
+  --tier-2: 196 204 214;
+  --tier-3: 232 186 64;
+  --tier-4: 110 214 206;
+  --tier-5: 120 178 255;
+  --tier-6: 196 140 255;
+}
+
 html, body, #root { height: 100%; }
 body {
   @apply bg-bg text-ink font-body antialiased;
@@ -86,6 +97,13 @@ body {
   .btn-danger { @apply btn bg-bad text-surface; }
   .num { font-variant-numeric: tabular-nums; }
 }
+
+@keyframes pop { 0% { opacity: 0; transform: scale(.85); } 60% { opacity: 1; transform: scale(1.04); } 100% { transform: none; } }
+.pop-in { animation: pop .35s ease-out both; }
+@keyframes glow { 0%, 100% { filter: drop-shadow(0 0 0 currentColor); } 50% { filter: drop-shadow(0 0 10px currentColor); } }
+.glow { animation: glow 2.4s ease-in-out infinite; }
+.xp-bar { @apply h-2.5 rounded-full bg-raised overflow-hidden; }
+.xp-bar > span { display: block; height: 100%; border-radius: 9999px; transition: width .6s ease-out; background: linear-gradient(90deg, rgb(var(--accent)), rgb(var(--tier-color, var(--accent)))); }
 
 @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 .screen-enter { animation: rise .22s ease-out both; }

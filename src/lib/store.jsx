@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { STORAGE_KEY, load, mergePlan, normalise, save } from "./storage.js";
+import { today } from "./dates.js";
 
 const StoreContext = createContext(null);
 
@@ -76,11 +77,18 @@ export function StoreProvider({ children }) {
   const setPrefs = useCallback((values) => setData((d) => ({ ...d, prefs: { ...d.prefs, ...values } })), []);
   const replaceAll = useCallback((next) => { setData(next); save(next); }, []);
   const importPlan = useCallback((incoming) => setData((d) => { const next = mergePlan(d, incoming); save(next); return next; }), []);
-  const markBackup = useCallback(() => setData((d) => ({ ...d, meta: { ...d.meta, lastBackup: new Date().toISOString() } })), []);
+  // The day's backup also completes the "backup" quest of that day.
+  const markBackup = useCallback(() => setData((d) => {
+    const t = today();
+    return { ...d, meta: { ...d.meta, lastBackup: new Date().toISOString() }, days: { ...d.days, [t]: { ...(d.days[t] || {}), backup: true } } };
+  }), []);
+  const setGame = useCallback((values) => setData((d) => ({ ...d, game: { ...d.game, ...values } })), []);
+  /** Any other change to the document: fn gets the current one and returns the next. */
+  const update = useCallback((fn) => setData((d) => fn(d)), []);
 
   const value = useMemo(
-    () => ({ data, patch, setEntries, setProfile, setPrefs, replaceAll, importPlan, markBackup, saveError }),
-    [data, patch, setEntries, setProfile, setPrefs, replaceAll, importPlan, markBackup, saveError]
+    () => ({ data, patch, setEntries, setProfile, setPrefs, setGame, update, replaceAll, importPlan, markBackup, saveError }),
+    [data, patch, setEntries, setProfile, setPrefs, setGame, update, replaceAll, importPlan, markBackup, saveError]
   );
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }

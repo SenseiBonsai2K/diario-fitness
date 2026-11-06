@@ -5,6 +5,7 @@ import progress from "./progress.json";
 import plan from "./plan.json";
 import settings from "./settings.json";
 import composer from "./composer.json";
+import game from "./game.json";
 
 
-export default { common, today, workout, progress, plan, settings, composer };
+export default { common, today, workout, progress, plan, settings, composer, game };

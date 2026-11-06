@@ -12,13 +12,16 @@ import Workout from "./screens/Workout.jsx";
 import Progress from "./screens/Progress.jsx";
 import Plan from "./screens/Plan.jsx";
 import Settings from "./screens/Settings.jsx";
+import Profile from "./screens/Profile.jsx";
+import Routine from "./screens/Routine.jsx";
+import { Hud, LevelUp } from "./components/game.jsx";
 
 const TABS = [
   { id: "today", icon: "today" },
   { id: "workout", icon: "dumbbell" },
   { id: "progress", icon: "chart" },
   { id: "plan", icon: "book" },
-  { id: "settings", icon: "settings" },
+  { id: "profile", icon: "user" },
 ];
 
 function readTab() {
@@ -45,13 +48,16 @@ export default function App() {
   const [tab, setTab] = useState(readTab);
   const [date, setDate] = useState(today);
   const [activity, setActivity] = useState(null);
+  // The routine editor opens over any tab and goes back to it when closed.
+  const [routine, setRoutine] = useState(false);
 
   useEffect(() => {
     try { sessionStorage.setItem(storeKey("tab"), tab); } catch { /* ignore */ }
     window.scrollTo(0, 0);
-  }, [tab]);
+  }, [tab, routine]);
+  const go = (next) => { setRoutine(false); setTab(next); };
 
-  const openWorkout = (d, a) => { setDate(d); setActivity(a); setTab("workout"); };
+  const openWorkout = (d, a) => { setDate(d); setActivity(a); go("workout"); };
 
   return (
     <div className="min-h-full flex flex-col">
@@ -59,12 +65,15 @@ export default function App() {
         {saveError && (
           <div role="alert" className="rounded-card border border-bad text-bad px-4 py-3 text-sm">{t("errors.saveFailed")}</div>
         )}
-        <div key={tab} className="screen-enter flex flex-col gap-4">
-        {tab === "today" && <Today date={date} setDate={setDate} openWorkout={openWorkout} goTo={setTab} />}
-        {tab === "workout" && <Workout date={date} setDate={setDate} activity={activity} setActivity={setActivity} />}
-        {tab === "progress" && <Progress />}
-        {tab === "plan" && <Plan />}
-        {tab === "settings" && <Settings />}
+        <Hud onProfile={() => go("profile")} onSettings={() => go("settings")} />
+        <div key={routine ? "routine" : tab} className="screen-enter flex flex-col gap-4">
+        {routine && <Routine onClose={() => setRoutine(false)} />}
+        {!routine && tab === "today" && <Today date={date} setDate={setDate} openWorkout={openWorkout} goTo={go} onRoutine={() => setRoutine(true)} />}
+        {!routine && tab === "workout" && <Workout date={date} setDate={setDate} activity={activity} setActivity={setActivity} />}
+        {!routine && tab === "progress" && <Progress />}
+        {!routine && tab === "plan" && <Plan />}
+        {!routine && tab === "profile" && <Profile onRoutine={() => setRoutine(true)} />}
+        {!routine && tab === "settings" && <Settings />}
         </div>
       </main>
       <nav
@@ -73,12 +82,12 @@ export default function App() {
       >
         <div className="max-w-xl mx-auto grid grid-cols-5 px-1">
           {TABS.map((x) => {
-            const active = tab === x.id;
+            const active = !routine && tab === x.id;
             return (
               <button
                 key={x.id}
                 type="button"
-                onClick={() => setTab(x.id)}
+                onClick={() => go(x.id)}
                 aria-current={active ? "page" : undefined}
                 className={`group flex flex-col items-center gap-1 pt-2 pb-2.5 text-[0.7rem] focus-visible:outline-none ${active ? "text-ink font-semibold" : "text-muted font-medium"}`}
               >
@@ -91,6 +100,7 @@ export default function App() {
           })}
         </div>
       </nav>
+      <LevelUp />
     </div>
   );
 }

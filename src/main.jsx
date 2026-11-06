@@ -7,6 +7,7 @@ import "./themes.css";
 import "./i18n.js";
 import App from "./App.jsx";
 import { StoreProvider } from "./lib/store.jsx";
+import { GameProvider } from "./components/game.jsx";
 import { TimerProvider } from "./components/RestTimer.jsx";
 import { requestPersistence } from "./lib/storage.js";
 
@@ -32,9 +33,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <Boundary>
     <StoreProvider>
-      <TimerProvider>
-        <App />
-      </TimerProvider>
+      <GameProvider>
+        <TimerProvider>
+          <App />
+        </TimerProvider>
+      </GameProvider>
     </StoreProvider>
     </Boundary>
   </React.StrictMode>

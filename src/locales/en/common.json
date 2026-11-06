@@ -1,11 +1,12 @@
 {
   "nav": {
     "label": "Main sections",
-    "today": "Today",
+    "today": "Quest",
     "workout": "Workout",
     "progress": "Progress",
     "plan": "Plan",
-    "settings": "Settings"
+    "settings": "Settings",
+    "profile": "Profile"
   },
   "errors": {
     "saveFailed": "Your last changes could not be saved on this phone. Free up some storage, then make a backup from Settings."
@@ -17,8 +18,6 @@
     "backToToday": "Back to today"
   },
   "activity": {
-    "run": "Run",
-    "yoga": "Yoga",
     "rest": "Rest",
     "none": "Nothing planned"
   },

@@ -1,3 +1,4 @@
+import { DEFAULT_STYLE, STYLES } from "../lib/game.js";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, Grid, Icon, NumField, Segmented } from "../components/ui.jsx";
@@ -23,6 +24,7 @@ export default function Settings() {
       <AutoCopies />
       <Profile />
       <TimerSettings />
+      <GameStyle />
       <Appearance />
       <Language />
       <Install />
@@ -80,6 +82,18 @@ function TimerSettings() {
 }
 
 /** Neutral background and accent colour, picked separately; every combination keeps AA contrast. */
+function GameStyle() {
+  const { t } = useTranslation("game");
+  const { data, setPrefs } = useStore();
+  const style = STYLES.includes(data.prefs.style) ? data.prefs.style : DEFAULT_STYLE;
+  return (
+    <Card title={t("styles.label")}>
+      <Segmented clearable={false} value={style} onChange={(v) => setPrefs({ style: v })} options={STYLES.map((id) => ({ value: id, label: t(`styles.${id}`) }))} />
+      <p className="text-xs text-muted">{t("styles.hint")}</p>
+    </Card>
+  );
+}
+
 function Appearance() {
   const { t } = useTranslation("settings");
   const { data, setPrefs } = useStore();

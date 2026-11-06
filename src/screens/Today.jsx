@@ -1,11 +1,13 @@
 import { storeKey } from "../lib/ns.js";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Card, Grid, Icon, Meter, NumField, Ring, Segmented, Stepper, TextField } from "../components/ui.jsx";
-import { activeProgram, activityLabel, addEntry, findSession, moveEntries, plannedListOn, removeEntry, sessionMinutes, sessionsOf, undoEntries } from "../lib/program.js";
+import { Card, Grid, Icon, Meter, NumField, Segmented, Stat, Stepper, TextField } from "../components/ui.jsx";
+import QuestBoard from "../components/QuestBoard.jsx";
+import { evaluateDay, routineQuestsOn } from "../lib/game.js";
+import { activeProgram, activityLabel, addEntry, findSession, moveEntries, plannedListOn, removeEntry, sessionsOf, undoEntries } from "../lib/program.js";
 import { hasPlan } from "../lib/storage.js";
 import { addDays, fmtDate, iso, mondayOf, parseIso, today, weekDays } from "../lib/dates.js";
-import { num, rangeAvg, sessionLog } from "../lib/stats.js";
+import { num, rangeAvg } from "../lib/stats.js";
 import { dietDayIdOn, dietDayOn, menuChanged, menuEntries } from "../lib/diet.js";
 import { useStore } from "../lib/store.jsx";
 
@@ -36,26 +38,12 @@ export function DateStepper({ date, setDate }) {
 /** Short tag for an activity in the week strip: session initials or an icon. */
 function activityTag(data, id) {
   if (!id || id === "rest") return { icon: "rest" };
-  if (id === "run") return { icon: "run" };
-  if (id === "yoga") return { icon: "yoga" };
   const name = findSession(data, id)?.session.name || id;
   const words = name.split(/\s+/).filter(Boolean);
   return { text: words.length > 1 ? words.map((w) => w[0]).join("").slice(0, 2).toUpperCase() : name.slice(0, 2).toUpperCase() };
 }
 
-/** Completed sets of one session on one day (any session of the day, first or added). */
-function setsDone(data, d, sessionId) {
-  const l = sessionLog(data.workouts[d], sessionId);
-  return l ? Object.values(l.sets).reduce((a, rows) => a + rows.filter((r) => r.done).length, 0) : 0;
-}
-
-function isDone(data, d, planned) {
-  if (planned === "run") return !!num(data.runs[d]?.km);
-  if (planned === "yoga") return !!data.yoga[d]?.done;
-  return setsDone(data, d, planned) > 0;
-}
-
-/** "Lower B + Corsa": every activity of a day in one label. */
+/** "Upper A + Lower B": every activity of a day in one label. */
 function listLabel(data, list, t) {
   return list.length ? list.map((a) => activityLabel(data, a, t)).join(" + ") : activityLabel(data, null, t);
 }
@@ -77,7 +65,7 @@ function WeekStrip({ date, setDate }) {
         const acts = realList(list);
         const moved = !!data.moves?.[d];
         const tag = activityTag(data, list[0]);
-        const done = acts.length > 0 && acts.every((a) => isDone(data, d, a));
+        const done = d <= now && evaluateDay(data, d, d < now).perfect;
         const sel = d === date;
         return (
           <button
@@ -328,63 +316,23 @@ function MoveDay({ date, list, onClose }) {
   );
 }
 
-/** Add one more activity to a day: a second lifting session, a run on a lifting day, yoga. */
+/** Add one more lifting session to a day. */
 function AddSession({ date, list, onClose }) {
   const { t } = useTranslation("today");
   const { data, setEntries } = useStore();
-  const choices = [...sessionsOf(activeProgram(data)).map((x) => x.id), "run", "yoga"].filter((a) => !list.includes(a));
+  const choices = sessionsOf(activeProgram(data)).map((x) => x.id).filter((a) => !list.includes(a));
   return (
     <Card title={t("add.title")} aside={<button type="button" onClick={onClose} aria-label={t("move.cancel")} className="w-9 h-9 -mr-1 grid place-items-center rounded-full text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"><Icon name="close" size={18} /></button>}>
       <p className="text-sm text-muted -mt-1">{t("add.lead")}</p>
       <div className="flex flex-wrap gap-2">
         {choices.map((a) => (
           <button key={a} type="button" className="chip" onClick={() => { setEntries("moves", addEntry(data, date, a)); onClose(); }}>
-            <Icon name={a === "run" ? "run" : a === "yoga" ? "yoga" : "dumbbell"} size={16} />
+            <Icon name="dumbbell" size={16} />
             {activityLabel(data, a, t)}
           </button>
         ))}
       </div>
     </Card>
-  );
-}
-
-/** One planned activity inside the day card: name, progress and its own start button. */
-function PlannedItem({ data, date, planned, compact, openWorkout, t }) {
-  const found = planned && !["run", "yoga", "rest"].includes(planned) ? findSession(data, planned) : null;
-  const sess = found?.session;
-  const done = isDone(data, date, planned);
-  const hint = sess?.note || data.programs[data.activeProgram]?.activityNotes?.[planned] || "";
-  const plannedSets = sess ? sess.exercises.reduce((a, e) => a + e.sets, 0) : 0;
-  const doneSets = sess ? setsDone(data, date, sess.id) : 0;
-  const active = planned && planned !== "rest";
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className={`h-display ${compact ? "text-[1.6rem]" : "text-[2.1rem] mt-1.5"}`}>{activityLabel(data, planned, t)}</div>
-          {(hint || !active) && !compact && <div className="text-sm text-hero-muted mt-1">{hint || t("restDay")}</div>}
-          {sess && (
-            <div className="text-xs text-hero-muted mt-2 num">
-              {t("sessionMeta", { exercises: sess.exercises.length, sets: plannedSets, min: sessionMinutes(sess) })}
-            </div>
-          )}
-        </div>
-        {sess ? (
-          <Ring value={plannedSets ? doneSets / plannedSets : 0} size={compact ? 44 : 52} className="text-hero-accent">{doneSets >= plannedSets && plannedSets > 0 ? <Icon name="check" size={18} /> : `${doneSets}/${plannedSets}`}</Ring>
-        ) : done ? (
-          <span className="inline-flex items-center gap-1 text-hero-accent text-sm font-semibold shrink-0"><Icon name="check" size={18} />{t("done")}</span>
-        ) : active ? (
-          <span className={`${compact ? "w-11 h-11" : "w-12 h-12"} rounded-full bg-hero-ink/10 grid place-items-center text-hero-accent shrink-0`}><Icon name={planned === "run" ? "run" : planned === "yoga" ? "yoga" : "dumbbell"} size={22} /></span>
-        ) : null}
-      </div>
-      {active && (
-        <button type="button" className="inline-flex items-center justify-center gap-2 rounded-field px-4 py-3 font-semibold text-sm bg-hero-accent text-hero active:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hero-ink" onClick={() => openWorkout(date, planned)}>
-          {sess ? (doneSets >= plannedSets ? t("openLog") : doneSets > 0 ? t("resume") : t("start")) : done ? t("openLog") : t("start")}
-          {compact && <span className="font-normal opacity-80">· {activityLabel(data, planned, t)}</span>}
-          <Icon name="chevronRight" size={18} />
-        </button>
-      )}
-    </div>
   );
 }
 
@@ -403,7 +351,7 @@ function MacroRow({ label, unit, value, onChange, target, t }) {
   );
 }
 
-export default function Today({ date, setDate, openWorkout, goTo }) {
+export default function Today({ date, setDate, openWorkout, goTo, onRoutine }) {
   const { t, i18n } = useTranslation("today");
   const { data, patch, setEntries } = useStore();
   const day = data.days[date] || {};
@@ -420,6 +368,8 @@ export default function Today({ date, setDate, openWorkout, goTo }) {
   const week = weekDays(mondayOf(parseIso(date)));
   const weekChanged = week.some((d) => data.moves?.[d]);
 
+  // Fields asked by today's quests are typed in the quest list; the rest stay in the cards below.
+  const asked = new Set(routineQuestsOn(data, date).map((q) => q.type));
   const avg7 = rangeAvg(data, iso(addDays(parseIso(date), -6)), date, "peso");
   const fmt1 = (v) => v.toLocaleString(lang, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
@@ -445,33 +395,26 @@ export default function Today({ date, setDate, openWorkout, goTo }) {
           <button type="button" className="btn w-full" onClick={() => goTo("settings")}>{t("emptyPlanAction")}</button>
         </Card>
       ) : (
-        <section aria-label={t("planned")} className="rounded-card bg-hero text-hero-ink p-5 flex flex-col gap-4 shadow-float">
-          <div className="text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-hero-muted -mb-3">
-            {t("planned")}{acts.length > 1 && <span className="num"> · {t("add.count", { count: acts.length })}</span>}
-          </div>
-          {(acts.length ? acts : [list[0] ?? null]).map((a, i) => (
-            <div key={a ?? "none"} className={i > 0 ? "border-t border-hero-ink/15 pt-4" : ""}>
-              <PlannedItem data={data} date={date} planned={a} compact={acts.length > 1} openWorkout={openWorkout} t={t} />
-            </div>
-          ))}
+        <>
+          <QuestBoard
+            date={date}
+            openWorkout={openWorkout}
+            goTo={goTo}
+            onRoutine={onRoutine}
+            onMove={() => setPanel({ date, kind: "move" })}
+            onAdd={() => setPanel({ date, kind: "add" })}
+            onDiet={() => document.getElementById("menu-oggi")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+          />
           {(move || weekChanged) && (
-            <div className="flex flex-col gap-1 rounded-field bg-hero-ink/10 px-3 py-2 text-sm">
-              <span>{move ? t("move.dayChanged") : t("move.weekChanged")}</span>
+            <div className="card !flex-row flex-wrap items-center justify-between !gap-2 text-sm !py-3">
+              <span className="text-muted">{move ? t("move.dayChanged") : t("move.weekChanged")}</span>
               <div className="flex flex-wrap gap-x-4">
-                {move && <button type="button" className="font-semibold text-hero-accent py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hero-ink rounded" onClick={() => setEntries("moves", undoEntries(data, date))}>{t("move.undoDay")}</button>}
-                <button type="button" className="font-semibold text-hero-accent py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hero-ink rounded" onClick={() => setEntries("moves", undoEntries(data, week))}>{t("move.undoWeek")}</button>
+                {move && <button type="button" className="font-semibold text-accent py-1" onClick={() => setEntries("moves", undoEntries(data, date))}>{t("move.undoDay")}</button>}
+                <button type="button" className="font-semibold text-accent py-1" onClick={() => setEntries("moves", undoEntries(data, week))}>{t("move.undoWeek")}</button>
               </div>
             </div>
           )}
-          {!open && (
-            <div className="-mt-1 flex flex-wrap justify-center gap-x-4">
-              {acts.length > 0 && (
-                <button type="button" className="text-sm font-semibold text-hero-muted py-1 px-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hero-ink" onClick={() => setPanel({ date, kind: "move" })}>{t("move.open")}</button>
-              )}
-              <button type="button" className="text-sm font-semibold text-hero-muted py-1 px-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hero-ink" onClick={() => setPanel({ date, kind: "add" })}>{t("add.open")}</button>
-            </div>
-          )}
-        </section>
+        </>
       )}
 
       {open === "move" && acts.length > 0 && (
@@ -479,19 +422,23 @@ export default function Today({ date, setDate, openWorkout, goTo }) {
       )}
       {open === "add" && <AddSession date={date} list={acts} onClose={() => setPanel(null)} />}
 
-      <Card title={t("body")}>
-        <Grid>
-          <NumField
-            label={t("weight")}
-            unit="kg"
-            value={day.peso}
-            onChange={set("peso")}
-            placeholder="kg"
-            hint={avg7 !== null ? t("avg7", { value: fmt1(avg7) }) : t("weighHint")}
-          />
-          <NumField label={t("sleep")} unit={t("common:unit.hours")} value={day.sonno} onChange={set("sonno")} placeholder="7,5" />
-        </Grid>
-      </Card>
+      {(!asked.has("weigh") || !asked.has("sleep") || avg7 !== null) && (
+        <Card title={t("body")}>
+          <Grid>
+            {!asked.has("weigh") ? (
+              <NumField
+                label={t("weight")}
+                unit="kg"
+                value={day.peso}
+                onChange={set("peso")}
+                placeholder="kg"
+                hint={avg7 !== null ? t("avg7", { value: fmt1(avg7) }) : t("weighHint")}
+              />
+            ) : avg7 !== null && <Stat label={t("weight")} value={fmt1(avg7)} sub={t("avg7", { value: fmt1(avg7) })} />}
+            {!asked.has("sleep") && <NumField label={t("sleep")} unit={t("common:unit.hours")} value={day.sonno} onChange={set("sonno")} placeholder="7,5" />}
+          </Grid>
+        </Card>
+      )}
 
       <Card title={t("food")} aside={p.kcal ? <span className="text-xs text-muted num">{t("goal", { kcal: p.kcal })}</span> : null}>
         <Grid>
@@ -499,8 +446,8 @@ export default function Today({ date, setDate, openWorkout, goTo }) {
           <MacroRow t={t} label={t("protein")} unit="g" value={day.prot} onChange={set("prot")} target={p.prot} />
           <MacroRow t={t} label={t("carbs")} unit="g" value={day.carb} onChange={set("carb")} target={p.carb} />
           <MacroRow t={t} label={t("fat")} unit="g" value={day.fat} onChange={set("fat")} target={p.fat} />
-          <NumField label={t("water")} unit="L" value={day.acqua} onChange={set("acqua")} placeholder="" />
-          <NumField label={t("steps")} decimal={false} value={day.passi} onChange={set("passi")} placeholder="" />
+          {!asked.has("water") && <NumField label={t("water")} unit="L" value={day.acqua} onChange={set("acqua")} placeholder="" />}
+          {!asked.has("steps") && <NumField label={t("steps")} decimal={false} value={day.passi} onChange={set("passi")} placeholder="" />}
         </Grid>
         <Segmented
           label={t("diet")}
@@ -514,7 +461,7 @@ export default function Today({ date, setDate, openWorkout, goTo }) {
         />
       </Card>
 
-      <TodayMenu date={date} goTo={goTo} />
+      <div id="menu-oggi" className="scroll-mt-4"><TodayMenu date={date} goTo={goTo} /></div>
 
       <Card title={t("recovery")}>
         <Segmented label={t("energy")} value={day.energia} onChange={set("energia")} options={SCALE} />
