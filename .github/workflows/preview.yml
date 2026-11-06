@@ -1,0 +1,19 @@
+name: Preview pushed, rebuild the site
+
+# Pages deploys only from main: a push to the "prova" branch asks the main
+# workflow to rebuild, and that build includes the preview at /prova/.
+
+on:
+  push:
+    branches: [prova]
+
+permissions:
+  actions: write
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - run: gh workflow run deploy.yml --ref main -R "${{ github.repository }}"
+        env:
+          GH_TOKEN: ${{ github.token }}

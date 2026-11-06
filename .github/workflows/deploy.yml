@@ -1,5 +1,10 @@
 name: Build and deploy to GitHub Pages
 
+# The site is the main branch at /diario-fitness/ and, when the "prova" branch
+# exists, a preview of it at /diario-fitness/prova/ with its own storage
+# (see VITE_KEY_PREFIX), so trying the preview never touches the real data.
+# Pushing to "prova" runs preview.yml, which re-runs this workflow on main.
+
 on:
   push:
     branches: [main]
@@ -19,6 +24,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -28,6 +35,19 @@ jobs:
       - run: npm test
       - run: npm audit --omit=dev --audit-level=high
       - run: npm run build
+      - name: Build the preview (branch "prova") into dist/prova
+        run: |
+          if git ls-remote --exit-code --heads origin prova >/dev/null; then
+            git fetch --depth 1 origin prova
+            git worktree add "$RUNNER_TEMP/prova" FETCH_HEAD
+            cd "$RUNNER_TEMP/prova"
+            npm ci
+            npm run check:locales
+            npm test
+            VITE_KEY_PREFIX=diario-fitness-prova npm run build
+            node -e 'const f="dist/manifest.webmanifest",fs=require("fs"),m=JSON.parse(fs.readFileSync(f));m.name="Diario Fitness · PROVA";m.short_name="Diario PROVA";m.id="./prova";fs.writeFileSync(f,JSON.stringify(m,null,2))'
+            cp -r dist "$GITHUB_WORKSPACE/dist/prova"
+          fi
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
