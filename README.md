@@ -11,7 +11,8 @@ food or workouts.
 - **Quest** (the first tab): an always-visible bar on top (rank emblem, level, XP, streak, jolly),
   the week strip (a dot on perfect days), **today's quests** (numbers typed in a quest are a
   draft until confirmed with ✓, Enter or leaving the field, and must be in range, so a half-typed
-  "8" never completes a weigh-in) — one per planned lifting session,
+  "8" never completes a weigh-in; the same goes for weight and reps in the workout: a draft until
+  the field is left, Enter or the set's tick, which also confirms the values) — one per planned lifting session,
   then the routine's (steps, diet, sleep, weigh-in, water, weekly check, backup) — each with its
   progress, XP and the field or button that completes it; then calories and macros, today's menu
   from the diet with a tick for every food (`days[date].cibi`), energy, hunger, notes.

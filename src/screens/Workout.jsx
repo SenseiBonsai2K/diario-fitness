@@ -167,9 +167,11 @@ function ExerciseCard({ index, exercise, date, rows, onRows, onSetDone, lang }) 
     onRows(next);
   };
 
-  const toggle = (i) => {
-    const row = rows[i] || {};
-    if (row.done) return update(i, { done: false });
+  // Ticking a set confirms what is typed in it (drafts included); only then
+  // does it count for the quest, records and stats.
+  const toggle = (i, draft = {}) => {
+    const row = { ...(rows[i] || {}), ...draft };
+    if ((rows[i] || {}).done) return update(i, { ...draft, done: false });
     const ref = last?.sets[i] || last?.sets[last.sets.length - 1];
     update(i, {
       kg: row.kg !== undefined && row.kg !== "" ? row.kg : ref ? String(ref.kg) : "",
@@ -253,7 +255,7 @@ function ExerciseCard({ index, exercise, date, rows, onRows, onSetDone, lang }) 
               placeholderReps={ref ? String(num(ref.reps)) : `${exercise.reps[0]}–${exercise.reps[1]}`}
               onKg={(v) => update(i, { kg: v })}
               onReps={(v) => update(i, { reps: v })}
-              onToggle={() => toggle(i)}
+              onToggle={(draft) => toggle(i, draft)}
               extra={i >= exercise.sets}
               onRemove={() => onRows(rows.filter((_, k) => k !== i))}
             />
@@ -267,8 +269,31 @@ function ExerciseCard({ index, exercise, date, rows, onRows, onSetDone, lang }) 
   );
 }
 
+const LIMITS = { kg: [0, 500], reps: [0, 100] };
+const okValue = (v, [lo, hi]) => v === "" || (num(v) !== null && num(v) >= lo && num(v) <= hi);
+
+/**
+ * One set. Weight and reps typed here are a draft until confirmed (leaving the
+ * field, Enter, or the tick), so "1" on the way to "100" never counts as a
+ * record; values out of range are never saved.
+ */
 function Row({ n, row, placeholderKg, placeholderReps, onKg, onReps, onToggle, extra, onRemove }) {
   const { t } = useTranslation("workout");
+  const [kg, setKg] = useState(null);
+  const [reps, setReps] = useState(null);
+  const badKg = kg !== null && !okValue(kg, LIMITS.kg);
+  const badReps = reps !== null && !okValue(reps, LIMITS.reps);
+  const commitKg = () => { if (kg === null) return; if (!badKg) { if (kg !== (row.kg ?? "")) onKg(kg.trim()); setKg(null); } };
+  const commitReps = () => { if (reps === null) return; if (!badReps) { if (reps !== (row.reps ?? "")) onReps(reps.trim()); setReps(null); } };
+  const enter = (fn) => (e) => { if (e.key === "Enter") { e.preventDefault(); fn(); e.currentTarget.blur(); } };
+  const tick = () => {
+    if (badKg || badReps) return;
+    const draft = {};
+    if (kg !== null) draft.kg = kg.trim();
+    if (reps !== null) draft.reps = reps.trim();
+    setKg(null); setReps(null);
+    onToggle(draft);
+  };
   return (
     <>
       <span className="text-center text-sm text-muted num">
@@ -278,13 +303,14 @@ function Row({ n, row, placeholderKg, placeholderReps, onKg, onReps, onToggle, e
           </button>
         ) : n}
       </span>
-      <input aria-label={t("kgFor", { n })} className="input font-mono py-2 text-center" type="text" inputMode="decimal" value={row.kg ?? ""} placeholder={placeholderKg} onChange={(e) => onKg(e.target.value)} />
-      <input aria-label={t("repsFor", { n })} className="input font-mono py-2 text-center" type="text" inputMode="numeric" value={row.reps ?? ""} placeholder={placeholderReps} onChange={(e) => onReps(e.target.value)} />
+      <input aria-label={t("kgFor", { n })} aria-invalid={badKg} className={`input font-mono py-2 text-center ${badKg ? "!border-bad" : ""}`} type="text" inputMode="decimal" enterKeyHint="done" value={kg ?? row.kg ?? ""} placeholder={placeholderKg} onChange={(e) => setKg(e.target.value)} onBlur={commitKg} onKeyDown={enter(commitKg)} />
+      <input aria-label={t("repsFor", { n })} aria-invalid={badReps} className={`input font-mono py-2 text-center ${badReps ? "!border-bad" : ""}`} type="text" inputMode="numeric" enterKeyHint="done" value={reps ?? row.reps ?? ""} placeholder={placeholderReps} onChange={(e) => setReps(e.target.value)} onBlur={commitReps} onKeyDown={enter(commitReps)} />
       <button
         type="button"
         aria-pressed={!!row.done}
         aria-label={t("markSet", { n })}
-        onClick={onToggle}
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={tick}
         className={`h-11 rounded-field border grid place-items-center transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${row.done ? "bg-good border-good text-surface" : "bg-bg border-line text-muted"}`}
       >
         <Icon name="check" />
