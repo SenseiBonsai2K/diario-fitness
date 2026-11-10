@@ -9,7 +9,9 @@ quests are due/done for the next days, so reminders arrive with the app closed �
 food or workouts.
 
 - **Quest** (the first tab): an always-visible bar on top (rank emblem, level, XP, streak, jolly),
-  the week strip (a dot on perfect days), **today's quests** — one per planned lifting session,
+  the week strip (a dot on perfect days), **today's quests** (numbers typed in a quest are a
+  draft until confirmed with ✓, Enter or leaving the field, and must be in range, so a half-typed
+  "8" never completes a weigh-in) — one per planned lifting session,
   then the routine's (steps, diet, sleep, weigh-in, water, weekly check, backup) — each with its
   progress, XP and the field or button that completes it; then calories and macros, today's menu
   from the diet with a tick for every food (`days[date].cibi`), energy, hunger, notes.
@@ -29,6 +31,7 @@ food or workouts.
   required quest at 0 XP when the day closes costs half its base XP, and XP (hence levels) can go
   down, never below 0. Level n→n+1 needs 300 + 48·(n−1) XP. Seven rank tiers by level
   (1, 5, 10, 20, 30, 40, 50), one tier lower under 70% constancy over 30 days, two under 50%.
+  Weight trophies need at least 3 plausible weigh-ins (±30% of the start) in the last 7 days.
   A jolly every 14 perfect days in a row (max 3) is spent automatically on the first missed day:
   it keeps the streak and cancels the penalty. Rank names depend on the game style
   (`prefs.style`: fantasy, system, cyber) in `src/locales/*/game.json`. A dialog announces level

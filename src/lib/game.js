@@ -477,10 +477,12 @@ function badges(data, s) {
   const steps = range.map((d) => stepsDone(data, d));
   const weekSteps = {};
   range.forEach((d, i) => { const m = iso(mondayOf(parseIso(d))); weekSteps[m] = (weekSteps[m] || 0) + steps[i]; });
-  const weights = range.map((d) => num(data.days?.[d]?.peso)).filter((v) => v !== null);
-  const recent = weights.slice(-7);
-  const avg7 = recent.length ? recent.reduce((a, v) => a + v, 0) / recent.length : null;
+  // Weight trophies need a real trend: at least 3 weigh-ins in the last 7 days,
+  // each plausible (within ±30% of the starting weight), averaged.
   const startW = num(data.profile?.startWeight);
+  const plausible = (v) => v !== null && (!startW || (v > startW * 0.7 && v < startW * 1.3));
+  const recent = range.slice(-7).map((d) => num(data.days?.[d]?.peso)).filter(plausible);
+  const avg7 = recent.length >= 3 ? recent.reduce((a, v) => a + v, 0) / recent.length : null;
   const c = {
     lifts: s.stats.strength.lifts,
     best: s.best,

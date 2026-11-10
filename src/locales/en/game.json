@@ -97,7 +97,10 @@
     "status_done": "Complete",
     "status_failed": "Failed",
     "status_active": "Active",
-    "reward": "Reward"
+    "reward": "Reward",
+    "confirm": "Confirm {{what}}",
+    "outOfRange": "Out of range ({{lo}}–{{hi}})",
+    "toConfirm": "Tap ✓ to save"
   },
   "profile": {
     "title": "Profile",

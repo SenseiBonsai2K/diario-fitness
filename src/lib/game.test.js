@@ -194,3 +194,21 @@ describe("start", () => {
     expect(gameState(d, "2026-11-09").notStarted).toBeUndefined();
   });
 });
+
+describe("weight trophies", () => {
+  it("need 3 plausible weigh-ins in the last 7 days, never a typo like 8 kg", () => {
+    const d = sample();
+    d.profile.startWeight = 83;
+    d.days["2026-11-09"] = { peso: "8" };
+    let s = gameState(d, "2026-11-12");
+    expect(s.badges.find((b) => b.id === "lost5").unlocked).toBe(false);
+    d.days["2026-11-10"] = { peso: "80,5" };
+    d.days["2026-11-11"] = { peso: "80,7" };
+    s = gameState(d, "2026-11-12");
+    expect(s.badges.find((b) => b.id === "lost2").unlocked).toBe(false); // only 2 plausible
+    d.days["2026-11-12"] = { peso: "80,6" };
+    s = gameState(d, "2026-11-12");
+    expect(s.badges.find((b) => b.id === "lost2").unlocked).toBe(true);
+    expect(s.badges.find((b) => b.id === "lost5").unlocked).toBe(false);
+  });
+});

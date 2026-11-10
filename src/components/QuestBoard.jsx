@@ -5,26 +5,65 @@ import { useStore } from "../lib/store.jsx";
 import { QUEST_TYPES, evaluateDay, periodProgress, questsChanged } from "../lib/game.js";
 import { activityLabel, findSession } from "../lib/program.js";
 import { today } from "../lib/dates.js";
+import { num } from "../lib/stats.js";
 import { CountUp, useGame, useStyle } from "./game.jsx";
 
 const FIELD = { steps: "passi", water: "acqua", sleep: "sonno", weigh: "peso" };
 
-/** Compact number input inside a quest row. */
-function QuestInput({ label, unit, value, onChange, decimal = true }) {
+/** Accepted ranges: a value outside is a typo, never saved. */
+const RANGE = { passi: [0, 100000], acqua: [0, 10], sonno: [0, 16], peso: [30, 250] };
+
+/**
+ * Number input inside a quest row. What is typed stays a draft until it is
+ * confirmed (the ✓ button, Enter, or leaving the field): only then is it saved,
+ * so "8" on the way to "82,4" never completes the quest or unlocks anything.
+ */
+function QuestInput({ label, unit, value, onChange, field, decimal = true }) {
+  const { t } = useTranslation("game");
   const id = useId();
+  const [draft, setDraft] = useState(null);
+  const shown = draft ?? (value ?? "");
+  const n = num(draft);
+  const [lo, hi] = RANGE[field] || [0, Infinity];
+  const dirty = draft !== null && draft !== (value ?? "");
+  const valid = draft === "" || (n !== null && n >= lo && n <= hi);
+  const commit = () => {
+    if (!dirty) { setDraft(null); return; }
+    if (!valid) return;
+    onChange(draft.trim());
+    setDraft(null);
+  };
   return (
-    <span className="flex items-center gap-1.5 shrink-0">
-      <label htmlFor={id} className="sr-only">{label}</label>
-      <input
-        id={id}
-        className="input font-mono !w-[5.5rem] !py-1.5 text-right"
-        type="text"
-        inputMode={decimal ? "decimal" : "numeric"}
-        autoComplete="off"
-        value={value ?? ""}
-        onChange={(e) => onChange(e.target.value)}
-      />
-      {unit && <span className="text-xs text-muted font-mono w-6">{unit}</span>}
+    <span className="flex flex-col items-end gap-1 shrink-0">
+      <span className="flex items-center gap-1.5">
+        <label htmlFor={id} className="sr-only">{label}</label>
+        <input
+          id={id}
+          className={`input font-mono !w-[5.5rem] !py-1.5 text-right ${dirty && !valid ? "!border-bad" : ""}`}
+          type="text"
+          inputMode={decimal ? "decimal" : "numeric"}
+          enterKeyHint="done"
+          autoComplete="off"
+          value={shown}
+          aria-invalid={dirty && !valid}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); commit(); e.currentTarget.blur(); } if (e.key === "Escape") setDraft(null); }}
+          onBlur={commit}
+        />
+        {unit && <span className="text-xs text-muted font-mono w-6">{unit}</span>}
+        <button
+          type="button"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={commit}
+          disabled={!dirty || !valid}
+          aria-label={t("board.confirm", { what: label })}
+          className={`w-9 h-9 grid place-items-center rounded-full border transition-colors ${dirty && valid ? "bg-accent border-accent text-accent-ink" : "border-line text-muted opacity-40"}`}
+        >
+          <Icon name="check" size={16} />
+        </button>
+      </span>
+      {dirty && !valid && <span role="alert" className="text-[0.65rem] text-bad">{t("board.outOfRange", { lo, hi: hi === Infinity ? "—" : hi })}</span>}
+      {dirty && valid && <span className="text-[0.65rem] text-accent">{t("board.toConfirm")}</span>}
     </span>
   );
 }
@@ -92,6 +131,7 @@ function QuestRow({ r, date, closed, saved, actions }) {
           {actions}
           {field && (
             <QuestInput
+              field={field}
               label={name}
               unit={q.type === "steps" ? "" : q.type === "weigh" ? "kg" : t(`unit.${meta.unit}`)}
               decimal={q.type !== "steps"}
